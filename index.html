@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus Machinery Solutions | Expert Industrial Machine Repair</title>
+    <meta name="description" content="Nexus Machinery Solutions provides expert industrial machinery repair and service to maximize productivity and minimize downtime.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&display=swap" rel="stylesheet">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles.css">
+    <!-- Custom JS -->
+    <script src="script.js" defer></script>
+</head>
+<body>
+    <!-- Global Sticky Header -->
+    <nav id="global-header">
+        <div class="header-container">
+            <div class="logo">NEXUS MACHINERY SOLUTIONS</div>
+            <div class="header-right">
+                <a href="tel:9109190790" class="header-phone">9109190790</a>
+                <button class="hamburger" aria-label="Toggle Menu" onclick="toggleGlobalMenu()">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Fullscreen Menu Overlay -->
+    <div id="global-menu-overlay">
+        <ul class="menu-links">
+            <li><a href="#" onclick="toggleGlobalMenu()">Home</a></li>
+            <li><a href="#core-services" onclick="toggleGlobalMenu()">Core Machine Services</a></li>
+            <li><a href="#component-services" onclick="toggleGlobalMenu()">Component & Automation</a></li>
+            <li><a href="#" onclick="toggleGlobalMenu(); openWaWizard(event)">Emergency Repair</a></li>
+        </ul>
+    </div>
+
+    <!-- Dynamic Product Showcase Hero -->
+    <section id="product-showcase">
+        <div class="showcase-bg-diagonal"></div>
+        <div class="showcase-content container">
+            <div class="showcase-image-container">
+                <img id="showcase-img" src="Images/CNC.png" alt="Featured Machine" class="showcase-element active">
+            </div>
+            <div class="showcase-text-container">
+                <h1 id="showcase-title" class="showcase-element active">CNC MACHINE SERVICE</h1>
+                <p id="showcase-desc" class="showcase-element active">Comprehensive diagnostic and repair services. Restoring precision and minimizing downtime for your production lines.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Existing Old Hero (now acts as About/Secondary section) -->
+    <header class="hero">
+        <!-- Floating Animated Icons -->
+        <div class="floating-icons">
+            <i class="fa-solid fa-gear icon-1"></i>
+            <i class="fa-solid fa-wrench icon-2"></i>
+            <i class="fa-solid fa-industry icon-3"></i>
+            <i class="fa-solid fa-microchip icon-4"></i>
+            <i class="fa-solid fa-cogs icon-5"></i>
+            <i class="fa-solid fa-screwdriver-wrench icon-6"></i>
+            <i class="fa-solid fa-bolt icon-7"></i>
+            <i class="fa-solid fa-robot icon-8"></i>
+        </div>
+
+        <div class="container hero-content">
+            <h1 class="headline">LET'S KEEP YOUR MACHINES RUNNING AT THEIR BEST.</h1>
+            <p class="subheadline">End-to-end machinery solutions designed to maximize your productivity and performance.</p>
+            <a href="#" onclick="openWaWizard(event)" class="cta-button primary-cta">
+                Request Emergency Repair
+            </a>
+        </div>
+    </header>
+
+    <section class="trust-signals">
+        <div class="container trust-grid">
+            <div class="trust-item">
+                <i class="fa-solid fa-user-gear"></i>
+                <span>Expert Technicians</span>
+            </div>
+            <div class="trust-item">
+                <i class="fa-solid fa-stopwatch"></i>
+                <span>Fast Response</span>
+            </div>
+            <div class="trust-item">
+                <i class="fa-solid fa-award"></i>
+                <span>Quality Service</span>
+            </div>
+            <div class="trust-item">
+                <i class="fa-solid fa-arrow-trend-up"></i>
+                <span>Maximum Uptime</span>
+            </div>
+        </div>
+    </section>
+
+    <main>
+        <section class="services container">
+            <h2 class="section-title">OUR SERVICES</h2>
+            
+            <div id="core-services" class="services-section-a">
+                <h3 class="subsection-title">Core Machine Services</h3>
+                <div class="grid-large">
+                    <div class="card-large" onclick="toggleCard(this)">
+                        <div class="card-visible">
+                            <span class="service-title">CNC Machine Service</span>
+                            <span class="hover-text">Click to know more <i class="fa-solid fa-chevron-down"></i></span>
+                        </div>
+                        <div class="card-details">
+                            <img src="Images/CNC.png" alt="CNC Machine Service">
+                            <p>Comprehensive diagnostic and repair services for all CNC machinery. We focus on restoring precision, replacing worn components, and ensuring minimal downtime for your production lines.</p>
+                        </div>
+                    </div>
+                    <div class="card-large" onclick="toggleCard(this)">
+                        <div class="card-visible">
+                            <span class="service-title">VMC Machine Service</span>
+                            <span class="hover-text">Click to know more <i class="fa-solid fa-chevron-down"></i></span>
+                        </div>
+                        <div class="card-details">
+                            <img src="Images/VMC.png" alt="VMC Machine Service">
+                            <p>Expert vertical machining center maintenance. From spindle repairs to axis alignment, we keep your VMCs operating at peak performance.</p>
+                        </div>
+                    </div>
+                    <div class="card-large" onclick="toggleCard(this)">
+                        <div class="card-visible">
+                            <span class="service-title">HMC Machine Service</span>
+                            <span class="hover-text">Click to know more <i class="fa-solid fa-chevron-down"></i></span>
+                        </div>
+                        <div class="card-details">
+                            <img src="Images/HMC.png" alt="HMC Machine Service">
+                            <p>Horizontal machining center solutions tailored for complex industrial needs. We troubleshoot mechanical and electronic issues rapidly to get you back to cutting.</p>
+                        </div>
+                    </div>
+                    <div class="card-large" onclick="toggleCard(this)">
+                        <div class="card-visible">
+                            <span class="service-title">VTL Machine Service</span>
+                            <span class="hover-text">Click to know more <i class="fa-solid fa-chevron-down"></i></span>
+                        </div>
+                        <div class="card-details">
+                            <img src="Images/VTL.png" alt="VTL Machine Service">
+                            <p>Specialized vertical turret lathe services. We handle heavy-duty turning machine repairs, ensuring stability and accuracy for massive components.</p>
+                        </div>
+                    </div>
+                    <div class="card-large" onclick="toggleCard(this)">
+                        <div class="card-visible">
+                            <span class="service-title">Double Column Machine Service</span>
+                            <span class="hover-text">Click to know more <i class="fa-solid fa-chevron-down"></i></span>
+                        </div>
+                        <div class="card-details">
+                            <img src="Images/DOUBLE%20COLUMN.png" alt="Double Column Machine Service">
+                            <p>Large-scale double column machine servicing. Our experts manage complex geometry alignments and heavy mechanics safely and efficiently.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="component-services" class="services-section-b">
+                <h3 class="subsection-title">Component & Automation Services</h3>
+                <div class="grid-tight">
+                    <div class="card-small" onclick="toggleCard(this)">
+                        <div class="card-visible">
+                            <span class="service-title">Rotary & Hydraulic Cylinder Service</span>
+                            <span class="hover-text">Click to know more <i class="fa-solid fa-chevron-down"></i></span>
+                        </div>
+                        <div class="card-details">
+                            <p>Expert servicing for rotary and hydraulic cylinders to prevent leaks and ensure smooth operation under high pressure.</p>
+                        </div>
+                    </div>
+                    <div class="card-small" onclick="toggleCard(this)">
+                        <div class="card-visible">
+                            <span class="service-title">Belt Drive & Integrated Spindle Service</span>
+                            <span class="hover-text">Click to know more <i class="fa-solid fa-chevron-down"></i></span>
+                        </div>
+                        <div class="card-details">
+                            <p>Complete spindle rebuilding, balancing, and belt drive replacements for vibration-free machining.</p>
+                        </div>
+                    </div>
+                    <div class="card-small" onclick="toggleCard(this)">
+                        <div class="card-visible">
+                            <span class="service-title">Turret & Live Turret Service</span>
+                            <span class="hover-text">Click to know more <i class="fa-solid fa-chevron-down"></i></span>
+                        </div>
+                        <div class="card-details">
+                            <p>Fast and accurate turret alignment, unjamming, and live tooling repair.</p>
+                        </div>
+                    </div>
+                    <div class="card-small" onclick="toggleCard(this)">
+                        <div class="card-visible">
+                            <span class="service-title">Angle Head & Auto Head Service</span>
+                            <span class="hover-text">Click to know more <i class="fa-solid fa-chevron-down"></i></span>
+                        </div>
+                        <div class="card-details">
+                            <p>Precision tuning and repair of angle heads and automatic milling heads.</p>
+                        </div>
+                    </div>
+                    <div class="card-small" onclick="toggleCard(this)">
+                        <div class="card-visible">
+                            <span class="service-title">ATC Service</span>
+                            <span class="hover-text">Click to know more <i class="fa-solid fa-chevron-down"></i></span>
+                        </div>
+                        <div class="card-details">
+                            <p>Automatic Tool Changer diagnostics, cam box repairs, and alignment for seamless tool swaps.</p>
+                        </div>
+                    </div>
+                    <div class="card-small" onclick="toggleCard(this)">
+                        <div class="card-visible">
+                            <span class="service-title">Machine Breakdown Solutions</span>
+                            <span class="hover-text">Click to know more <i class="fa-solid fa-chevron-down"></i></span>
+                        </div>
+                        <div class="card-details">
+                            <p>Emergency response for sudden failures. We get your machine back online quickly.</p>
+                        </div>
+                    </div>
+                    <div class="card-small" onclick="toggleCard(this)">
+                        <div class="card-visible">
+                            <span class="service-title">Automation Services</span>
+                            <span class="hover-text">Click to know more <i class="fa-solid fa-chevron-down"></i></span>
+                        </div>
+                        <div class="card-details">
+                            <p>Integration of robotic loaders, bar feeders, and custom automation to reduce manual labor.</p>
+                        </div>
+                    </div>
+                    <div class="card-small" onclick="toggleCard(this)">
+                        <div class="card-visible">
+                            <span class="service-title">Retrofitting</span>
+                            <span class="hover-text">Click to know more <i class="fa-solid fa-chevron-down"></i></span>
+                        </div>
+                        <div class="card-details">
+                            <p>Upgrade old controllers and electrical cabinets to modern standards for improved reliability and features.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container footer-content">
+            <h2 class="final-cta">ONE PARTNER. COMPLETE SOLUTIONS.</h2>
+            <div class="contact-info">
+                <div class="contact-item">
+                    <i class="fa-solid fa-phone"></i>
+                    <a href="tel:9109190790">9109190790</a>
+                </div>
+                <div class="contact-item">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <address>Balaji Complex, 4/10 Corner, Gondal Rd,<br>near ST Workshop, opposite Shah Roadways,<br>Samrat Industrial Area, Rajkot.</address>
+                    <a href="https://maps.app.goo.gl/nbuKzTUqwHznjrqx6" target="_blank" rel="noopener noreferrer" class="location-btn"><i class="fa-solid fa-map"></i> View on Google Maps</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- WhatsApp Floating Action Button -->
+    <a href="#" onclick="openWaWizard(event)" class="fab" aria-label="Contact us on WhatsApp">
+        <i class="fa-brands fa-whatsapp"></i>
+    </a>
+
+    <!-- Fullscreen WhatsApp Wizard Overlay -->
+    <div id="wa-overlay" class="wa-overlay"></div>
+    <div id="wa-wizard-content" class="wa-wizard-content">
+        <button class="wa-close-btn" onclick="closeWaWizard()"><i class="fa-solid fa-xmark"></i></button>
+        
+        <div class="wa-wizard-container">
+            <!-- Step 1 -->
+            <div id="wa-step-1" class="wa-step active">
+                <div class="wa-header">
+                    <i class="fa-brands fa-whatsapp wa-icon-large"></i>
+                    <h2>What kind of service do you require?</h2>
+                    <p>Select the machine type below:</p>
+                </div>
+                <div class="wa-options-grid">
+                    <button class="wa-option-btn" onclick="selectMachine('CNC Machine')">CNC Machine</button>
+                    <button class="wa-option-btn" onclick="selectMachine('VMC Machine')">VMC Machine</button>
+                    <button class="wa-option-btn" onclick="selectMachine('HMC Machine')">HMC Machine</button>
+                    <button class="wa-option-btn" onclick="selectMachine('VTL Machine')">VTL Machine</button>
+                    <button class="wa-option-btn" onclick="selectMachine('Double Column Machine')">Double Column</button>
+                    <button class="wa-option-btn" onclick="selectMachine('Component/Other')">Component / Other</button>
+                </div>
+                <button class="wa-skip-btn" onclick="skipWizard()">Skip & Direct Contact</button>
+            </div>
+
+            <!-- Step 2 -->
+            <div id="wa-step-2" class="wa-step">
+                <div class="wa-header">
+                    <i class="fa-solid fa-triangle-exclamation wa-icon-large" style="color: #E31828;"></i>
+                    <h2>What is the primary issue?</h2>
+                </div>
+                <div class="wa-options-grid single-col">
+                    <button class="wa-option-btn" onclick="selectService('Emergency Breakdown')">Emergency Breakdown</button>
+                    <button class="wa-option-btn" onclick="selectService('Routine Maintenance')">Routine Maintenance</button>
+                    <button class="wa-option-btn" onclick="selectService('Component Repair/Retrofit')">Component Repair / Retrofit</button>
+                </div>
+                <button class="wa-skip-btn" onclick="skipWizard()">Skip & Direct Contact</button>
+            </div>
+
+            <!-- Step 3 -->
+            <div id="wa-step-3" class="wa-step">
+                <div class="wa-header">
+                    <i class="fa-regular fa-circle-check wa-icon-large" style="color: #25D366;"></i>
+                    <h2>Perfect! We can help.</h2>
+                </div>
+                <div class="wa-final-box">
+                    <p id="wa-final-message"></p>
+                </div>
+                <a href="#" id="wa-final-btn" class="wa-chat-btn" target="_blank" rel="noopener noreferrer">
+                    <i class="fa-brands fa-whatsapp"></i> Start WhatsApp Chat
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
