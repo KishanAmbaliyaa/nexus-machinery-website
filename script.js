@@ -84,7 +84,7 @@ function selectService(serviceName) {
 function skipWizard() {
     // User chose "Direct Contact"
     const defaultText = encodeURIComponent("Hello Nexus Machinery, I have a machine breakdown and need fast service.");
-    window.open(`https://wa.me/9109190790?text=${defaultText}`, '_blank');
+    window.open(`https://wa.me/919109190790?text=${defaultText}`, '_blank');
     closeWaWizard();
 }
 
@@ -99,7 +99,7 @@ function nextStep(stepNumber) {
         
         const customText = encodeURIComponent(`Hello Nexus Machinery, I need ${wizardSelections.service} service for my ${wizardSelections.machine}. Please assist me.`);
         const finalBtn = document.getElementById('wa-final-btn');
-        finalBtn.href = `https://wa.me/9109190790?text=${customText}`;
+        finalBtn.href = `https://wa.me/919109190790?text=${customText}`;
     }
     
     document.getElementById(`wa-step-${stepNumber}`).classList.add('active');
