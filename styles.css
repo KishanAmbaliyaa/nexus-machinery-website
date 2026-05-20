@@ -18,13 +18,15 @@ html {
     scroll-behavior: smooth;
 }
 
-body {
+html, body {
     background-color: var(--bg-color);
     color: var(--text-color);
     font-family: var(--font-family);
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+    max-width: 100vw;
 }
 
 .container {
