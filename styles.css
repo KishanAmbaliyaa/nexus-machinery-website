@@ -183,8 +183,8 @@ html, body {
 
 .showcase-image-container {
     width: 100%;
-    max-width: 400px;
-    height: 350px;
+    max-width: 300px; /* Reduced for mobile */
+    height: 250px; /* Reduced for mobile */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -205,15 +205,15 @@ html, body {
 }
 
 #showcase-title {
-    font-size: 2.2rem;
+    font-size: 1.8rem; /* Reduced for mobile */
     font-weight: 900;
     color: white;
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
     text-transform: uppercase;
 }
 
 #showcase-desc {
-    font-size: 1.1rem;
+    font-size: 1rem; /* Reduced for mobile */
     color: #DDDDDD;
     line-height: 1.6;
     max-width: 500px;
@@ -247,7 +247,7 @@ html, body {
     }
 
     .showcase-content {
-        flex-direction: row-reverse;
+        flex-direction: row; /* Image on left, Text on right */
         justify-content: space-between;
         align-items: center;
         gap: 4rem;
@@ -266,15 +266,16 @@ html, body {
     .showcase-text-container {
         flex: 1;
         text-align: left;
-        padding-right: 4rem;
+        padding-left: 2rem;
+        padding-right: 0;
     }
 
     #showcase-title {
-        font-size: 4rem;
+        font-size: 3.5rem; /* slightly smaller to fit better */
     }
 
     #showcase-desc {
-        font-size: 1.3rem;
+        font-size: 1.2rem;
         margin-left: 0;
         margin-right: auto;
     }
