@@ -38,6 +38,8 @@
             <li><a href="#" onclick="toggleGlobalMenu()">Home</a></li>
             <li><a href="#core-services" onclick="toggleGlobalMenu()">Core Machine Services</a></li>
             <li><a href="#component-services" onclick="toggleGlobalMenu()">Component & Automation</a></li>
+            <li><a href="#booking-section" onclick="toggleGlobalMenu()">Book a Service</a></li>
+            <li><a href="https://[SELLING_WEBSITE_URL]/index.html">Buy/Sell Machines</a></li>
             <li><a href="#" onclick="toggleGlobalMenu(); openWaWizard(event)">Emergency Repair</a></li>
         </ul>
     </div>
@@ -238,6 +240,105 @@
                 </div>
             </div>
         </section>
+
+        <!-- Booking System Section -->
+        <section id="booking-section" class="booking-container container">
+            <h2 class="section-title">BOOK A SERVICE</h2>
+            <div class="booking-form-wrapper">
+                <form id="service-booking-form" onsubmit="handleBookingSubmit(event)">
+                    <div class="form-grid">
+                        <!-- Machine Type -->
+                        <div class="form-group">
+                            <label for="machine-type">Machine Type <span class="required">*</span></label>
+                            <select id="machine-type" required>
+                                <option value="" disabled selected>Select Machine Type</option>
+                                <option value="CNC Machine">CNC Machine</option>
+                                <option value="VMC Machine">VMC Machine</option>
+                                <option value="HMC Machine">HMC Machine</option>
+                                <option value="VTL Machine">VTL Machine</option>
+                                <option value="Double Column">Double Column Machine</option>
+                                <option value="Component/Other">Component / Other</option>
+                            </select>
+                        </div>
+
+                        <!-- Service Type -->
+                        <div class="form-group">
+                            <label for="service-type">Service Required <span class="required">*</span></label>
+                            <select id="service-type" required>
+                                <option value="" disabled selected>Select Service Type</option>
+                                <option value="Routine Maintenance">Routine Maintenance</option>
+                                <option value="Emergency Breakdown">Emergency Breakdown</option>
+                                <option value="Component Repair/Retrofit">Component Repair / Retrofit</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Preferred Date -->
+                        <div class="form-group">
+                            <label for="booking-date">Preferred Date <span class="required">*</span></label>
+                            <input type="date" id="booking-date" required>
+                        </div>
+
+                        <!-- Preferred Time Slot -->
+                        <div class="form-group">
+                            <label for="booking-time">Preferred Time Slot <span class="required">*</span></label>
+                            <select id="booking-time" required>
+                                <option value="" disabled selected>Select Time Slot</option>
+                                <option value="09:00 AM - 12:00 PM">09:00 AM - 12:00 PM</option>
+                                <option value="12:00 PM - 03:00 PM">12:00 PM - 03:00 PM</option>
+                                <option value="03:00 PM - 06:00 PM">03:00 PM - 06:00 PM</option>
+                            </select>
+                        </div>
+
+                        <!-- Issue Description -->
+                        <div class="form-group full-width">
+                            <label for="issue-desc">Issue Description</label>
+                            <textarea id="issue-desc" rows="4" placeholder="Briefly describe the issue with the machine..."></textarea>
+                        </div>
+
+                        <!-- Customer Details Header -->
+                        <div class="form-section-header full-width">
+                            <h3>Contact Details</h3>
+                        </div>
+
+                        <!-- Name -->
+                        <div class="form-group">
+                            <label for="customer-name">Full Name <span class="required">*</span></label>
+                            <input type="text" id="customer-name" placeholder="Your Name" required>
+                        </div>
+
+                        <!-- Phone -->
+                        <div class="form-group">
+                            <label for="customer-phone">Phone Number <span class="required">*</span></label>
+                            <input type="tel" id="customer-phone" placeholder="Your Phone Number" required>
+                        </div>
+
+                        <!-- Address -->
+                        <div class="form-group full-width">
+                            <label for="customer-address">Location/Address <span class="required">*</span></label>
+                            <textarea id="customer-address" rows="2" placeholder="Where is the machine located?" required></textarea>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="cta-button primary-cta submit-btn">
+                        Confirm Booking
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- Booking Success Modal -->
+        <div id="booking-success-modal" class="modal-overlay">
+            <div class="modal-content">
+                <i class="fa-regular fa-circle-check success-icon"></i>
+                <h2>Booking Confirmed!</h2>
+                <p>Thank you for booking a service with Nexus Machinery Solutions.</p>
+                <p>Our technician will arrive at the scheduled date and time.</p>
+                <div class="booking-summary" id="booking-summary-details">
+                    <!-- Filled by JS -->
+                </div>
+                <button class="cta-button" onclick="closeBookingModal()">Done</button>
+            </div>
+        </div>
     </main>
 
     <footer class="footer">

@@ -1,0 +1,855 @@
+================================================================================
+   NEXUS MACHINERY SOLUTIONS — COMPLETE AUTOMATED ECOSYSTEM PROJECT DOCUMENT
+================================================================================
+
+Created: 21 May 2026
+Status: VISION DOCUMENT (Pre-Implementation — Awaiting final owner meeting)
+Client: Jaydeep (Owner, Nexus Machinery Solutions)
+Location: Balaji Complex, 4/10 Corner, Gondal Rd, Rajkot
+Contact: 9109190790
+
+NOTE: This is NOT the implementation plan. This document captures the full
+project vision as discussed so far. Many details are still pending
+confirmation from the owner. Once the owner meeting happens and all
+requirements are finalized, a proper implementation plan will be created.
+
+
+================================================================================
+TABLE OF CONTENTS
+================================================================================
+
+1. PROJECT OVERVIEW
+2. CURRENT STATE (What Exists Today)
+3. THE ECOSYSTEM — ALL SYSTEMS AT A GLANCE
+4. SYSTEM 1: SERVICE WEBSITE (Upgrade of Existing Website)
+5. SYSTEM 2: SELLING WEBSITE (New — Separate Folder/Site)
+6. SYSTEM 3: ADMIN PANEL (Shared Dashboard for Owner/Manager)
+7. SYSTEM 4: WORKSHOP MANAGEMENT SYSTEM (Digital Ledger)
+8. SYSTEM 5: EMPLOYEE MOBILE APPLICATION
+9. SYSTEM 6: AI VOICE AGENT (Phone Receptionist)
+10. THE CENTRAL DATABASE — "ONE DATABASE" RULE
+11. HOW ALL SYSTEMS CONNECT (Data Flow)
+12. PHASED ROLLOUT PLAN
+13. OPEN QUESTIONS (To Be Confirmed with Owner)
+14. TECHNOLOGY DECISIONS (To Be Finalized)
+
+
+================================================================================
+1. PROJECT OVERVIEW
+================================================================================
+
+Nexus Machinery Solutions is an industrial machinery repair company based in
+Rajkot, Gujarat. They service CNC, VMC, HMC, VTL, and Double Column machines.
+The owner wants to transform the business from a traditional phone-call-and-
+paper-based operation into a fully automated, paperless digital ecosystem.
+
+The vision encompasses:
+  - A customer-facing SERVICE WEBSITE with online booking
+  - A customer-facing SELLING WEBSITE for new and used machines
+  - An ADMIN PANEL for the owner/manager to control everything
+  - A WORKSHOP MANAGEMENT SYSTEM (digital ledger) for the shop floor
+  - An EMPLOYEE MOBILE APP for field technicians
+  - An AI VOICE AGENT that answers phone calls in Gujarati/Hindi/English
+
+The goal is: COMPLETELY PAPERLESS. Every transaction, every service ticket,
+every machine entry, every employee job — all tracked digitally in one
+central database.
+
+
+================================================================================
+2. CURRENT STATE (What Exists Today)
+================================================================================
+
+What we have right now:
+  - A single static HTML/CSS/JS website (index.html, styles.css, script.js)
+  - The website has:
+      * A sticky header with company name and phone number
+      * A product showcase hero section (auto-rotating CNC, VMC, HMC, VTL, 
+        Double Column machine images)
+      * A secondary hero section with floating animated icons
+      * Trust signals bar (Expert Technicians, Fast Response, Quality Service,
+        Maximum Uptime)
+      * Services section split into:
+          - Core Machine Services (CNC, VMC, HMC, VTL, Double Column)
+          - Component & Automation Services (Rotary & Hydraulic Cylinder,
+            Belt Drive & Spindle, Turret, Angle Head, ATC, Breakdown,
+            Automation, Retrofitting)
+      * A footer with phone and address
+      * A WhatsApp wizard (3-step flow: select machine → select issue →
+        opens WhatsApp chat with pre-filled message)
+      * A floating WhatsApp FAB button
+  - Machine images available: CNC.png, VMC.png, HMC.png, VTL.png,
+    DOUBLE COLUMN.png
+  - A Brochure folder (contents unknown)
+  - Design: Red (#E31828) and black color scheme with Montserrat font
+  - Deployed with GitHub Pages (has .nojekyll file)
+
+What does NOT exist yet:
+  - No database
+  - No backend/server
+  - No booking system (only WhatsApp redirect)
+  - No selling/marketplace feature
+  - No admin panel
+  - No employee app
+  - No AI agent
+  - No authentication system
+
+
+================================================================================
+3. THE ECOSYSTEM — ALL SYSTEMS AT A GLANCE
+================================================================================
+
++-------------------+     +--------------------+     +-------------------+
+|   SERVICE WEBSITE |     |  SELLING WEBSITE   |     |    ADMIN PANEL    |
+|   (Customer)      |     |  (Customer)        |     |   (Owner/Manager) |
+|                   |     |                    |     |                   |
+| - Browse services |     | - Browse new       |     | - Manage bookings |
+| - Book repair     |     |   machines         |     | - Manage products |
+|   appointment     |     | - Browse used      |     | - Manage employees|
+| - View slots      |     |   machines         |     | - View reports    |
+| - Track status    |     | - See pricing      |     | - Manage slots    |
++--------+----------+     | - See stock count  |     | - Manage inventory|
+         |                 | - Inquiry/Purchase |     | - Manage contracts|
+         |                 +--------+-----------+     +--------+----------+
+         |                          |                          |
+         +--------------------------+--------------------------+
+                                    |
+                      +-------------+-------------+
+                      |    CENTRAL DATABASE       |
+                      |    (Single Source of       |
+                      |     Truth for ALL data)    |
+                      +-------------+-------------+
+                                    |
+         +--------------------------+--------------------------+
+         |                          |                          |
++--------+----------+     +--------+-----------+     +--------+----------+
+| WORKSHOP MGMT     |     | EMPLOYEE MOBILE    |     |  AI VOICE AGENT   |
+| SYSTEM             |     | APP                |     |  (Phone)          |
+| (Manager at shop)  |     | (Field Technicians)|     |                   |
+|                    |     |                    |     | - Answers calls   |
+| - Machine entry    |     | - View open        |     | - Gujarati/Hindi/ |
+|   (incoming)       |     |   contracts        |     |   English         |
+| - Digital ledger   |     | - Accept jobs      |     | - Understands     |
+| - Track repairs    |     | - Log repairs done |     |   customer issue  |
+| - Parts used       |     | - Mark completion  |     | - Checks slots    |
+| - Customer details |     | - Use parts from   |     | - Creates booking |
+| - Billing          |     |   inventory        |     | - Logs everything |
++--------------------+     +--------------------+     +-------------------+
+
+
+================================================================================
+4. SYSTEM 1: SERVICE WEBSITE (Upgrade of Existing Website)
+================================================================================
+
+This is the EXISTING static website that needs to be upgraded. The current
+design and look-and-feel will be preserved (red and black theme, Montserrat
+font, card-based services layout).
+
+WHAT CHANGES:
+  - The WhatsApp wizard will be REPLACED or SUPPLEMENTED with a proper
+    booking system
+  - A new "Book a Service" section/page will be added
+
+BOOKING SYSTEM — HOW IT WORKS:
+
+  Step 1: Customer visits the website and goes to the services section
+  Step 2: Customer selects the type of service they need
+          (CNC, VMC, HMC, VTL, Double Column, Component, etc.)
+  Step 3: Customer fills a booking form:
+          - Name
+          - Phone number
+          - Location/Address (where the machine is)
+          - Machine type
+          - Issue description (what's wrong, what service needed)
+          - Preferred date/time (from available slots)
+  Step 4: System checks available slots from the database
+          - Slots are based on employee availability
+          - If employee is already assigned somewhere, that slot is blocked
+  Step 5: Customer selects an available slot
+  Step 6: Booking is confirmed and saved to the database as an "Open Contract"
+  Step 7: Customer gets confirmation (on-screen, maybe WhatsApp/SMS)
+
+WHAT THIS CREATES IN THE DATABASE:
+  - A new Service Ticket / Contract with status "OPEN"
+  - Customer details (name, phone, location)
+  - Machine type and issue description
+  - Scheduled date and time
+  - Assigned slot
+
+ADDITIONAL FEATURES TO CONSIDER:
+  - Booking status tracking (customer can check if technician is on the way)
+  - Automated reminders (48 hours before service via WhatsApp/SMS)
+  - Emergency booking option (priority flag)
+
+
+================================================================================
+5. SYSTEM 2: SELLING WEBSITE (New — Separate Folder/Site)
+================================================================================
+
+This is a BRAND NEW website to be built in a separate folder inside the
+project. The owner wants to sell machines — both new and used (second-hand).
+
+FOLDER STRUCTURE:
+  Nexus Machinery Solution/
+  ├── index.html (existing service website)
+  ├── styles.css
+  ├── script.js
+  ├── Images/
+  ├── Brochure/
+  └── selling-website/          <--- NEW FOLDER
+      ├── index.html
+      ├── styles.css
+      ├── script.js
+      └── images/
+
+FEATURES OF THE SELLING WEBSITE:
+
+  1. TWO CATEGORIES:
+     - New Machines: Brand new machines available for purchase
+     - Used/Second-Hand Machines: Pre-owned machines at lower prices
+
+  2. EACH PRODUCT LISTING SHOWS:
+     - Machine image(s) (multiple photos)
+     - Machine name and model
+     - Category (New / Used)
+     - Machine type (CNC, VMC, HMC, VTL, Double Column, etc.)
+     - Price (or "Contact for Price")
+     - Stock availability (how many available)
+     - Specifications/Details
+     - Condition (for used machines)
+
+  3. THE OWNER CAN:
+     (Through the Admin Panel)
+     - Add new products with images, pricing, specs
+     - Update existing products
+     - Mark machines as sold
+     - Update stock count
+     - Remove listings
+     - Change images
+
+  4. CUSTOMER CAN:
+     - Browse all machines
+     - Filter by category (New / Used)
+     - Filter by machine type
+     - View detailed product page
+     - Send inquiry (contact form or WhatsApp)
+     - See stock availability
+
+  5. DESIGN:
+     - Should match the existing service website's red-and-black theme
+     - Premium, industrial feel
+     - Product cards with hover effects
+     - Clean product detail pages
+
+
+================================================================================
+6. SYSTEM 3: ADMIN PANEL (Shared Dashboard for Owner/Manager)
+================================================================================
+
+The owner wants ONE admin panel from which he can control BOTH the service
+website and the selling website. This is the command center.
+
+WHO USES IT:
+  - Owner (Jaydeep) — full access to everything
+  - Manager — access to workshop management, may have restricted access
+
+WHAT THE ADMIN PANEL CONTROLS:
+
+  A. SERVICE MANAGEMENT:
+     - View all bookings/service tickets (Open, In Progress, Completed)
+     - Assign employees to service tickets
+     - Create/manage available time slots
+     - View employee schedules
+     - Close completed tickets
+     - View service history for any customer
+
+  B. PRODUCT/SELLING MANAGEMENT:
+     - Add new machine listings (upload images, set price, specs, stock)
+     - Edit existing listings
+     - Delete/archive old listings
+     - Update stock counts
+     - Mark items as sold
+     - Manage categories (New / Used)
+
+  C. EMPLOYEE MANAGEMENT:
+     - Add/remove employees
+     - View employee profiles and skills
+     - See who is on what job
+     - Track employee performance (how many jobs completed, etc.)
+
+  D. CUSTOMER MANAGEMENT:
+     - View all customers
+     - See customer service history
+     - Contact details
+
+  E. WORKSHOP / LEDGER:
+     - View all incoming machines at the workshop
+     - Track repair progress
+     - Parts used per job
+     - Billing/invoicing
+
+  F. REPORTS & ANALYTICS (Future):
+     - Revenue tracking
+     - Most common services
+     - Employee performance
+     - Stock turnover
+
+
+================================================================================
+7. SYSTEM 4: WORKSHOP MANAGEMENT SYSTEM (Digital Ledger)
+================================================================================
+
+This is the PAPERLESS LEDGER system. Currently, the workshop uses physical
+registers (ledgers) to track everything. The owner wants to go completely
+digital.
+
+THE PROBLEM IT SOLVES:
+  The shop receives machines from other companies for repair. Right now, all
+  of this is tracked on paper — when the machine came in, what's wrong with
+  it, who fixed it, what parts were used, when it was returned. This needs
+  to be digitized.
+
+WHO USES IT:
+  - The Manager at the shop
+  - Could be a web application (desktop browser at the shop) OR a dedicated
+    Windows application — TO BE DECIDED
+
+HOW IT WORKS:
+
+  1. MACHINE ARRIVAL (Incoming Entry):
+     - A machine arrives at the shop for repair
+     - Manager opens the system and creates a new entry:
+       * Customer name and company
+       * Customer contact number
+       * Machine type and model
+       * Serial number (if applicable)
+       * Issue description (what the customer says is wrong)
+       * Date of arrival
+       * Photos of the machine (optional)
+     - This creates a new "Workshop Ticket" in the database
+
+  2. DURING REPAIR:
+     - The assigned employee works on the machine
+     - They (or the manager) log what was done:
+       * Changed oil
+       * Changed oil filter
+       * Replaced bearings
+       * Did alignment
+       * Replaced specific component (e.g., spindle, belt)
+       * Any other service performed
+     - Each action is recorded with:
+       * What was done
+       * Parts used (deducted from inventory)
+       * Time spent
+       * Employee who did it
+
+  3. COMPLETION:
+     - When repair is complete, the ticket is marked as "Completed"
+     - A summary of all work done is generated
+     - This can be used for billing
+
+  4. MACHINE PICKUP:
+     - Customer is notified that their machine is ready
+     - When they pick it up, the entry is marked as "Delivered"
+     - Final billing details are recorded
+
+  ESSENTIALLY: This is the digital equivalent of the physical ledger they
+  currently maintain. Every entry, every repair, every part used — all
+  recorded digitally and searchable.
+
+
+================================================================================
+8. SYSTEM 5: EMPLOYEE MOBILE APPLICATION
+================================================================================
+
+This is a mobile app for the field technicians (employees). When a customer
+books a service through the website (or when the AI books it), the employees
+see it on their phone and can accept and complete the job.
+
+PLATFORM: Android (primary), possibly iOS later
+TECHNOLOGY: To be decided — likely React Native (Expo) for cross-platform
+
+WHO USES IT:
+  - All field technicians/employees of Nexus Machinery Solutions
+
+FEATURES:
+
+  1. OPEN CONTRACTS / TICKET DASHBOARD:
+     - When the employee opens the app, they see a list of all "Open Contracts"
+     - These are service tickets that have been created (by website booking,
+       by AI phone booking, or by manager manually)
+     - Each ticket shows:
+       * Customer name
+       * Location/address
+       * Machine type
+       * Issue description
+       * Scheduled date and time
+       * Priority level
+
+  2. ACCEPTING A JOB:
+     - Any available employee can "Accept" an open contract
+     - Once accepted, the ticket is assigned to that employee
+     - Other employees can no longer accept it
+     - The customer gets a notification: "Your technician is on the way"
+
+  3. NAVIGATION:
+     - When the employee accepts, they can see the customer's location
+     - Ideally, a map or link to Google Maps for directions
+
+  4. SERVICE LOGGING (On-Site):
+     - When the employee arrives and performs the repair, they log everything:
+       * Select services performed from a checklist:
+         □ Changed oil
+         □ Changed oil filter
+         □ Replaced bearings
+         □ Did alignment
+         □ Replaced [component name]
+         □ Diagnostics
+         □ Calibration
+         □ Custom entry (free text)
+       * Parts used (select from inventory list — auto-deducts from stock)
+       * Photos of the work done (optional)
+       * Notes/comments
+     - All of this is pushed to the central database
+
+  5. JOB COMPLETION:
+     - Employee marks the job as "Completed"
+     - The contract/ticket is now closed in the database
+     - The database records:
+       * Which employee did the job
+       * What services were performed
+       * What parts were used
+       * Time of completion
+       * Any notes
+     - Customer gets notification that the service is complete
+
+  6. EMPLOYEE PROFILE:
+     - Employee's own job history
+     - Jobs completed today/this week/this month
+
+
+================================================================================
+9. SYSTEM 6: AI VOICE AGENT (Phone Receptionist)
+================================================================================
+
+STATUS: FUTURE PHASE — Not to be built until the database and booking system
+are solid and working.
+
+This is the most advanced feature. Instead of a human answering every phone
+call, an AI agent picks up the phone and handles the conversation.
+
+LANGUAGE SUPPORT:
+  - Gujarati (primary — local language)
+  - Hindi
+  - English
+  - The AI should offer language selection at the start, or auto-detect
+
+HOW IT WORKS — EXAMPLE CONVERSATION:
+
+  [Phone rings — AI picks up]
+
+  AI: "નમસ્તે, નેક્સસ મશીનરી સોલ્યુશન્સમાં આપનું સ્વાગત છે. હું તમારી 
+       કેવી રીતે મદદ કરી શકું?"
+      (Namaste, welcome to Nexus Machinery Solutions. How can I help you?)
+
+  Customer: "મારે એક CNC મશીન રીપેર કરાવવું છે."
+            (I need to get a CNC machine repaired.)
+
+  AI: "ચોક્કસ, CNC મશીન રીપેર. તમને કયા પ્રકારની સર્વિસ જોઈએ છે? 
+       રીપેર, કમ્પોનન્ટ ચેન્જ, કે ઈમરજન્સી બ્રેકડાઉન?"
+      (Sure, CNC machine repair. What kind of service do you need?
+       Repair, component change, or emergency breakdown?)
+
+  Customer: "મને ખબર નથી, મશીન બંધ થઈ ગયું છે."
+            (I don't know, the machine has stopped working.)
+
+  AI: "ઠીક છે, મશીન બંધ થઈ ગયું છે. હું આ નોંધ કરું છું.
+       શું આ નંબર જ તમારો છે જેના પરથી કૉલ આવ્યો છે?"
+      (OK, the machine has stopped. I'm noting this down.
+       Is this number you're calling from your contact number?)
+
+  Customer: "હા"
+
+  AI: "તમારું નામ શું છે?"
+      (What is your name?)
+
+  Customer: "રાજેશ પટેલ"
+
+  AI: "રાજેશભાઈ, તમારું સ્થાન ક્યાં છે? અમારા ટેક્નિશિયન ત્યાં આવી શકે."
+      (Rajesh bhai, what is your location? Our technician can come there.)
+
+  Customer: [Gives location]
+
+  AI: [Checks database for available slots]
+  AI: "રાજેશભાઈ, આજે સાંજે 3 વાગ્યે અમારો ટેક્નિશિયન ફ્રી છે. 
+       શું આ સમય તમને અનુકૂળ છે?"
+      (Rajesh bhai, today at 3 PM our technician is free.
+       Does this time work for you?)
+
+  Customer: "હા, ચાલશે."
+
+  AI: "ઠીક છે, તમારી બુકિંગ confirm થઈ ગઈ છે. આજે 3 PM એ અમારો 
+       ટેક્નિશિયન તમારા ત્યાં આવશે. ધન્યવાદ!"
+      (OK, your booking is confirmed. Today at 3 PM our technician
+       will come to your place. Thank you!)
+
+WHAT THE AI DOES AFTER THE CALL:
+  - Creates a new Service Ticket / Contract in the database:
+    * Customer name: Rajesh Patel
+    * Phone number: [the calling number]
+    * Location: [as given]
+    * Machine: CNC
+    * Issue: Machine stopped working (unknown cause)
+    * Scheduled: Today 3 PM
+    * Status: OPEN
+    * Source: AI Phone Agent
+  - This ticket is now visible on the Employee Mobile App
+  - An employee can accept it from their app
+  - When they accept, the customer gets a notification
+
+TECHNICAL APPROACH (When we build it):
+  - Voice Engine: APIs like Bland AI, Vapi.ai, or similar service
+  - Real-time speech-to-text and text-to-speech in Gujarati/Hindi/English
+  - Connected to the central database via webhooks or API calls
+  - The AI has a predefined script/personality but is smart enough to handle
+    unexpected questions
+  - Falls back to "Let me connect you to our team" for queries it cannot handle
+
+IMPORTANT NOTE:
+  This system REQUIRES the database, booking system, and slot management to
+  be fully working before the AI can be integrated. The AI queries the database
+  in real-time to check slot availability and creates entries.
+
+
+================================================================================
+10. THE CENTRAL DATABASE — "ONE DATABASE" RULE
+================================================================================
+
+ALL systems connect to ONE single central database. This is the backbone
+of the entire ecosystem.
+
+WHAT THE DATABASE STORES:
+
+  TABLE/COLLECTION: Customers
+  - Customer ID
+  - Name
+  - Phone number
+  - Email (optional)
+  - Address/Location
+  - Company name (if applicable)
+  - Service history (linked tickets)
+
+  TABLE/COLLECTION: Employees
+  - Employee ID
+  - Name
+  - Phone number
+  - Skills/specializations
+  - Current status (Available / On Job / Off Duty)
+  - Job history
+
+  TABLE/COLLECTION: Service Tickets (Contracts)
+  - Ticket ID
+  - Customer (linked)
+  - Machine type
+  - Issue description
+  - Service type (Repair / Maintenance / Component Change / Breakdown)
+  - Status (Open / Accepted / In Progress / Completed / Cancelled)
+  - Priority level
+  - Scheduled date and time
+  - Assigned employee (linked)
+  - Location
+  - Source (Website Booking / AI Phone / Manual / Walk-in)
+  - Services performed (list)
+  - Parts used (linked to inventory)
+  - Notes
+  - Created at
+  - Completed at
+
+  TABLE/COLLECTION: Products (Selling)
+  - Product ID
+  - Name and model
+  - Machine type (CNC, VMC, HMC, VTL, Double Column, etc.)
+  - Category (New / Used)
+  - Price
+  - Stock count
+  - Images (multiple)
+  - Specifications
+  - Condition (for used machines)
+  - Status (Available / Sold / Reserved)
+
+  TABLE/COLLECTION: Inventory (Spare Parts)
+  - Part ID
+  - Part name
+  - Part number
+  - Quantity in stock
+  - Supplier details
+  - Price
+  - Linked to which machine types
+
+  TABLE/COLLECTION: Time Slots
+  - Date
+  - Time slots with availability status
+  - Linked to employee schedules
+  - Blocked slots
+
+  TABLE/COLLECTION: Workshop Entries (Digital Ledger)
+  - Entry ID
+  - Customer details
+  - Machine details
+  - Date of arrival
+  - Assigned employee
+  - Repairs performed (list)
+  - Parts used (linked)
+  - Status (Received / In Repair / Completed / Delivered)
+  - Billing details
+  - Date of delivery
+
+DATABASE TECHNOLOGY OPTIONS (To Be Decided):
+  Option A: PostgreSQL (hosted on Railway or Render)
+            + Node.js/TypeScript backend
+            - Best for: Complex queries, reporting, relational data
+            - Pros: Robust, industry standard, great for structured data
+            - Cons: Requires backend setup, more initial work
+
+  Option B: Firebase (Firestore + Authentication + Cloud Functions)
+            - Best for: Fast setup, real-time syncing, mobile app integration
+            - Pros: No server management, real-time updates, built-in auth
+            - Cons: Can get expensive at scale, vendor lock-in, NoSQL
+
+  Option C: Supabase (PostgreSQL + Auth + Storage + Real-time)
+            - Best for: Best of both — PostgreSQL with Firebase-like features
+            - Pros: Open source, PostgreSQL power, real-time, built-in auth
+            - Cons: Newer platform
+
+  NOTE: The owner has mentioned avoiding Supabase. Final decision pending.
+
+
+================================================================================
+11. HOW ALL SYSTEMS CONNECT (Data Flow)
+================================================================================
+
+FLOW 1: Customer Books Through Website
+  Website → Creates Service Ticket in DB → Visible on Employee App
+  → Employee Accepts → Customer gets notification → Employee goes to location
+  → Employee logs repair → Ticket closed in DB → Visible in Admin Panel
+
+FLOW 2: AI Books Through Phone Call
+  Phone Call → AI understands issue → AI checks slots in DB → AI creates
+  Service Ticket in DB → Same flow as Flow 1 after this
+
+FLOW 3: Walk-in Machine at Workshop
+  Customer brings machine → Manager creates Workshop Entry in DB
+  → Employee assigned → Employee repairs and logs work in DB
+  → Machine ready → Customer notified → Machine delivered → Entry closed
+
+FLOW 4: Customer Browses Selling Website
+  Customer visits Selling Website → Browses products (data from DB)
+  → Sends inquiry → Inquiry stored in DB → Owner sees in Admin Panel
+  → Owner contacts customer → Sale happens → Stock updated in DB
+
+FLOW 5: Owner Updates Products
+  Owner opens Admin Panel → Adds/edits product listing
+  → Uploads images, sets price, stock → Saved to DB
+  → Selling Website automatically shows updated data
+
+FLOW 6: Inventory Deduction
+  Employee uses a part during repair → Logs part in App
+  → App tells DB to reduce inventory count → If stock low, alert in
+  Admin Panel → Owner orders more parts
+
+
+================================================================================
+12. PHASED ROLLOUT PLAN
+================================================================================
+
+PHASE 1 — IMMEDIATE (Now)
+  Priority: HIGH
+  What: Upgrade the existing service website + Build the selling website
+  Details:
+    a) Add booking system to existing service website
+       - Booking form (machine type, issue, date, contact)
+       - Available slot display
+       - Booking confirmation
+    b) Create selling website in /selling-website/ folder
+       - Product listings with images, prices, stock
+       - Two categories: New and Used machines
+       - Contact/inquiry form
+    c) For the DEMO purpose, these can work with local/mock data initially
+
+PHASE 2 — BACKEND & DATABASE (Next)
+  Priority: HIGH
+  What: Set up the central database and backend API
+  Details:
+    - Choose and set up the database
+    - Build REST API / backend for all CRUD operations
+    - Connect service website booking to the database
+    - Connect selling website products to the database
+    - Set up authentication
+
+PHASE 3 — ADMIN PANEL
+  Priority: HIGH
+  What: Build the owner/manager dashboard
+  Details:
+    - Login system
+    - Manage bookings/service tickets
+    - Manage product listings (add/edit/delete)
+    - Manage employees
+    - View reports
+
+PHASE 4 — EMPLOYEE MOBILE APP
+  Priority: MEDIUM-HIGH
+  What: Build the Android app for field technicians
+  Details:
+    - Open contracts dashboard
+    - Accept/reject jobs
+    - Service logging with checklist
+    - Job completion workflow
+    - Push notifications
+
+PHASE 5 — WORKSHOP MANAGEMENT (Digital Ledger)
+  Priority: MEDIUM
+  What: Build the workshop tracking system
+  Details:
+    - Machine entry form
+    - Repair tracking
+    - Parts usage logging
+    - Billing generation
+    - Could be a module in the Admin Panel or a separate app
+
+PHASE 6 — AI VOICE AGENT
+  Priority: LOW (depends on all other systems being stable)
+  What: Build the AI phone receptionist
+  Details:
+    - Integrate voice API (Bland AI / Vapi.ai)
+    - Multi-language support (Gujarati, Hindi, English)
+    - Connect to booking system
+    - Connect to database for slot checking
+    - Fallback to human for complex queries
+
+
+================================================================================
+13. OPEN QUESTIONS (To Be Confirmed with Owner)
+================================================================================
+
+These are questions that need answers from the owner (Jaydeep) before the
+full implementation plan can be finalized:
+
+  DATABASE:
+  1. Which database technology to use? (PostgreSQL vs Firebase vs other)
+  2. Where to host the database? (Cloud provider preference?)
+  3. Budget for hosting/infrastructure?
+
+  SERVICE WEBSITE:
+  4. How are time slots structured? (Hourly? Half-day? Full-day?)
+  5. How many employees are there currently?
+  6. Can multiple employees go to one location?
+  7. What is the service area? (Only Rajkot? Gujarat-wide?)
+  8. Should customers create accounts or book as guests?
+  9. Payment integration needed? Or is payment handled separately?
+
+  SELLING WEBSITE:
+  10. How many products will be listed initially?
+  11. Is online payment needed or just inquiry?
+  12. Do they want an e-commerce style "Add to Cart" or just inquiries?
+  13. What all information do they want to show per product?
+  14. Will they provide product images or should we use stock photos?
+
+  EMPLOYEE APP:
+  15. How many employees will use the app?
+  16. Do all employees have Android phones?
+  17. Need iOS support too?
+  18. Should employees be able to see all open contracts or only ones
+      in their skill area?
+
+  WORKSHOP MANAGEMENT:
+  19. Is the workshop management for the manager only or for employees too?
+  20. Should it be a web app or a Windows desktop app?
+  21. Do they need billing/invoice generation?
+  22. How many machines come into the workshop per day/week on average?
+
+  AI VOICE AGENT:
+  23. What phone number will the AI be connected to?
+  24. What hours should the AI operate? 24/7 or business hours only?
+  25. Budget for the voice API service?
+  26. Should the AI handle sales inquiries too or just service bookings?
+  27. Fallback — should it transfer to a human if it can't handle?
+
+  GENERAL:
+  28. Who all will have admin access?
+  29. Different permission levels needed? (Owner vs Manager vs Employee)
+  30. Domain name for the selling website? (Same domain or different?)
+  31. Branding — same red-and-black theme for everything?
+  32. Any existing customer data to migrate?
+
+
+================================================================================
+14. TECHNOLOGY DECISIONS (To Be Finalized)
+================================================================================
+
+These are the technology choices that need to be made. Some are recommended
+but not finalized:
+
+  FRONTEND (Websites):
+  - Current: Static HTML/CSS/JS
+  - For selling website: Same approach or move to a framework?
+  - Framework options: React, Next.js, plain HTML/CSS/JS
+  - For now, keeping it simple with HTML/CSS/JS for both websites
+
+  BACKEND:
+  - Node.js with Express (or Fastify)
+  - TypeScript for type safety
+  - REST API for all data operations
+
+  DATABASE:
+  - To be decided (PostgreSQL / Firebase / other)
+
+  MOBILE APP:
+  - React Native with Expo (cross-platform Android + iOS)
+  - OR plain Android (Kotlin) if iOS is not needed
+
+  ADMIN PANEL:
+  - Could be a web app (React or plain HTML)
+  - Or could be part of the main website with admin routes
+
+  AI VOICE AGENT:
+  - Bland AI / Vapi.ai / custom solution
+  - Webhooks to connect to database
+  - Make.com or custom Node.js for orchestration
+
+  HOSTING:
+  - Websites: GitHub Pages (current) → may need to move to Vercel/Netlify
+    if backend is needed
+  - Backend: Railway / Render / DigitalOcean
+  - Database: Same platform as backend
+  - Mobile App: Google Play Store (Android), Apple App Store (iOS)
+
+  AUTHENTICATION:
+  - Firebase Auth / custom JWT / Clerk / Auth0
+  - Need auth for: Admin Panel, Employee App, possibly customer accounts
+
+  NOTIFICATIONS:
+  - WhatsApp Business API (for customer notifications)
+  - Firebase Cloud Messaging (for push notifications in the app)
+  - Email (optional)
+
+  FILE STORAGE (Images):
+  - Firebase Storage / Cloudinary / AWS S3
+  - For product images, service photos, machine photos
+
+
+================================================================================
+END OF DOCUMENT
+================================================================================
+
+This document will be updated after the next meeting with the owner
+(Jaydeep) when all remaining details are confirmed. At that point, a
+proper implementation plan with exact technical specifications, database
+schemas, API endpoints, and timeline will be created.
+
+For now, the IMMEDIATE NEXT STEPS are:
+  1. Add booking system to the existing service website
+  2. Build the selling website in /selling-website/ folder
+  3. Both can work as frontend demos initially (with mock/local data)
+  4. Show the demo to the owner for feedback
+
+================================================================================

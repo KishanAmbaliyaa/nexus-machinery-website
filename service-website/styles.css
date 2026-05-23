@@ -1074,3 +1074,200 @@ h1, h2, h3 {
         right: 20px;
     }
 }
+
+/* ============================================================
+   BOOKING SYSTEM
+============================================================ */
+.booking-container {
+    padding: 5rem 0;
+}
+
+.booking-form-wrapper {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    padding: 3rem;
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    max-width: 900px;
+    margin: 0 auto;
+    position: relative;
+    overflow: hidden;
+}
+
+.booking-form-wrapper::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background-color: var(--accent-color);
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-group.full-width {
+    grid-column: 1 / -1;
+}
+
+.form-section-header {
+    margin-top: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.form-section-header h3 {
+    color: var(--accent-color);
+    font-size: 1.3rem;
+}
+
+.form-group label {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #DDDDDD;
+}
+
+.required {
+    color: var(--accent-color);
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    padding: 1rem;
+    border-radius: 4px;
+    font-family: var(--font-family);
+    font-size: 1rem;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 10px rgba(196, 18, 33, 0.2);
+}
+
+/* Ensure dropdown options are visible */
+.form-group select option {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+}
+
+/* Change icon color in date picker for webkit */
+input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    cursor: pointer;
+}
+
+.submit-btn {
+    width: 100%;
+    margin-top: 2.5rem;
+    border: none;
+    cursor: pointer;
+}
+
+/* Booking Modal Overlay */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(5px);
+    z-index: 4000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.4s ease;
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-content {
+    background-color: var(--card-bg);
+    padding: 3rem 2rem;
+    border-radius: 12px;
+    border-top: 6px solid #25D366; /* Success green */
+    text-align: center;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+    transform: scale(0.9) translateY(20px);
+    transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.modal-overlay.active .modal-content {
+    transform: scale(1) translateY(0);
+}
+
+.success-icon {
+    font-size: 5rem;
+    color: #25D366;
+    margin-bottom: 1.5rem;
+}
+
+.modal-content h2 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+
+.modal-content p {
+    color: #CCCCCC;
+    margin-bottom: 0.5rem;
+}
+
+.booking-summary {
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin: 1.5rem 0;
+    text-align: left;
+    font-size: 0.95rem;
+    color: #EEEEEE;
+}
+
+.booking-summary p {
+    margin-bottom: 0.5rem;
+}
+
+.booking-summary strong {
+    color: var(--accent-color);
+}
+
+.modal-content .cta-button {
+    width: 100%;
+    border: none;
+    cursor: pointer;
+}
+
+@media (max-width: 768px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .booking-form-wrapper {
+        padding: 2rem 1.5rem;
+    }
+}

@@ -176,3 +176,48 @@ function rotateShowcase() {
 document.addEventListener('DOMContentLoaded', () => {
     setInterval(rotateShowcase, 3600);
 });
+
+// ============================================================
+// BOOKING SYSTEM LOGIC
+// ============================================================
+function handleBookingSubmit(event) {
+    event.preventDefault(); // Prevent page reload
+
+    // Gather form data
+    const machineType = document.getElementById('machine-type').value;
+    const serviceType = document.getElementById('service-type').value;
+    const bookingDate = document.getElementById('booking-date').value;
+    const bookingTime = document.getElementById('booking-time').value;
+    const issueDesc = document.getElementById('issue-desc').value;
+    const customerName = document.getElementById('customer-name').value;
+    const customerPhone = document.getElementById('customer-phone').value;
+    const customerAddress = document.getElementById('customer-address').value;
+
+    // Validate (basic HTML5 validation should catch empty required fields, but just in case)
+    if (!machineType || !serviceType || !bookingDate || !bookingTime || !customerName || !customerPhone || !customerAddress) {
+        alert("Please fill in all required fields.");
+        return;
+    }
+
+    // In a real app, we would send this data to a backend API/Database here.
+    // For now (Demo), we just show the success modal with the data.
+
+    const summaryDetails = `
+        <p><strong>Name:</strong> ${customerName}</p>
+        <p><strong>Machine:</strong> ${machineType}</p>
+        <p><strong>Service:</strong> ${serviceType}</p>
+        <p><strong>Date & Time:</strong> ${bookingDate} | ${bookingTime}</p>
+    `;
+
+    document.getElementById('booking-summary-details').innerHTML = summaryDetails;
+    
+    // Show Modal
+    document.getElementById('booking-success-modal').classList.add('active');
+
+    // Reset Form
+    document.getElementById('service-booking-form').reset();
+}
+
+function closeBookingModal() {
+    document.getElementById('booking-success-modal').classList.remove('active');
+}
