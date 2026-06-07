@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Nexus Machinery Solutions | Service, Sales & Automation</title>
+    <meta name="description" content="Nexus Machinery Solutions — Expert CNC, VMC, HMC, VTL machine service, new and used machine sales, and industrial automation in Rajkot. Send enquiries online.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&display=swap" rel="stylesheet">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles.css?v=3">
+    <!-- Custom JS -->
+    <script src="script.js?v=3" defer></script>
+</head>
+<body>
+    <!-- Global Sticky Header -->
+    <nav id="global-header">
+        <div class="header-container">
+            <div class="logo">NEXUS MACHINERY SOLUTIONS</div>
+            <div class="header-right">
+                <a href="tel:9109190790" class="header-phone">9109190790</a>
+                <button class="hamburger" aria-label="Toggle Menu" onclick="toggleGlobalMenu()">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Fullscreen Menu Overlay -->
+    <div id="global-menu-overlay">
+        <button class="menu-close-btn" onclick="toggleGlobalMenu()"><i class="fa-solid fa-xmark"></i></button>
+        <ul class="menu-links">
+            <li><a href="#" onclick="toggleGlobalMenu()">Home</a></li>
+            <li><a href="#enquiry-tabs" onclick="toggleGlobalMenu(); switchTab('service')">Service Enquiry</a></li>
+            <li><a href="#enquiry-tabs" onclick="toggleGlobalMenu(); switchTab('new-product')">New Machines</a></li>
+            <li><a href="#enquiry-tabs" onclick="toggleGlobalMenu(); switchTab('used-product')">Used Machines</a></li>
+            <li><a href="#enquiry-tabs" onclick="toggleGlobalMenu(); switchTab('automation')">Automation</a></li>
+            <li><a href="#core-services" onclick="toggleGlobalMenu()">Our Services</a></li>
+        </ul>
+    </div>
+
+    <!-- ============================================================
+         HERO — DYNAMIC PRODUCT SHOWCASE
+    ============================================================ -->
+    <section id="product-showcase">
+        <div class="showcase-bg-diagonal"></div>
+        <div class="showcase-content container">
+            <div class="showcase-image-container">
+                <img id="showcase-img" src="Images/CNC.png" alt="Featured Machine" class="showcase-element active">
+            </div>
+            <div class="showcase-text-container">
+                <h1 id="showcase-title" class="showcase-element active">CNC MACHINE SERVICE</h1>
+                <p id="showcase-desc" class="showcase-element active">Comprehensive diagnostic and repair services. Restoring precision and minimizing downtime for your production lines.</p>
+                <a href="#enquiry-tabs" id="showcase-cta" class="showcase-element active cta-button hero-cta">Enquire Now</a>
+            </div>
+        </div>
+        <!-- Scroll indicator -->
+        <div class="scroll-indicator">
+            <span>Scroll to enquire</span>
+            <i class="fa-solid fa-chevron-down"></i>
+        </div>
+    </section>
+
+    <!-- Trust Signals Bar -->
+    <section class="trust-signals">
+        <div class="container trust-grid">
+            <div class="trust-item">
+                <i class="fa-solid fa-user-gear"></i>
+                <span>Expert Technicians</span>
+            </div>
+            <div class="trust-item">
+                <i class="fa-solid fa-stopwatch"></i>
+                <span>Fast Response</span>
+            </div>
+            <div class="trust-item">
+                <i class="fa-solid fa-award"></i>
+                <span>Quality Service</span>
+            </div>
+            <div class="trust-item">
+                <i class="fa-solid fa-arrow-trend-up"></i>
+                <span>Maximum Uptime</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+         MAIN CONTENT
+    ============================================================ -->
+    <main>
+
+        <!-- ============================================================
+             ENQUIRY TABS SECTION
+        ============================================================ -->
+        <section id="enquiry-tabs" class="enquiry-section container">
+            <h2 class="section-title">ENQUIRE WITH US</h2>
+
+            <!-- Tab Buttons -->
+            <div class="tab-buttons" role="tablist">
+                <button class="tab-btn active" id="tab-btn-service" onclick="switchTab('service')" role="tab" aria-selected="true">
+                    <i class="fa-solid fa-screwdriver-wrench"></i>
+                    <span>Service</span>
+                </button>
+                <button class="tab-btn" id="tab-btn-new-product" onclick="switchTab('new-product')" role="tab" aria-selected="false">
+                    <i class="fa-solid fa-industry"></i>
+                    <span>New Product</span>
+                </button>
+                <button class="tab-btn" id="tab-btn-used-product" onclick="switchTab('used-product')" role="tab" aria-selected="false">
+                    <i class="fa-solid fa-recycle"></i>
+                    <span>Used Product</span>
+                </button>
+                <button class="tab-btn" id="tab-btn-automation" onclick="switchTab('automation')" role="tab" aria-selected="false">
+                    <i class="fa-solid fa-robot"></i>
+                    <span>Automation</span>
+                </button>
+                <button class="tab-btn" id="tab-btn-other" onclick="switchTab('other')" role="tab" aria-selected="false">
+                    <i class="fa-solid fa-ellipsis"></i>
+                    <span>Other</span>
+                </button>
+            </div>
+
+            <!-- ====== TAB 1: SERVICE ====== -->
+            <div class="tab-content active" id="tab-service">
+
+                <!-- Service Sub-tabs -->
+                <div class="sub-tab-buttons">
+                    <button class="sub-tab-btn active" id="sub-tab-btn-breakdown" onclick="switchSubTab('breakdown')">
+                        <i class="fa-solid fa-triangle-exclamation"></i> Breakdown Enquiry
+                    </button>
+                    <button class="sub-tab-btn" id="sub-tab-btn-part" onclick="switchSubTab('part')">
+                        <i class="fa-solid fa-gear"></i> Part Enquiry
+                    </button>
+                    <button class="sub-tab-btn" id="sub-tab-btn-service-other" onclick="switchSubTab('service-other')">
+                        <i class="fa-solid fa-ellipsis"></i> Other
+                    </button>
+                </div>
+
+                <!-- SUB-TAB: BREAKDOWN ENQUIRY -->
+                <div class="sub-tab-content active" id="sub-breakdown">
+                    <!-- Step 1: Machine Type -->
+                    <div id="breakdown-step1" class="enquiry-step active">
+                        <h3 class="step-title"><span class="step-num">1</span> Select Machine Type</h3>
+                        <div class="selection-grid machine-type-grid">
+                            <button class="selection-card" onclick="selectMachineType('Turning Machine')">
+                                <i class="fa-solid fa-rotate"></i>
+                                <span>Turning Machine</span>
+                            </button>
+                            <button class="selection-card" onclick="selectMachineType('VMC')">
+                                <i class="fa-solid fa-industry"></i>
+                                <span>VMC</span>
+                            </button>
+                            <button class="selection-card" onclick="selectMachineType('HMC')">
+                                <i class="fa-solid fa-gears"></i>
+                                <span>HMC</span>
+                            </button>
+                            <button class="selection-card" onclick="selectMachineType('VTL')">
+                                <i class="fa-solid fa-arrows-spin"></i>
+                                <span>VTL</span>
+                            </button>
+                            <button class="selection-card" onclick="selectMachineType('Double Column')">
+                                <i class="fa-solid fa-table-columns"></i>
+                                <span>Double Column</span>
+                            </button>
+                            <button class="selection-card" onclick="selectMachineType('5-Axis Machine')">
+                                <i class="fa-solid fa-cube"></i>
+                                <span>5-Axis Machine</span>
+                            </button>
+                            <button class="selection-card" onclick="selectMachineType('Other')">
+                                <i class="fa-solid fa-ellipsis"></i>
+                                <span>Other</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Support Type -->
+                    <div id="breakdown-step2" class="enquiry-step">
+                        <div class="step-back-row">
+                            <button class="back-btn" onclick="goBackToStep1()"><i class="fa-solid fa-arrow-left"></i> Back</button>
+                            <p class="selected-label">Machine: <strong id="selected-machine-display"></strong></p>
+                        </div>
+                        <h3 class="step-title"><span class="step-num">2</span> Select Support Type</h3>
+                        <div class="selection-grid support-type-grid">
+                            <button class="selection-card" onclick="selectSupportType('Electrical Support')">
+                                <i class="fa-solid fa-bolt"></i>
+                                <span>Electrical Support</span>
+                            </button>
+                            <button class="selection-card" onclick="selectSupportType('Mechanical Support')">
+                                <i class="fa-solid fa-wrench"></i>
+                                <span>Mechanical Support</span>
+                            </button>
+                            <button class="selection-card" onclick="selectSupportType('Other')">
+                                <i class="fa-solid fa-ellipsis"></i>
+                                <span>Other</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Breakdown Form -->
+                    <div id="breakdown-step3" class="enquiry-step">
+                        <div class="step-back-row">
+                            <button class="back-btn" onclick="goBackToStep2()"><i class="fa-solid fa-arrow-left"></i> Back</button>
+                            <div class="selection-badges">
+                                <span class="badge" id="badge-machine"></span>
+                                <span class="badge" id="badge-support"></span>
+                            </div>
+                        </div>
+                        <h3 class="step-title"><span class="step-num">3</span> Your Details</h3>
+                        <form class="enquiry-form" id="form-breakdown" onsubmit="submitForm(event, 'breakdown')">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="bd-name">Full Name <span class="req">*</span></label>
+                                    <input type="text" id="bd-name" placeholder="Your name" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="bd-phone">Contact Number <span class="req">*</span></label>
+                                    <input type="tel" id="bd-phone" placeholder="Your phone number" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="bd-email">Email <span class="optional">(optional)</span></label>
+                                    <input type="email" id="bd-email" placeholder="Your email">
+                                </div>
+                                <div class="form-group">
+                                    <label for="bd-location">Location / Address <span class="req">*</span></label>
+                                    <input type="text" id="bd-location" placeholder="Where is the machine?" required>
+                                </div>
+                            </div>
+                            <!-- Media capture -->
+                            <div class="form-row media-row">
+                                <div class="form-group media-group">
+                                    <label>Photo <span class="optional">(optional)</span></label>
+                                    <div class="media-capture-area">
+                                        <input type="file" id="bd-photo" accept="image/*" capture="environment" class="file-input-hidden" onchange="handlePhotoSelected(this, 'bd-photo-preview')">
+                                        <button type="button" class="media-btn" onclick="document.getElementById('bd-photo').click()">
+                                            <i class="fa-solid fa-camera"></i> Take / Upload Photo
+                                        </button>
+                                        <div class="photo-preview-area" id="bd-photo-preview"></div>
+                                    </div>
+                                </div>
+                                <div class="form-group media-group">
+                                    <label>Voice Message <span class="optional">(optional)</span></label>
+                                    <div class="media-capture-area">
+                                        <div class="voice-controls">
+                                            <button type="button" class="media-btn record-btn" id="bd-record-btn" onclick="toggleRecording('bd')">
+                                                <i class="fa-solid fa-microphone"></i> <span id="bd-record-label">Record Voice</span>
+                                            </button>
+                                            <span class="record-timer hidden" id="bd-timer">0:00</span>
+                                        </div>
+                                        <audio id="bd-audio-preview" class="audio-preview hidden" controls></audio>
+                                        <button type="button" class="clear-media-btn hidden" id="bd-clear-audio" onclick="clearAudio('bd')">
+                                            <i class="fa-solid fa-trash"></i> Remove
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="submit" class="submit-btn" id="bd-submit-btn">
+                                <i class="fa-solid fa-paper-plane"></i> Send Enquiry
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- SUB-TAB: PART ENQUIRY -->
+                <div class="sub-tab-content" id="sub-part">
+                    <div class="enquiry-step active">
+                        <h3 class="step-title">Part Enquiry</h3>
+                        <p class="step-subtitle">Tell us about the part you need — send a photo or voice note for faster assistance.</p>
+                        <form class="enquiry-form" id="form-part" onsubmit="submitForm(event, 'part')">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="pt-name">Full Name <span class="req">*</span></label>
+                                    <input type="text" id="pt-name" placeholder="Your name" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="pt-phone">Contact Number <span class="req">*</span></label>
+                                    <input type="tel" id="pt-phone" placeholder="Your phone number" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="pt-email">Email <span class="optional">(optional)</span></label>
+                                    <input type="email" id="pt-email" placeholder="Your email">
+                                </div>
+                                <div class="form-group">
+                                    <label for="pt-location">Location / Address <span class="req">*</span></label>
+                                    <input type="text" id="pt-location" placeholder="Your location" required>
+                                </div>
+                            </div>
+                            <div class="form-row media-row">
+                                <div class="form-group media-group">
+                                    <label>Photo of Part <span class="optional">(optional)</span></label>
+                                    <div class="media-capture-area">
+                                        <input type="file" id="pt-photo" accept="image/*" capture="environment" class="file-input-hidden" onchange="handlePhotoSelected(this, 'pt-photo-preview')">
+                                        <button type="button" class="media-btn" onclick="document.getElementById('pt-photo').click()">
+                                            <i class="fa-solid fa-camera"></i> Take / Upload Photo
+                                        </button>
+                                        <div class="photo-preview-area" id="pt-photo-preview"></div>
+                                    </div>
+                                </div>
+                                <div class="form-group media-group">
+                                    <label>Voice Message <span class="optional">(optional)</span></label>
+                                    <div class="media-capture-area">
+                                        <div class="voice-controls">
+                                            <button type="button" class="media-btn record-btn" id="pt-record-btn" onclick="toggleRecording('pt')">
+                                                <i class="fa-solid fa-microphone"></i> <span id="pt-record-label">Record Voice</span>
+                                            </button>
+                                            <span class="record-timer hidden" id="pt-timer">0:00</span>
+                                        </div>
+                                        <audio id="pt-audio-preview" class="audio-preview hidden" controls></audio>
+                                        <button type="button" class="clear-media-btn hidden" id="pt-clear-audio" onclick="clearAudio('pt')">
+                                            <i class="fa-solid fa-trash"></i> Remove
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="submit" class="submit-btn" id="pt-submit-btn">
+                                <i class="fa-solid fa-paper-plane"></i> Send Enquiry
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- SUB-TAB: OTHER SERVICE -->
+                <div class="sub-tab-content" id="sub-service-other">
+                    <div class="enquiry-step active">
+                        <h3 class="step-title">Other Service Enquiry</h3>
+                        <p class="step-subtitle">Any other service query? Send us a photo or voice note describing your requirement.</p>
+                        <form class="enquiry-form" id="form-service-other" onsubmit="submitForm(event, 'service-other')">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="so-name">Full Name <span class="req">*</span></label>
+                                    <input type="text" id="so-name" placeholder="Your name" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="so-phone">Contact Number <span class="req">*</span></label>
+                                    <input type="tel" id="so-phone" placeholder="Your phone number" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="so-email">Email <span class="optional">(optional)</span></label>
+                                    <input type="email" id="so-email" placeholder="Your email">
+                                </div>
+                                <div class="form-group">
+                                    <label for="so-location">Location / Address <span class="req">*</span></label>
+                                    <input type="text" id="so-location" placeholder="Your location" required>
+                                </div>
+                            </div>
+                            <div class="form-row media-row">
+                                <div class="form-group media-group">
+                                    <label>Photo <span class="optional">(optional)</span></label>
+                                    <div class="media-capture-area">
+                                        <input type="file" id="so-photo" accept="image/*" capture="environment" class="file-input-hidden" onchange="handlePhotoSelected(this, 'so-photo-preview')">
+                                        <button type="button" class="media-btn" onclick="document.getElementById('so-photo').click()">
+                                            <i class="fa-solid fa-camera"></i> Take / Upload Photo
+                                        </button>
+                                        <div class="photo-preview-area" id="so-photo-preview"></div>
+                                    </div>
+                                </div>
+                                <div class="form-group media-group">
+                                    <label>Voice Message <span class="optional">(optional)</span></label>
+                                    <div class="media-capture-area">
+                                        <div class="voice-controls">
+                                            <button type="button" class="media-btn record-btn" id="so-record-btn" onclick="toggleRecording('so')">
+                                                <i class="fa-solid fa-microphone"></i> <span id="so-record-label">Record Voice</span>
+                                            </button>
+                                            <span class="record-timer hidden" id="so-timer">0:00</span>
+                                        </div>
+                                        <audio id="so-audio-preview" class="audio-preview hidden" controls></audio>
+                                        <button type="button" class="clear-media-btn hidden" id="so-clear-audio" onclick="clearAudio('so')">
+                                            <i class="fa-solid fa-trash"></i> Remove
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="submit" class="submit-btn" id="so-submit-btn">
+                                <i class="fa-solid fa-paper-plane"></i> Send Enquiry
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div><!-- end tab-service -->
+
+            <!-- ====== TAB 2: NEW PRODUCT ====== -->
+            <div class="tab-content" id="tab-new-product">
+                <div class="tab-intro">
+                    <h3>New Machines Available</h3>
+                    <p>Browse our new machine inventory. Click "Send Enquiry" on any machine to get in touch with our sales team.</p>
+                </div>
+                <div class="product-grid" id="new-product-grid">
+                    <!-- Product Card: CNC -->
+                    <div class="product-card">
+                        <div class="product-badge new-badge">NEW</div>
+                        <div class="product-image">
+                            <img src="Images/CNC.png" alt="CNC Turning Machine">
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-name">CNC Turning Machine</h3>
+                            <div class="product-type-tag"><i class="fa-solid fa-rotate"></i> Turning Machine</div>
+                            <p class="product-desc">High-precision CNC turning center designed for efficient and accurate machining of complex components.</p>
+                            <button class="enquire-btn" onclick="openProductModal('CNC Turning Machine', 'new')">
+                                <i class="fa-solid fa-paper-plane"></i> Send Enquiry
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Product Card: VMC -->
+                    <div class="product-card">
+                        <div class="product-badge new-badge">NEW</div>
+                        <div class="product-image">
+                            <img src="Images/VMC.png" alt="VMC Machine">
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-name">VMC — Vertical Machining Center</h3>
+                            <div class="product-type-tag"><i class="fa-solid fa-industry"></i> VMC</div>
+                            <p class="product-desc">Advanced vertical machining center for precision milling, drilling and boring operations with high repeatability.</p>
+                            <button class="enquire-btn" onclick="openProductModal('VMC — Vertical Machining Center', 'new')">
+                                <i class="fa-solid fa-paper-plane"></i> Send Enquiry
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Product Card: HMC -->
+                    <div class="product-card">
+                        <div class="product-badge new-badge">NEW</div>
+                        <div class="product-image">
+                            <img src="Images/HMC.png" alt="HMC Machine">
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-name">HMC — Horizontal Machining Center</h3>
+                            <div class="product-type-tag"><i class="fa-solid fa-gears"></i> HMC</div>
+                            <p class="product-desc">Heavy-duty horizontal machining center ideal for high-volume production and complex multi-face machining.</p>
+                            <button class="enquire-btn" onclick="openProductModal('HMC — Horizontal Machining Center', 'new')">
+                                <i class="fa-solid fa-paper-plane"></i> Send Enquiry
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Product Card: VTL -->
+                    <div class="product-card">
+                        <div class="product-badge new-badge">NEW</div>
+                        <div class="product-image">
+                            <img src="Images/VTL.png" alt="VTL Machine">
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-name">VTL — Vertical Turning Lathe</h3>
+                            <div class="product-type-tag"><i class="fa-solid fa-arrows-spin"></i> VTL</div>
+                            <p class="product-desc">Robust vertical turning lathe for machining large-diameter, heavy workpieces with superior stability and accuracy.</p>
+                            <button class="enquire-btn" onclick="openProductModal('VTL — Vertical Turning Lathe', 'new')">
+                                <i class="fa-solid fa-paper-plane"></i> Send Enquiry
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Product Card: Double Column -->
+                    <div class="product-card">
+                        <div class="product-badge new-badge">NEW</div>
+                        <div class="product-image">
+                            <img src="Images/DOUBLE COLUMN.png" alt="Double Column Machine">
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-name">Double Column Machining Center</h3>
+                            <div class="product-type-tag"><i class="fa-solid fa-table-columns"></i> Double Column</div>
+                            <p class="product-desc">Large-format double column machining center engineered for high rigidity and precision in heavy-duty applications.</p>
+                            <button class="enquire-btn" onclick="openProductModal('Double Column Machining Center', 'new')">
+                                <i class="fa-solid fa-paper-plane"></i> Send Enquiry
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div><!-- end tab-new-product -->
+
+            <!-- ====== TAB 3: USED PRODUCT ====== -->
+            <div class="tab-content" id="tab-used-product">
+                <div class="tab-intro">
+                    <h3>Pre-Owned Machines Available</h3>
+                    <p>Quality certified pre-owned machinery, fully inspected and serviced by our expert technicians.</p>
+                </div>
+                <div class="product-grid" id="used-product-grid">
+                    <!-- Used Product Card: CNC -->
+                    <div class="product-card">
+                        <div class="product-badge used-badge">PRE-OWNED</div>
+                        <div class="product-image">
+                            <img src="Images/CNC.png" alt="Used CNC Turning Machine">
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-name">CNC Turning Machine — Refurbished</h3>
+                            <div class="product-type-tag"><i class="fa-solid fa-rotate"></i> Turning Machine</div>
+                            <p class="product-desc">Fully serviced and calibrated pre-owned CNC turning machine. Thoroughly inspected by our expert technicians.</p>
+                            <button class="enquire-btn" onclick="openProductModal('CNC Turning Machine — Refurbished', 'used')">
+                                <i class="fa-solid fa-paper-plane"></i> Send Enquiry
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Used Product Card: VMC -->
+                    <div class="product-card">
+                        <div class="product-badge used-badge">PRE-OWNED</div>
+                        <div class="product-image">
+                            <img src="Images/VMC.png" alt="Used VMC Machine">
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-name">VMC — Refurbished & Inspected</h3>
+                            <div class="product-type-tag"><i class="fa-solid fa-industry"></i> VMC</div>
+                            <p class="product-desc">Spindle rebuilt and certified. All axes calibrated. Excellent working condition at a competitive price.</p>
+                            <button class="enquire-btn" onclick="openProductModal('VMC — Refurbished & Inspected', 'used')">
+                                <i class="fa-solid fa-paper-plane"></i> Send Enquiry
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Used Product Card: VTL -->
+                    <div class="product-card">
+                        <div class="product-badge used-badge">PRE-OWNED</div>
+                        <div class="product-image">
+                            <img src="Images/VTL.png" alt="Used VTL Machine">
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-name">VTL — Inspected & Certified</h3>
+                            <div class="product-type-tag"><i class="fa-solid fa-arrows-spin"></i> VTL</div>
+                            <p class="product-desc">Reliable pre-owned vertical turning lathe. Perfect for heavy turning operations. Comes with Nexus certification.</p>
+                            <button class="enquire-btn" onclick="openProductModal('VTL — Inspected & Certified', 'used')">
+                                <i class="fa-solid fa-paper-plane"></i> Send Enquiry
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div><!-- end tab-used-product -->
+
+            <!-- ====== TAB 4: AUTOMATION ====== -->
+            <div class="tab-content" id="tab-automation">
+                <!-- Step 1: Select Automation Type -->
+                <div id="automation-step1" class="enquiry-step active">
+                    <h3 class="step-title">Select Automation Type</h3>
+                    <p class="step-subtitle">What kind of automation solution are you looking for?</p>
+                    <div class="selection-grid automation-grid">
+                        <button class="selection-card" onclick="selectAutomationType('Pick & Place')">
+                            <i class="fa-solid fa-hand-pointer"></i>
+                            <span>Pick & Place</span>
+                            <small>Automated component handling systems</small>
+                        </button>
+                        <button class="selection-card" onclick="selectAutomationType('Robotic')">
+                            <i class="fa-solid fa-robot"></i>
+                            <span>Robotic</span>
+                            <small>Industrial robotic arm solutions</small>
+                        </button>
+                        <button class="selection-card" onclick="selectAutomationType('Gantry')">
+                            <i class="fa-solid fa-maximize"></i>
+                            <span>Gantry</span>
+                            <small>Overhead rail-mounted systems</small>
+                        </button>
+                        <button class="selection-card" onclick="selectAutomationType('Other')">
+                            <i class="fa-solid fa-ellipsis"></i>
+                            <span>Other</span>
+                            <small>Custom automation requirements</small>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 2: Automation Form -->
+                <div id="automation-step2" class="enquiry-step">
+                    <div class="step-back-row">
+                        <button class="back-btn" onclick="goBackAutomation()"><i class="fa-solid fa-arrow-left"></i> Back</button>
+                        <span class="badge" id="badge-automation"></span>
+                    </div>
+                    <h3 class="step-title">Automation Enquiry</h3>
+                    <form class="enquiry-form" id="form-automation" onsubmit="submitForm(event, 'automation')">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="au-name">Full Name <span class="req">*</span></label>
+                                <input type="text" id="au-name" placeholder="Your name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="au-company">Company Name <span class="req">*</span></label>
+                                <input type="text" id="au-company" placeholder="Your company" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="au-phone">Contact Number <span class="req">*</span></label>
+                                <input type="tel" id="au-phone" placeholder="Your phone number" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="au-email">Email <span class="optional">(optional)</span></label>
+                                <input type="email" id="au-email" placeholder="Your email">
+                            </div>
+                        </div>
+                        <button type="submit" class="submit-btn" id="au-submit-btn">
+                            <i class="fa-solid fa-paper-plane"></i> Send Enquiry
+                        </button>
+                    </form>
+                </div>
+            </div><!-- end tab-automation -->
+
+            <!-- ====== TAB 5: OTHER ====== -->
+            <div class="tab-content" id="tab-other">
+                <div class="enquiry-step active">
+                    <h3 class="step-title">General Enquiry</h3>
+                    <p class="step-subtitle">Have a question or requirement not listed above? Tell us and we'll get back to you.</p>
+                    <form class="enquiry-form" id="form-other" onsubmit="submitForm(event, 'other')">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="ot-name">Full Name <span class="req">*</span></label>
+                                <input type="text" id="ot-name" placeholder="Your name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="ot-phone">Contact Number <span class="req">*</span></label>
+                                <input type="tel" id="ot-phone" placeholder="Your phone number" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="ot-email">Email <span class="optional">(optional)</span></label>
+                                <input type="email" id="ot-email" placeholder="Your email">
+                            </div>
+                            <div class="form-group full-width-group">
+                                <label for="ot-message">Your Message <span class="req">*</span></label>
+                                <textarea id="ot-message" rows="4" placeholder="Describe your requirement..." required></textarea>
+                            </div>
+                        </div>
+                        <button type="submit" class="submit-btn" id="ot-submit-btn">
+                            <i class="fa-solid fa-paper-plane"></i> Send Enquiry
+                        </button>
+                    </form>
+                </div>
+            </div><!-- end tab-other -->
+
+        </section><!-- end enquiry-tabs -->
+
+        <!-- ============================================================
+             OUR SERVICES SECTION (existing, preserved)
+        ============================================================ -->
+        <section class="services container">
+            <h2 class="section-title">OUR SERVICES</h2>
+
+            <!-- Core Machine Services -->
+            <div id="core-services" class="services-section-a">
+                <h3 class="subsection-title">Core Machine Services</h3>
+                <div class="grid-large">
+                    <div class="card-large" onclick="toggleCard(this)">
+                        <div class="card-visible">
+                            <span class="service-title">CNC Machine Service</span>
+                            <span class="hover-text">Click to know more <i class="fa-solid fa-chevron-down"></i></span>
+                        </div>
+                        <div class="card-details">
+                            <img src="Images/CNC.png" alt="CNC Machine Service">
+                            <p>Comprehensive diagnostic and repair services for all CNC machinery. We focus on restoring precision, replacing worn components, and ensuring minimal downtime for your production lines.</p>
+                        </div>
+                    </div>
+                    <div class="card-large" onclick="toggleCard(this)">
+                        <div class="card-visible">
+                            <span class="service-title">VMC Machine Service</span>
+                            <span class="hover-text">Click to know more <i class="fa-solid fa-chevron-down"></i></span>
+                        </div>
+                        <div class="card-details">
+                            <img src="Images/VMC.png" alt="VMC Machine Service">
+                            <p>Expert vertical machining center maintenance. From spindle repairs to axis alignment, we keep your VMCs operating at peak performance.</p>
+                        </div>
+                    </div>
+                    <div class="card-large" onclick="toggleCard(this)">
+                        <div class="card-visible">
+                            <span class="service-title">HMC Machine Service</span>
+                            <span class="hover-text">Click to know more <i class="fa-solid fa-chevron-down"></i></span>
+                        </div>
+                        <div class="card-details">
+                            <img src="Images/HMC.png" alt="HMC Machine Service">
+                            <p>Horizontal machining center solutions tailored for complex industrial needs. We troubleshoot mechanical and electronic issues rapidly to get you back to cutting.</p>
+                        </div>
+                    </div>
+                    <div class="card-large" onclick="toggleCard(this)">
+                        <div class="card-visible">
+                            <span class="service-title">VTL Machine Service</span>
+                            <span class="hover-text">Click to know more <i class="fa-solid fa-chevron-down"></i></span>
+                        </div>
+                        <div class="card-details">
+                            <img src="Images/VTL.png" alt="VTL Machine Service">
+                            <p>Specialized vertical turret lathe services. We handle heavy-duty turning machine repairs, ensuring stability and accuracy for massive components.</p>
+                        </div>
+                    </div>
+                    <div class="card-large" onclick="toggleCard(this)">
+                        <div class="card-visible">
+                            <span class="service-title">Double Column Machine Service</span>
+                            <span class="hover-text">Click to know more <i class="fa-solid fa-chevron-down"></i></span>
+                        </div>
+                        <div class="card-details">
+                            <img src="Images/DOUBLE COLUMN.png" alt="Double Column Machine Service">
+                            <p>Large-scale double column machine servicing. Our experts manage complex geometry alignments and heavy mechanics safely and efficiently.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Component & Automation Services -->
+            <div id="component-services" class="services-section-b">
+                <h3 class="subsection-title">Component & Automation Services</h3>
+                <div class="grid-tight">
+                    <div class="card-small" onclick="toggleCard(this)">
+                        <div class="card-visible">
+                            <span class="service-title">Belt Drive Spindle Service</span>
+                            <span class="hover-text">Click to know more <i class="fa-solid fa-chevron-down"></i></span>
+                        </div>
+                        <div class="card-details">
+                            <p>Expert repair and maintenance of belt drive spindles for smooth performance and long-lasting reliability.</p>
+                        </div>
+                    </div>
+                    <div class="card-small" onclick="toggleCard(this)">
+                        <div class="card-visible">
+                            <span class="service-title">Integrated Spindle Service</span>
+                            <span class="hover-text">Click to know more <i class="fa-solid fa-chevron-down"></i></span>
+                        </div>
+                        <div class="card-details">
+                            <p>Specialized repair and maintenance of integrated spindles for high precision, maximum efficiency and extended life.</p>
+                        </div>
+                    </div>
+                    <div class="card-small" onclick="toggleCard(this)">
+                        <div class="card-visible">
+                            <span class="service-title">Turret Service</span>
+                            <span class="hover-text">Click to know more <i class="fa-solid fa-chevron-down"></i></span>
+                        </div>
+                        <div class="card-details">
+                            <p>Professional turret repair and maintenance for smooth and reliable operation.</p>
+                        </div>
+                    </div>
+                    <div class="card-small" onclick="toggleCard(this)">
+                        <div class="card-visible">
+                            <span class="service-title">Live Turret Service</span>
+                            <span class="hover-text">Click to know more <i class="fa-solid fa-chevron-down"></i></span>
+                        </div>
+                        <div class="card-details">
+                            <p>Expert repair and maintenance of live turrets for maximum precision, productivity and longer life.</p>
+                        </div>
+                    </div>
+                    <div class="card-small" onclick="toggleCard(this)">
+                        <div class="card-visible">
+                            <span class="service-title">Rotary Cylinder Service</span>
+                            <span class="hover-text">Click to know more <i class="fa-solid fa-chevron-down"></i></span>
+                        </div>
+                        <div class="card-details">
+                            <p>Expert repair and maintenance of rotary cylinders to ensure smooth rotation, high precision and long service life.</p>
+                        </div>
+                    </div>
+                    <div class="card-small" onclick="toggleCard(this)">
+                        <div class="card-visible">
+                            <span class="service-title">Hydraulic Cylinder Service</span>
+                            <span class="hover-text">Click to know more <i class="fa-solid fa-chevron-down"></i></span>
+                        </div>
+                        <div class="card-details">
+                            <p>Professional repair and maintenance of hydraulic cylinders to restore performance, prevent leaks and ensure maximum durability.</p>
+                        </div>
+                    </div>
+                    <div class="card-small" onclick="toggleCard(this)">
+                        <div class="card-visible">
+                            <span class="service-title">Angle Head Service</span>
+                            <span class="hover-text">Click to know more <i class="fa-solid fa-chevron-down"></i></span>
+                        </div>
+                        <div class="card-details">
+                            <p>Expert repair and maintenance of angle heads to ensure high precision, smooth operation and extended life.</p>
+                        </div>
+                    </div>
+                    <div class="card-small" onclick="toggleCard(this)">
+                        <div class="card-visible">
+                            <span class="service-title">Angle Auto Head Service</span>
+                            <span class="hover-text">Click to know more <i class="fa-solid fa-chevron-down"></i></span>
+                        </div>
+                        <div class="card-details">
+                            <p>Specialized service for angle auto heads including repair, calibration and testing for accuracy, efficiency and longer machine life.</p>
+                        </div>
+                    </div>
+                    <div class="card-small" onclick="toggleCard(this)">
+                        <div class="card-visible">
+                            <span class="service-title">ATC Service</span>
+                            <span class="hover-text">Click to know more <i class="fa-solid fa-chevron-down"></i></span>
+                        </div>
+                        <div class="card-details">
+                            <p>Professional repair and maintenance of ATC (Automatic Tool Changer) systems to ensure smooth tool changes, reduced downtime and maximum machine uptime.</p>
+                        </div>
+                    </div>
+                    <div class="card-small" onclick="toggleCard(this)">
+                        <div class="card-visible">
+                            <span class="service-title">Machine Breakdown Solution</span>
+                            <span class="hover-text">Click to know more <i class="fa-solid fa-chevron-down"></i></span>
+                        </div>
+                        <div class="card-details">
+                            <p>Quick response and effective troubleshooting to minimize downtime and get your machines back to optimal working condition.</p>
+                        </div>
+                    </div>
+                    <div class="card-small" onclick="toggleCard(this)">
+                        <div class="card-visible">
+                            <span class="service-title">Automation Services</span>
+                            <span class="hover-text">Click to know more <i class="fa-solid fa-chevron-down"></i></span>
+                        </div>
+                        <div class="card-details">
+                            <p>End-to-end automation solutions including design, installation, programming and integration to improve productivity, efficiency and process reliability.</p>
+                        </div>
+                    </div>
+                    <div class="card-small" onclick="toggleCard(this)">
+                        <div class="card-visible">
+                            <span class="service-title">Retrofitting</span>
+                            <span class="hover-text">Click to know more <i class="fa-solid fa-chevron-down"></i></span>
+                        </div>
+                        <div class="card-details">
+                            <p>Upgrade your machines with advanced technology for improved performance, accuracy and efficiency.</p>
+                        </div>
+                    </div>
+                    <div class="card-small highlight-card" onclick="toggleCard(this)">
+                        <div class="card-visible">
+                            <span class="service-title">All Types of Mechanical &amp; Electrical Solutions</span>
+                            <span class="hover-text">Click to know more <i class="fa-solid fa-chevron-down"></i></span>
+                        </div>
+                        <div class="card-details">
+                            <p>Comprehensive mechanical and electrical solutions for all types of industrial machinery. Our team handles any challenge you throw at us.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container footer-content">
+            <h2 class="final-cta">ONE PARTNER. COMPLETE SOLUTIONS.</h2>
+            <div class="contact-info">
+                <div class="contact-item">
+                    <i class="fa-solid fa-phone"></i>
+                    <a href="tel:9109190790">9109190790</a>
+                </div>
+                <div class="contact-item">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <address>Balaji Complex, 4/10 Corner, Gondal Rd,<br>near ST Workshop, opposite Shah Roadways,<br>Samrat Industrial Area, Rajkot.</address>
+                    <a href="https://maps.app.goo.gl/nbuKzTUqwHznjrqx6" target="_blank" rel="noopener noreferrer" class="location-btn"><i class="fa-solid fa-map"></i> View on Google Maps</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- WhatsApp FAB -->
+    <a href="#" onclick="openWaWizard(event)" class="fab" aria-label="Contact us on WhatsApp">
+        <i class="fa-brands fa-whatsapp"></i>
+    </a>
+
+    <!-- WhatsApp Wizard -->
+    <div id="wa-overlay" class="wa-overlay"></div>
+    <div id="wa-wizard-content" class="wa-wizard-content">
+        <button class="wa-close-btn" onclick="closeWaWizard()"><i class="fa-solid fa-xmark"></i></button>
+        <div class="wa-wizard-container">
+            <div id="wa-step-1" class="wa-step active">
+                <div class="wa-header">
+                    <i class="fa-brands fa-whatsapp wa-icon-large"></i>
+                    <h2>What kind of service do you require?</h2>
+                    <p>Select the machine type below:</p>
+                </div>
+                <div class="wa-options-grid">
+                    <button class="wa-option-btn" onclick="selectMachine('Turning Machine')">Turning Machine</button>
+                    <button class="wa-option-btn" onclick="selectMachine('VMC Machine')">VMC Machine</button>
+                    <button class="wa-option-btn" onclick="selectMachine('HMC Machine')">HMC Machine</button>
+                    <button class="wa-option-btn" onclick="selectMachine('VTL Machine')">VTL Machine</button>
+                    <button class="wa-option-btn" onclick="selectMachine('Double Column Machine')">Double Column</button>
+                    <button class="wa-option-btn" onclick="selectMachine('Component / Other')">Component / Other</button>
+                </div>
+                <button class="wa-skip-btn" onclick="skipWizard()">Skip &amp; Direct Contact</button>
+            </div>
+            <div id="wa-step-2" class="wa-step">
+                <div class="wa-header">
+                    <i class="fa-solid fa-triangle-exclamation wa-icon-large" style="color: #E31828;"></i>
+                    <h2>What is the primary issue?</h2>
+                </div>
+                <div class="wa-options-grid single-col">
+                    <button class="wa-option-btn" onclick="selectService('Emergency Breakdown')">Emergency Breakdown</button>
+                    <button class="wa-option-btn" onclick="selectService('Routine Maintenance')">Routine Maintenance</button>
+                    <button class="wa-option-btn" onclick="selectService('Component Repair / Retrofit')">Component Repair / Retrofit</button>
+                </div>
+                <button class="wa-skip-btn" onclick="skipWizard()">Skip &amp; Direct Contact</button>
+            </div>
+            <div id="wa-step-3" class="wa-step">
+                <div class="wa-header">
+                    <i class="fa-regular fa-circle-check wa-icon-large" style="color: #25D366;"></i>
+                    <h2>Perfect! We can help.</h2>
+                </div>
+                <div class="wa-final-box">
+                    <p id="wa-final-message"></p>
+                </div>
+                <a href="#" id="wa-final-btn" class="wa-chat-btn" target="_blank" rel="noopener noreferrer">
+                    <i class="fa-brands fa-whatsapp"></i> Start WhatsApp Chat
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Enquiry Modal -->
+    <div id="product-modal" class="modal-overlay">
+        <div class="modal-content product-modal-content">
+            <button class="modal-close-btn" onclick="closeProductModal()"><i class="fa-solid fa-xmark"></i></button>
+            <h2>SEND ENQUIRY</h2>
+            <h3 id="modal-product-name" class="modal-product-name"></h3>
+            <form class="enquiry-form" id="form-product" onsubmit="submitProductEnquiry(event)">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="pr-name">Full Name <span class="req">*</span></label>
+                        <input type="text" id="pr-name" placeholder="Your name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="pr-company">Company Name <span class="req">*</span></label>
+                        <input type="text" id="pr-company" placeholder="Your company" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="pr-phone">Contact Number <span class="req">*</span></label>
+                        <input type="tel" id="pr-phone" placeholder="Your phone number" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="pr-email">Email <span class="optional">(optional)</span></label>
+                        <input type="email" id="pr-email" placeholder="Your email">
+                    </div>
+                </div>
+                <button type="submit" class="submit-btn" id="pr-submit-btn">
+                    <i class="fa-solid fa-paper-plane"></i> Send Enquiry
+                </button>
+            </form>
+            <div id="product-success" class="success-message hidden">
+                <i class="fa-regular fa-circle-check"></i>
+                <p>Enquiry sent successfully!</p>
+                <p>Our sales team will contact you shortly.</p>
+                <button class="cta-button" onclick="closeProductModal()">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Global Success Toast -->
+    <div id="success-toast" class="success-toast hidden">
+        <i class="fa-regular fa-circle-check"></i>
+        <div>
+            <strong>Enquiry Sent!</strong>
+            <span>We'll contact you shortly.</span>
+        </div>
+    </div>
+
+</body>
+</html>
