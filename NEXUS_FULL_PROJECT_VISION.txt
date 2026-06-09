@@ -1,0 +1,816 @@
+================================================================================
+   NEXUS MACHINERY SOLUTIONS — FINALIZED PROJECT DOCUMENT
+================================================================================
+
+Last Updated: 06 June 2026
+Status: CONFIRMED (Requirements finalized after owner meeting)
+Client: Jaydeep (Owner, Nexus Machinery Solutions)
+Location: Balaji Complex, 4/10 Corner, Gondal Rd, Rajkot
+Contact: 9109190790
+
+NOTE: This document reflects ONLY the confirmed, finalized requirements discussed
+with the owner. No speculative or "maybe" features are included here. Everything
+listed below is what we WILL build. Implementation will follow the phased plan
+at the end of this document.
+
+
+================================================================================
+TABLE OF CONTENTS
+================================================================================
+
+1.  PROJECT OVERVIEW
+2.  CURRENT STATE (What Exists Today)
+3.  MACHINE TYPE & SERVICE REFERENCE
+4.  SYSTEM 1: UNIFIED WEBSITE (Merge of Service + Selling Sites)
+5.  SYSTEM 2: CUSTOMER MOBILE APP
+6.  SYSTEM 3: EXECUTIVE/ADMIN MOBILE APP
+7.  EMPLOYEE ROLES & PERMISSIONS
+8.  ADMIN SECTION (Inside Executive App)
+9.  MEDIA HANDLING — PHOTOS & VOICE RECORDINGS
+10. DATABASE & STORAGE PLAN (WITH PRICING)
+11. NOTIFICATIONS & WHATSAPP INTEGRATION
+12. PHASED IMPLEMENTATION PLAN (Detailed)
+13. OPEN QUESTIONS & DEVELOPER NOTES
+
+
+================================================================================
+1. PROJECT OVERVIEW
+================================================================================
+
+Nexus Machinery Solutions is an industrial machinery service and sales company
+based in Rajkot, Gujarat. The owner wants ONE digital ecosystem that handles:
+
+  - Customer-facing website (service enquiries + machine sales)
+  - Customer mobile app (same as website, plus push notifications)
+  - Executive/Admin mobile app (for employees and owner to manage everything)
+
+WHAT WE ARE NOT BUILDING (Removed from scope):
+  - AI Voice Agent (phone receptionist) — Removed
+  - Workshop Management System (paperless ledger) — Removed for now
+  - Separate Admin Web Panel — Merged into the Executive/Admin App
+  - Time slot booking system — Not required
+
+
+================================================================================
+2. CURRENT STATE (What Exists Today)
+================================================================================
+
+Two separate websites exist:
+
+  A) SERVICE WEBSITE (/service-website/)
+     - Has a hero animation at the top with machine images rotating in/out
+     - Text animations (machine names + service types come in and fly out)
+     - Trust signals, services section, WhatsApp wizard
+     - Color scheme: Red (#C41221 / #E31828) and black, Montserrat font
+
+  B) SELLING WEBSITE (/selling-website/)
+     - Shows new and used machines for sale
+     - Three-button filter: All / New Machine / Used Machine
+     - Machine cards with images, descriptions
+     - Inquiry button on each card
+
+ACTION REQUIRED:
+  → These two websites must be MERGED into ONE single website.
+  → Final website lives in /service-website/ folder (no folder change needed).
+  → The hero animation from the service website will be KEPT and ENHANCED.
+
+
+================================================================================
+3. MACHINE TYPE & SERVICE REFERENCE
+================================================================================
+
+This section documents all machine types and services offered by Nexus Machinery.
+Confirmed from the official service brochure images provided by the owner.
+
+--- MACHINE TYPES (for Breakdown & Part Enquiry) ---
+
+  1. Turning Machine  (do NOT use "ATMC" — just call it "Turning Machine")
+  2. VMC  — Vertical Machining Center
+  3. HMC  — Horizontal Machining Center
+  4. VTL  — Vertical Turning Lathe
+  5. Double Column  (Double Column Machining Center)
+  6. 5-Axis Machine
+  7. Other
+
+--- AUTOMATION TYPES (for Automation Enquiry) ---
+
+  NOTE: The user previously mentioned something called "Cremosine type" —
+  this was NEVER actually mentioned by the owner/user and was an error in
+  the previous document. It is NOT included. The confirmed automation types are:
+  1. Pick & Place
+  2. Robotic
+  3. Gantry
+  4. Other
+
+--- FULL LIST OF SERVICES (from official service brochure) ---
+
+  GROUP 1: Machine Spindle Services
+    1. Belt Drive Spindle Service
+       - Expert repair and maintenance of belt drive spindles for smooth
+         performance and long-lasting reliability.
+    2. Integrated Spindle Service
+       - Specialized repair and maintenance of integrated spindles for
+         high precision, maximum efficiency and extended life.
+
+  GROUP 2: Turret Services
+    3. Turret Service
+       - Professional turret repair and maintenance for smooth
+         and reliable operation.
+    4. Live Turret Service
+       - Expert repair and maintenance of live turrets for maximum
+         precision, productivity and longer life.
+
+  GROUP 3: Hydraulic/Cylinder Services
+    5. Rotary Cylinder Service
+       - Expert repair and maintenance of rotary cylinders to ensure
+         smooth rotation, high precision and long service life.
+    6. Hydraulic Cylinder Service
+       - Professional repair and maintenance of hydraulic cylinders to
+         restore performance, prevent leaks and ensure maximum durability.
+
+  GROUP 4: Breakdown & Emergency
+    7. Machine Breakdown Solution
+       - Quick response and effective troubleshooting to minimize downtime
+         and get your machines back to optimal working condition.
+
+  GROUP 5: Automation
+    8. Automation Services
+       - End-to-end automation solutions including design, installation,
+         programming and integration to improve productivity, efficiency
+         and process reliability.
+
+  GROUP 6: Head Services
+    9. Angle Head Service
+       - Expert repair and maintenance of angle heads to ensure high
+         precision, smooth operation and extended life.
+   10. Angle Auto Head Service
+       - Specialized service for angle auto heads including repair,
+         calibration and testing for accuracy, efficiency and longer
+         machine life.
+
+  GROUP 7: ATC
+   11. ATC Service (Automatic Tool Changer)
+       - Professional repair and maintenance of ATC systems to ensure
+         smooth tool changes, reduced downtime and maximum machine uptime.
+
+  GROUP 8: Retrofitting
+   12. Retrofitting
+       - Upgrade your machines with advanced technology for improved
+         performance, accuracy and efficiency.
+
+  GROUP 9: General
+   13. All Types of Mechanical & Electrical Machinery Solutions
+       - Comprehensive mechanical and electrical solutions for all types
+         of industrial machinery.
+
+WHERE THESE SERVICES APPEAR ON WEBSITE:
+  - The "Component & Automation Services" section on the website already
+    shows most of these. They will be kept as-is.
+  - The Breakdown Enquiry form uses the MACHINE TYPES list (not service list).
+  - A separate "Part Enquiry" and "Other" service section uses a general form.
+  - The Automation tab uses the AUTOMATION TYPES list.
+
+
+================================================================================
+4. SYSTEM 1: UNIFIED WEBSITE
+================================================================================
+
+The two existing websites (service + selling) will be MERGED into ONE website.
+Location: /service-website/index.html (enhanced)
+
+--------------------------------------------------------------------------------
+4.1 HERO ANIMATION (TOP OF PAGE — ENHANCED)
+--------------------------------------------------------------------------------
+
+The existing hero animation from the service website is KEPT and ENHANCED.
+Three rotating animation states:
+
+  STATE 1 — Machine Service (existing slides: CNC, VMC, HMC, VTL, Double Column)
+    - Keep existing machine images + service descriptions
+
+  STATE 2 — New & Used Machines for Sale
+    - Show a machine image
+    - Title: "NEW & USED MACHINES FOR SALE"
+    - Description: "Premium CNC, VMC, HMC, VTL machines — new and pre-owned"
+
+  STATE 3 — Machine Components & Services
+    - Show a component/spindle/turret image (use one of existing machine images)
+    - Title: "SPINDLE, TURRET & COMPONENT SERVICES"
+    - Description: "Expert repair for spindles, turrets, cylinders, ATC & more"
+
+  STATE 4 — Automation
+    - Show a relevant image (use HMC or VMC image as stand-in)
+    - Title: "AUTOMATION SOLUTIONS"
+    - Description: "Pick & Place, Robotic, Gantry — design, install, program"
+
+All states continue looping with existing smooth fade animation.
+
+--------------------------------------------------------------------------------
+4.2 MAIN NAVIGATION TABS (After Hero Scroll)
+--------------------------------------------------------------------------------
+
+After the user scrolls past the hero animation, FIVE tabs appear:
+
+  [ Service ]  [ New Product ]  [ Used Product ]  [ Automation ]  [ Other ]
+
+Only ONE tab active at a time. Default: Service.
+Clicking a tab changes content below it smoothly.
+
+--------------------------------------------------------------------------------
+4.3 TAB 1: SERVICE
+--------------------------------------------------------------------------------
+
+Inside Service, THREE sub-tabs:
+
+  [ Breakdown Enquiry ]  [ Part Enquiry ]  [ Other ]
+
+--- 4.3.1 BREAKDOWN ENQUIRY ---
+
+Step 1: Select Machine Type (shown as clickable cards)
+  1. Turning Machine
+  2. VMC
+  3. HMC
+  4. VTL
+  5. Double Column
+  6. 5-Axis Machine
+  7. Other
+
+Step 2: Select Support Type (shown after machine type selected)
+  1. Electrical Support
+  2. Mechanical Support
+  3. Other
+
+Step 3: Enquiry Form
+  - Name (required)
+  - Contact Number (required)
+  - Email (optional)
+  - Location / Address (required)
+  - Photo (optional) — camera capture
+  - Voice Message (optional) — microphone recording
+  - [Send Enquiry] button
+
+  Data stored in: breakdown_enquiries Firestore collection
+
+--- 4.3.2 PART ENQUIRY ---
+
+Direct form:
+  - Name, Contact Number, Email, Location, Photo, Voice, [Send]
+
+  Data stored in: part_enquiries Firestore collection
+
+--- 4.3.3 OTHER (Service) ---
+
+Direct form:
+  - Name, Contact Number, Email, Location, Photo, Voice, [Send]
+
+  Data stored in: other_service_enquiries Firestore collection
+
+--------------------------------------------------------------------------------
+4.4 TAB 2: NEW PRODUCT
+--------------------------------------------------------------------------------
+
+Grid of new machine cards (from Firestore products collection).
+Each card shows: image, machine name, type, description, [Send Enquiry] button.
+NO PRICE shown anywhere.
+
+Enquiry form (modal):
+  - Name, Company Name, Contact Number, Email, [Send]
+
+  Data stored in: new_product_enquiries Firestore collection
+
+--------------------------------------------------------------------------------
+4.5 TAB 3: USED PRODUCT
+--------------------------------------------------------------------------------
+
+Same layout as New Product, filtered for used/pre-owned machines.
+Enquiry form same as New Product (Name, Company Name, Contact, Email, Send).
+
+  Data stored in: used_product_enquiries Firestore collection
+
+--------------------------------------------------------------------------------
+4.6 TAB 4: AUTOMATION
+--------------------------------------------------------------------------------
+
+Step 1: Select Automation Type
+  1. Pick & Place
+  2. Robotic
+  3. Gantry
+  4. Other
+
+Step 2: Enquiry Form
+  - Name, Company Name, Contact Number, Email, [Send]
+
+  Data stored in: automation_enquiries Firestore collection
+
+--------------------------------------------------------------------------------
+4.7 TAB 5: OTHER
+--------------------------------------------------------------------------------
+
+Simple general enquiry form:
+  - Name, Contact Number, Email, Message (text), [Send]
+
+  Data stored in: general_enquiries Firestore collection
+
+--------------------------------------------------------------------------------
+4.8 EXISTING SERVICES SECTION (Kept as-is below the tabs)
+--------------------------------------------------------------------------------
+
+The existing "OUR SERVICES" section with:
+  - Core Machine Services (CNC, VMC, HMC, VTL, Double Column — expandable cards)
+  - Component & Automation Services (all 13 services as small cards)
+
+This section remains below the enquiry tabs, acting as a "what we do" reference.
+Users can still read about services here even when not enquiring.
+
+The WhatsApp FAB button (floating bottom-right) is KEPT for quick contact.
+
+--------------------------------------------------------------------------------
+4.9 WEBSITE DESIGN RULES
+--------------------------------------------------------------------------------
+
+  - Keep the same red (#C41221 / #E31828) and black color scheme
+  - Keep Montserrat font
+  - Premium, industrial feel — no cheap-looking UI
+  - Hero animation transitions must be smooth (existing CSS preserved)
+  - Tab buttons: clear active/inactive states with red accent
+  - Forms: clean, easy to use on mobile
+  - All send buttons show loading state + success/error message
+  - Fully responsive (mobile-first)
+  - Camera/mic permission requests must be handled gracefully
+
+
+================================================================================
+5. SYSTEM 2: CUSTOMER MOBILE APP
+================================================================================
+
+Mobile app for CUSTOMERS. Same content as website + push notifications.
+Platform: Android (primary). iOS later if needed.
+Technology: React Native with Expo (recommended) or Flutter.
+NO LOGIN required for customers.
+
+EXTRA FEATURES over website:
+  - Push notifications when:
+    * New product listed
+    * Their enquiry acknowledged
+    * Executive assigned to their service request
+    * Any Nexus Machinery updates
+
+WHY APP vs WEBSITE: Push notifications. Keeps customers engaged even when
+not actively browsing the site.
+
+
+================================================================================
+6. SYSTEM 3: EXECUTIVE / ADMIN MOBILE APP
+================================================================================
+
+Separate private app — NOT published on Play Store.
+Owner shares APK directly (manual install) for maximum security.
+
+WHO USES IT:
+  - Owner (full admin access)
+  - Service Engineers
+  - Assembly Engineers
+  - Sales Engineers
+  - Store Engineers
+
+--------------------------------------------------------------------------------
+6.1 HOW LOGIN WORKS (Owner-controlled OTP system)
+--------------------------------------------------------------------------------
+
+  Step 1: Owner goes to "Add Employee" in the app
+  Step 2: Fills employee name + role
+  Step 3: App generates a unique code (6-8 characters), valid for 5 MINUTES
+  Step 4: Code shown to owner only
+  Step 5: Owner verbally gives code to employee
+  Step 6: Employee opens app → "Login with Code" → enters code
+  Step 7: If valid and not expired → employee is logged in and stays logged in
+  Step 8: Code is marked as used, cannot be reused
+
+  OWNER ACCESS: Owner's account is pre-configured during app setup by developer.
+  Owner has a separate, never-expiring secure passcode set at app initialization.
+
+--------------------------------------------------------------------------------
+6.2 SERVICE ENGINEER ROLE
+--------------------------------------------------------------------------------
+
+Sees: Breakdown + Part + Other service enquiries
+Can do:
+  - View full enquiry details (customer, location, machine type, photo, voice)
+  - View customer location BEFORE accepting (map link)
+  - Accept enquiry (marks as Accepted, removes from others' pending list)
+  - On Accept: "Send WhatsApp" button appears → opens WhatsApp with prefilled
+    message to customer → engineer taps Send in WhatsApp
+  - Mark as Completed
+  - Receive push notification when new enquiry arrives
+
+WhatsApp message on accept:
+  "Hello [Customer Name], [Engineer Name] from Nexus Machinery Solutions has
+   been assigned to your service request (#[ID]). He will be reaching your
+   location soon. For queries: 9109190790"
+
+--------------------------------------------------------------------------------
+6.3 SALES ENGINEER ROLE
+--------------------------------------------------------------------------------
+
+Sees: New Product + Used Product + Automation enquiries
+Can do: View enquiries, mark as Contacted/Completed, add internal notes
+Notification: Alert when new product enquiry arrives
+
+--------------------------------------------------------------------------------
+6.4 ASSEMBLY ENGINEER ROLE
+--------------------------------------------------------------------------------
+
+Sees: Assembly/workshop jobs assigned by admin
+Can do: View details, mark complete
+(Full workflow to be detailed later by owner)
+
+--------------------------------------------------------------------------------
+6.5 STORE ENGINEER ROLE
+--------------------------------------------------------------------------------
+
+Sees: Parts requested across jobs, billing per job
+(Full workflow to be detailed later by owner)
+
+
+================================================================================
+7. EMPLOYEE ROLES & PERMISSIONS — SUMMARY TABLE
+================================================================================
+
+  Role              | Sees                          | Can Do
+  ------------------|-------------------------------|-------------------------
+  Service Engineer  | Breakdown / Part / Other      | Accept, complete,
+                    | Service Enquiries             | view location, WhatsApp
+  ------------------|-------------------------------|-------------------------
+  Assembly Engineer | Workshop / Assembly Jobs      | View, mark complete
+  ------------------|-------------------------------|-------------------------
+  Sales Engineer    | New/Used/Automation Enquiries | View, mark status, notes
+  ------------------|-------------------------------|-------------------------
+  Store Engineer    | Parts + billing per job       | View, manage records
+  ------------------|-------------------------------|-------------------------
+  Admin (Owner)     | EVERYTHING                    | Full access
+
+
+================================================================================
+8. ADMIN SECTION (Inside the Executive/Admin App)
+================================================================================
+
+--------------------------------------------------------------------------------
+8.1 CUSTOMER MANAGEMENT
+--------------------------------------------------------------------------------
+  - List all customers (filterable by name, phone)
+  - Per customer: name, company, contact, full enquiry history
+
+--------------------------------------------------------------------------------
+8.2 EMPLOYEE MANAGEMENT
+--------------------------------------------------------------------------------
+  - List all employees, their role, current status, work history
+  - ADD EMPLOYEE: fill name + role → generates 5-min code → share verbally
+  - REMOVE/DEACTIVATE employee
+
+--------------------------------------------------------------------------------
+8.3 SERVICE MANAGEMENT
+--------------------------------------------------------------------------------
+  - All service enquiries (filterable by status/type/date)
+  - Manual assign to specific engineer
+  - Close/cancel any enquiry
+
+--------------------------------------------------------------------------------
+8.4 PRODUCT MANAGEMENT
+--------------------------------------------------------------------------------
+  - All product enquiries (filterable)
+  - ADD product listing (name, type, category new/used, images, description)
+  - EDIT / DELETE listings → reflects on website + customer app in real-time
+  - NO PRICE field (enquiry-based only)
+
+
+================================================================================
+9. MEDIA HANDLING — PHOTOS & VOICE RECORDINGS
+================================================================================
+
+--------------------------------------------------------------------------------
+9.1 HOW PHOTO CAPTURE WORKS (In Browser)
+--------------------------------------------------------------------------------
+
+  <input type="file" accept="image/*" capture="environment">
+
+  - On mobile: opens camera directly
+  - On desktop: opens file picker
+  - Photo stored as File/Blob → uploaded to storage before sending form
+
+--------------------------------------------------------------------------------
+9.2 HOW VOICE RECORDING WORKS (In Browser)
+--------------------------------------------------------------------------------
+
+  - MediaRecorder API: navigator.mediaDevices.getUserMedia({ audio: true })
+  - Browser asks for microphone permission (one-time prompt)
+  - User taps Record → speaks → taps Stop → audio stored as Blob (.webm)
+  - Blob uploaded to storage before form submission
+  - REQUIRES HTTPS (Firebase Hosting and GitHub Pages both support HTTPS ✓)
+
+--------------------------------------------------------------------------------
+9.3 FILE STORAGE PATH STRUCTURE
+--------------------------------------------------------------------------------
+
+  /enquiries/breakdown/[enquiry-id]/photo.jpg
+  /enquiries/breakdown/[enquiry-id]/voice.webm
+  /enquiries/part-enquiry/[enquiry-id]/photo.jpg
+  /enquiries/part-enquiry/[enquiry-id]/voice.webm
+  /enquiries/other-service/[enquiry-id]/photo.jpg
+  /enquiries/other-service/[enquiry-id]/voice.webm
+  /products/[product-id]/image-1.jpg
+  /products/[product-id]/image-2.jpg
+
+  Download URLs saved in Firestore document alongside enquiry data.
+
+
+================================================================================
+10. DATABASE & STORAGE PLAN (WITH PRICING)
+================================================================================
+
+--------------------------------------------------------------------------------
+10.1 STORAGE COST COMPARISON (IMPORTANT — READ THIS)
+--------------------------------------------------------------------------------
+
+The user asked: "Does Firebase Storage require a subscription? What about
+when orders increase and many photos/audio files pile up?"
+
+ANSWER: YES, at scale, storage costs money. Here is a breakdown:
+
+--- OPTION A: Firebase Storage (Google Cloud) ---
+
+  Free tier: 5 GB storage, 1 GB/day download (requires Blaze plan since 2024)
+  Cost after free: ~$0.026 per GB per month for storage
+               + ~$0.12 per GB for download/egress
+
+  Example estimate for Nexus Machinery:
+    - 500 service enquiries/month, avg 2 MB per enquiry (photo + voice)
+    - Storage needed: 500 × 2 MB = 1 GB per month → ~$0.026/month
+    - 200 GB total after 3 years → ~$5/month storage
+    - Download (executives viewing media): 50 GB/month → ~$6/month
+    - TOTAL estimate: ~$10–15/month at scale
+
+  VERDICT: Affordable for this business scale. Firebase is already integrated
+  into the project (adminsdk JSON exists). RECOMMENDED for Phase 1.
+
+--- OPTION B: Cloudinary ---
+
+  Free tier: 25 GB storage + 25 GB bandwidth per month
+  Paid: Credit-based ($89+/month for paid plan)
+  BEST FOR: If you need automatic image optimization, resizing, CDN delivery.
+  VERDICT: Overkill for this use case. Too expensive.
+
+--- OPTION C: Backblaze B2 ---
+
+  Free tier: 10 GB storage, 1 GB/day free download
+  Cost: $0.006 per GB storage (4x CHEAPER than Firebase)
+        $0.01 per GB download (but FREE if using Cloudflare CDN)
+
+  Example estimate for Nexus Machinery at same scale:
+    - 200 GB storage after 3 years → $1.20/month storage
+    - Download via Cloudflare → FREE
+    - TOTAL estimate: ~$1–2/month at scale
+
+  VERDICT: Much cheaper than Firebase for large volumes. But requires
+  separate setup (not integrated with Firebase Auth/Firestore). Extra work.
+  RECOMMENDED for Phase 2+ if storage becomes a concern.
+
+--- OUR RECOMMENDATION ---
+
+  Phase 1: Use Firebase Storage (already set up, easy integration, free tier
+  covers initial months). Monitor usage for first 6 months.
+
+  Phase 2+: If enquiries grow significantly (hundreds per day), evaluate
+  migrating to Backblaze B2 (save ~80% on storage costs). This migration
+  is straightforward since Backblaze B2 supports AWS S3-compatible API.
+
+  BOTTOM LINE: For the first 1-2 years at Nexus Machinery's expected volume,
+  Firebase free tier + minimal pay-as-you-go will cost effectively ZERO.
+  Even at full scale, it should be under ₹1,500/month. Not a concern right now.
+
+--------------------------------------------------------------------------------
+10.2 DATABASE: FIREBASE FIRESTORE
+--------------------------------------------------------------------------------
+
+Database: Firebase Firestore (NoSQL, real-time)
+  - Already set up (Firebase project + adminsdk exists in /service-website/)
+  - Real-time updates for executive app (new enquiries appear instantly)
+  - Works with Firebase Storage, FCM (push notifications), Firebase Auth
+
+FIRESTORE COLLECTIONS:
+
+  breakdown_enquiries:
+    machine_type, support_type, name, contact, email, location,
+    photo_url, voice_url, status, assigned_to, created_at, updated_at
+
+  part_enquiries:
+    name, contact, email, location, photo_url, voice_url,
+    status, assigned_to, created_at, updated_at
+
+  other_service_enquiries:
+    (same as part_enquiries)
+
+  new_product_enquiries:
+    product_id, product_name, name, company_name, contact, email,
+    status, assigned_to, created_at
+
+  used_product_enquiries:
+    (same as new_product_enquiries)
+
+  automation_enquiries:
+    automation_type, name, company_name, contact, email,
+    status, assigned_to, created_at
+
+  general_enquiries:
+    name, contact, email, message, status, created_at
+
+  products:
+    name, model, machine_type, category (new/used), description,
+    condition, image_urls[], is_active, created_at, updated_at
+
+  employees:
+    name, role, contact, is_active, fcm_token, created_at
+
+  login_codes:
+    code, employee_id, expires_at, is_used, created_at
+
+
+================================================================================
+11. NOTIFICATIONS & WHATSAPP INTEGRATION
+================================================================================
+
+--------------------------------------------------------------------------------
+11.1 PUSH NOTIFICATIONS (Firebase Cloud Messaging)
+--------------------------------------------------------------------------------
+
+  New service enquiry submitted → Service Engineers + Admin notified
+  New product enquiry submitted → Sales Engineers + Admin notified
+  Enquiry accepted by engineer → Customer notified (Customer App)
+
+--------------------------------------------------------------------------------
+11.2 WHATSAPP (Phase 1 — Manual wa.me Link)
+--------------------------------------------------------------------------------
+
+  When engineer accepts a service enquiry:
+    → App shows "Send WhatsApp to Customer" button
+    → Button opens WhatsApp with pre-filled message:
+      "Hello [Customer Name], [Engineer Name] from Nexus Machinery Solutions
+       has been assigned to your request (#[ID]). Will reach you soon."
+    → Engineer taps Send manually in WhatsApp
+    → No API required — works immediately
+
+  Phase 5 (future): Upgrade to WhatsApp Business API for full automation.
+
+
+================================================================================
+12. PHASED IMPLEMENTATION PLAN
+================================================================================
+
+================================================================================
+PHASE 1 — UNIFIED WEBSITE (UI + Firebase Integration)
+================================================================================
+Priority: IMMEDIATE — In progress NOW.
+Goal: Merge websites, add 5-tab enquiry system, connect to Firebase.
+
+TASKS:
+  [x] 1. Merge service + selling websites into one file (index.html in /service-website/)
+  [x] 2. Enhanced hero animation (4 rotating states)
+  [x] 3. Five-tab navigation (Service, New Product, Used Product, Automation, Other)
+  [x] 4. Service tab with 3 sub-tabs (Breakdown, Part, Other)
+  [x] 5. Breakdown Enquiry: Machine type cards → Support type → Form
+  [x] 6. Photo capture via camera input
+  [x] 7. Voice recording via MediaRecorder API
+  [x] 8. New Product tab: machine cards + enquiry form
+  [x] 9. Used Product tab: machine cards + enquiry form
+  [x] 10. Automation tab: type selection + enquiry form
+  [x] 11. Other tab: general enquiry form
+  [x] 12. Existing "Our Services" section preserved below tabs
+  [x] 13. Firebase Firestore integration (all forms submit to database)
+  [x] 14. Firebase Storage upload (photos + voice)
+  [x] 15. Success/error feedback on all forms
+  [x] 16. Mobile responsive design
+
+  OPEN QUESTIONS FOR PHASE 1:
+  Q1: Product images — who provides actual photos for machine listings?
+      (Owner needs to send real machine sale photos. Placeholder used for now.)
+  Q2: Firebase project config — need to add Firestore + Storage rules.
+
+================================================================================
+PHASE 2 — EXECUTIVE/ADMIN APP (Android, UI Only)
+================================================================================
+Priority: HIGH — After Phase 1 website is live.
+Time: 3-4 weeks.
+
+TASKS:
+  [ ] 1. React Native (Expo) app setup
+  [ ] 2. Login screen (code entry)
+  [ ] 3. Role-based home screen
+  [ ] 4. Service Enquiries screen (Service Engineers)
+  [ ] 5. Product Enquiries screen (Sales Engineers)
+  [ ] 6. Workshop / Assembly screen (Assembly Engineers)
+  [ ] 7. Store / Parts screen (Store Engineers)
+  [ ] 8. Admin screens (customer list, employee list, add employee, product mgmt)
+  [ ] 9. Push notifications (FCM)
+  [ ] 10. WhatsApp wa.me link on accept
+
+  OPEN QUESTIONS FOR PHASE 2:
+  Q3: Android only or iOS too?
+  Q4: Assembly + Store Engineer workflow details needed from owner.
+  Q5: Owner admin account setup approach — confirm pre-set in DB by developer.
+
+================================================================================
+PHASE 3 — CUSTOMER MOBILE APP
+================================================================================
+Priority: MEDIUM — After Phase 2 is functional.
+Time: 2 weeks.
+
+TASKS:
+  [ ] 1. React Native (Expo) app setup
+  [ ] 2. All 5 sections + forms (same as website)
+  [ ] 3. Push notifications (new products, enquiry status)
+  [ ] 4. No login required
+
+================================================================================
+PHASE 4 — BACKEND HARDENING & SECURITY
+================================================================================
+Priority: HIGH — Before going live publicly.
+
+TASKS:
+  [ ] 1. Firebase Security Rules (Firestore + Storage)
+  [ ] 2. FCM notification testing on real devices
+  [ ] 3. Form validation and sanitization
+  [ ] 4. Rate limiting (prevent spam)
+  [ ] 5. HTTPS enforcement
+
+================================================================================
+PHASE 5 — WHATSAPP BUSINESS API UPGRADE (Optional)
+================================================================================
+Priority: LOW — After everything else stable.
+
+TASKS:
+  [ ] 1. Apply for WhatsApp Business API access
+  [ ] 2. Integrate API into backend (Cloud Function)
+  [ ] 3. Auto-send messages on enquiry acceptance
+
+
+================================================================================
+13. OPEN QUESTIONS & DEVELOPER NOTES
+================================================================================
+
+  Q1: Product images for listings — owner to provide real machine sale photos.
+  Q2: Firebase project config — Firestore + Storage + FCM need to be enabled.
+  Q3: Executive App — Android only or iOS too?
+  Q4: Assembly Engineer full workflow — more detail needed from owner.
+  Q5: Store Engineer full workflow — more detail needed from owner.
+  Q6: Owner admin account — confirm pre-configured by developer during setup.
+  Q7: "Other" tab content — currently a simple general form. Owner to review.
+
+DEVELOPER NOTES:
+
+  NOTE 1 — "ATMC" Machine Type:
+    The user mentioned "Turning might be called ATMC". ATMC is NOT a standard
+    industry term. We use "Turning Machine" as the label. No short form.
+
+  NOTE 2 — "Cremosine" Automation Type:
+    This was an error in the previous document — the user/owner never actually
+    mentioned it. It has been removed. Confirmed automation types:
+    Pick & Place, Robotic, Gantry, Other.
+
+  NOTE 3 — Services from Brochure (confirmed):
+    All services visible in the official service brochure photos have been
+    documented in Section 3 and are reflected on the website. No additional
+    services need to be added unless owner confirms new ones.
+
+  NOTE 4 — Photo + Voice on Website (HTTPS Required):
+    MediaRecorder API requires HTTPS. Firebase Hosting + GitHub Pages both
+    support HTTPS. ✓ Works on localhost during development. ✓
+
+  NOTE 5 — No Price on Product Listings:
+    Owner explicitly confirmed: NO price to be shown anywhere.
+    Enquiry-based model only. All price fields removed from UI.
+
+  NOTE 6 — Firebase Storage Cost (Summary):
+    Free tier covers early months. At full business scale, expect <$15/month.
+    For Phase 2+, evaluate Backblaze B2 ($0.006/GB vs Firebase's $0.026/GB)
+    if storage becomes a significant cost. Migration is straightforward.
+
+  NOTE 7 — Firebase Project:
+    adminsdk JSON file exists in /service-website/. Use this same Firebase
+    project. Enable Firestore, Storage, FCM, Auth in Firebase Console.
+
+  NOTE 8 — WhatsApp FAB Button:
+    The existing WhatsApp floating button (FAB) is KEPT on the merged website.
+    It still opens the WhatsApp wizard for quick emergency contact.
+
+
+================================================================================
+END OF DOCUMENT
+================================================================================
+
+This document is the SINGLE SOURCE OF TRUTH for the Nexus Machinery Solutions
+project. All development decisions should be made according to this document.
+Any change in requirements must be updated here FIRST.
+
+Last reviewed: 06 June 2026
+Reviewed by: Kishan (Developer) + Jaydeep (Owner)
+
+================================================================================
