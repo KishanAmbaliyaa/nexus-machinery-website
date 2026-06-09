@@ -104,9 +104,6 @@ async function sendLoginOTP(user) {
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
 
-    console.log("=== LOCAL DEVELOPMENT OTP ===");
-    console.log("Your OTP is:", otp);
-    console.log("=============================");
 
     // 2. Send via FormSubmit.co
     try {
@@ -172,12 +169,17 @@ async function handleVerifyOTP(event) {
 
 async function resendOTP() {
     const errorEl = document.getElementById('otp-error');
+    const successEl = document.getElementById('otp-success');
     errorEl.textContent = '';
+    if (successEl) successEl.textContent = '';
     if (!currentUser) return;
 
     try {
         await sendLoginOTP(currentUser);
-        alert("A new OTP code has been sent to your email!");
+        if (successEl) {
+            successEl.textContent = "A new OTP code has been sent to your email!";
+            setTimeout(() => { successEl.textContent = ''; }, 5000);
+        }
     } catch (error) {
         errorEl.textContent = "Failed to resend: " + error.message;
     }
