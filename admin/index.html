@@ -15,8 +15,10 @@
     <div id="login-screen" class="login-screen">
         <div class="login-card">
             <h1>NEXUS ADMIN</h1>
-            <p>Sign in to manage your business</p>
+            
+            <!-- Step 1: Login Form -->
             <form id="login-form" onsubmit="handleLogin(event)">
+                <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Sign in to manage your business</p>
                 <div class="form-group">
                     <label for="login-email">Email</label>
                     <input type="email" id="login-email" placeholder="admin@nexusmachinery.com" required>
@@ -27,6 +29,19 @@
                 </div>
                 <button type="submit" class="btn btn-primary btn-full">Sign In</button>
                 <p id="login-error" class="error-text"></p>
+            </form>
+
+            <!-- Step 2: OTP Form -->
+            <form id="otp-form" class="hidden" onsubmit="handleVerifyOTP(event)">
+                <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Enter the 6-digit secure OTP sent to your email.</p>
+                <div class="form-group">
+                    <label for="otp-code">Verification Code</label>
+                    <input type="text" id="otp-code" placeholder="000000" maxlength="6" pattern="\d{6}" style="text-align: center; font-size: 1.5rem; letter-spacing: 0.3rem;" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">Verify & Access</button>
+                <button type="button" class="btn btn-outline btn-full" style="margin-top: 0.5rem;" onclick="resendOTP()">Resend OTP</button>
+                <p style="color: var(--text-muted); font-size: 0.75rem; margin-top: 1rem;">Note: If this is your first time logging in, click "Activate Form" in the email from FormSubmit.co to authorize delivery.</p>
+                <p id="otp-error" class="error-text"></p>
             </form>
         </div>
     </div>
@@ -335,6 +350,17 @@
             <div id="customer-history-content">
                 <p class="loading">Loading...</p>
             </div>
+        </div>
+    </div>
+
+    <!-- Inquiry Detail Modal -->
+    <div id="inquiry-detail-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Product Inquiry Details</h2>
+                <button class="close-btn" onclick="closeInquiryDetailModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div id="inquiry-detail-content"></div>
         </div>
     </div>
 

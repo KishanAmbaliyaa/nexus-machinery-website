@@ -34,17 +34,39 @@ function sanitizeEmail(input) {
 // ============================================================
 // AUTH
 // ============================================================
+// ============================================================
+// AUTH
+// ============================================================
 firebase.auth().onAuthStateChanged((user) => {
     if (user) {
         currentUser = user;
-        document.getElementById('login-screen').classList.add('hidden');
-        document.getElementById('admin-panel').classList.remove('hidden');
-        document.getElementById('admin-email').textContent = user.email;
-        loadDashboard();
+        // Check if OTP has been verified in this session
+        if (sessionStorage.getItem('admin_otp_verified') === 'true') {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('admin-panel').classList.remove('hidden');
+            document.getElementById('admin-email').textContent = user.email;
+            loadDashboard();
+        } else {
+            // Show OTP form and send OTP if not already sent
+            document.getElementById('login-screen').classList.remove('hidden');
+            document.getElementById('admin-panel').classList.add('hidden');
+            document.getElementById('login-form').classList.add('hidden');
+            document.getElementById('otp-form').classList.remove('hidden');
+            
+            // Check if we need to send OTP
+            if (!window.otpSentForUid || window.otpSentForUid !== user.uid) {
+                window.otpSentForUid = user.uid;
+                sendLoginOTP(user);
+            }
+        }
     } else {
         currentUser = null;
         document.getElementById('login-screen').classList.remove('hidden');
         document.getElementById('admin-panel').classList.add('hidden');
+        document.getElementById('login-form').classList.remove('hidden');
+        document.getElementById('otp-form').classList.add('hidden');
+        sessionStorage.removeItem('admin_otp_verified');
+        window.otpSentForUid = null;
     }
 });
 
@@ -64,6 +86,94 @@ async function handleLogin(event) {
 
 function handleLogout() {
     firebase.auth().signOut();
+}
+
+async function sendLoginOTP(user) {
+    const email = user.email;
+    const otp = String(Math.floor(100000 + Math.random() * 900000));
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 mins
+
+    // 1. Save to Firestore
+    await db.collection('admin_otps').doc(user.uid).set({
+        code: otp,
+        email: email,
+        expiresAt: expiresAt,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    // 2. Send via FormSubmit.co
+    try {
+        const response = await fetch(`https://formsubmit.co/ajax/${email}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                _subject: "Nexus Admin Login - Secure OTP Verification",
+                message: `Hello,\n\nA login attempt was made for your Nexus Machinery Solutions Admin account.\n\nYour 6-digit Secure OTP code is: ${otp}\n\nThis code is valid for 5 minutes. If you did not initiate this login, please change your password immediately.`,
+                _honeypot: ""
+            })
+        });
+        const resData = await response.json();
+        console.log('OTP email sent successfully:', resData);
+    } catch (err) {
+        console.error('Error sending OTP email:', err);
+    }
+}
+
+async function handleVerifyOTP(event) {
+    event.preventDefault();
+    const code = document.getElementById('otp-code').value.trim();
+    const errorEl = document.getElementById('otp-error');
+    errorEl.textContent = '';
+
+    if (!currentUser) return;
+
+    try {
+        const doc = await db.collection('admin_otps').doc(currentUser.uid).get();
+        if (!doc.exists) {
+            errorEl.textContent = "No OTP code found. Please request a new one.";
+            return;
+        }
+
+        const data = doc.data();
+        const now = new Date();
+        const expiresAt = data.expiresAt ? data.expiresAt.toDate() : new Date(0);
+
+        if (now > expiresAt) {
+            errorEl.textContent = "OTP has expired. Please click Resend OTP.";
+            return;
+        }
+
+        if (data.code !== code) {
+            errorEl.textContent = "Invalid code. Please try again.";
+            return;
+        }
+
+        // Success!
+        sessionStorage.setItem('admin_otp_verified', 'true');
+        document.getElementById('login-screen').classList.add('hidden');
+        document.getElementById('admin-panel').classList.remove('hidden');
+        document.getElementById('admin-email').textContent = currentUser.email;
+        loadDashboard();
+    } catch (error) {
+        console.error("OTP Verification failed:", error);
+        errorEl.textContent = "Verification failed: " + error.message;
+    }
+}
+
+async function resendOTP() {
+    const errorEl = document.getElementById('otp-error');
+    errorEl.textContent = '';
+    if (!currentUser) return;
+
+    try {
+        await sendLoginOTP(currentUser);
+        alert("A new OTP code has been sent to your email!");
+    } catch (error) {
+        errorEl.textContent = "Failed to resend: " + error.message;
+    }
 }
 
 // ============================================================
@@ -260,7 +370,7 @@ async function loadDashboard() {
                                 <td><span class="badge badge-${b.status}">${b.status}</span></td>
                                 <td class="action-btns">
                                     <button class="btn btn-small btn-outline" onclick="viewBooking('${b.id}', '${b._collectionName}')">View</button>
-                                    ${b.status === 'new' || b.status === 'open' ? `<button class="btn btn-small btn-primary" onclick="updateBookingStatus('${b.id}', '${b._collectionName}', 'accepted')">Accept</button>` : ''}
+                                    ${b.status === 'new' || b.status === 'open' ? `<button class="btn btn-small btn-primary" onclick="viewBooking('${b.id}', '${b._collectionName}')">Assign</button>` : ''}
                                 </td>
                             </tr>
                         `).join('')}
@@ -348,7 +458,7 @@ async function loadBookings() {
                             <td><span class="badge badge-${b.status}">${b.status}</span></td>
                             <td class="action-btns">
                                 <button class="btn btn-small btn-outline" onclick="viewBooking('${b.id}', '${b._collectionName}')">View</button>
-                                ${b.status === 'new' || b.status === 'open' ? `<button class="btn btn-small btn-primary" onclick="updateBookingStatus('${b.id}', '${b._collectionName}', 'accepted')">Accept</button>` : ''}
+                                ${b.status === 'new' || b.status === 'open' ? `<button class="btn btn-small btn-primary" onclick="viewBooking('${b.id}', '${b._collectionName}')">Assign</button>` : ''}
                                 ${b.status === 'accepted' ? `<button class="btn btn-small btn-primary" onclick="updateBookingStatus('${b.id}', '${b._collectionName}', 'in_progress')">Start</button>` : ''}
                                 ${b.status === 'in_progress' ? `<button class="btn btn-small btn-primary" onclick="updateBookingStatus('${b.id}', '${b._collectionName}', 'completed')">Complete</button>` : ''}
                             </td>
@@ -869,7 +979,7 @@ async function loadInquiries() {
                             <td>${i.createdAt ? new Date(i.createdAt).toLocaleDateString() : 'N/A'}</td>
                             <td><span class="badge badge-${i.status}">${i.status}</span></td>
                             <td class="action-btns">
-                                ${i.status === 'new' ? `<button class="btn btn-small btn-primary" onclick="markInquiryResponded('${i.id}', '${i._collectionName}')">Mark Responded</button>` : ''}
+                                <button class="btn btn-small btn-outline" onclick="viewInquiry('${i.id}', '${i._collectionName}')">View</button>
                             </td>
                         </tr>
                     `).join('')}
@@ -882,16 +992,100 @@ async function loadInquiries() {
     }
 }
 
-async function markInquiryResponded(id, collectionName) {
+async function viewInquiry(id, collectionName) {
+    try {
+        const doc = await db.collection(collectionName).doc(id).get();
+        if (!doc.exists) {
+            alert('Inquiry not found');
+            return;
+        }
+        const data = doc.data();
+
+        let createdAt = '';
+        if (data.createdAt) {
+            if (typeof data.createdAt.toDate === 'function') {
+                createdAt = data.createdAt.toDate().toLocaleString();
+            } else if (data.createdAt instanceof Date) {
+                createdAt = data.createdAt.toLocaleString();
+            } else {
+                createdAt = String(data.createdAt);
+            }
+        }
+
+        const i = {
+            id: doc.id,
+            customerName: data.name || 'N/A',
+            customerPhone: data.phone || data.contact || 'N/A',
+            customerEmail: data.email || 'N/A',
+            customerCompany: data.company || 'N/A',
+            productName: data.productName || 'N/A',
+            message: data.message || 'No message provided',
+            status: data.status || 'new',
+            internalNotes: data.internalNotes || '',
+            createdAt: createdAt
+        };
+
+        document.getElementById('inquiry-detail-content').innerHTML = `
+            <div class="form-group"><label>Inquiry ID</label><p>${i.id}</p></div>
+            <div class="form-row">
+                <div class="form-group"><label>Customer Name</label><p>${i.customerName}</p></div>
+                <div class="form-group"><label>Phone</label><p>${i.customerPhone}</p></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Email</label><p>${i.customerEmail}</p></div>
+                <div class="form-group"><label>Company</label><p>${i.customerCompany}</p></div>
+            </div>
+            <div class="form-group"><label>Product / Category</label><p><strong>${i.productName}</strong> (${collectionName === 'new_product_enquiries' ? 'New Machine' : 'Pre-Owned Machine'})</p></div>
+            <div class="form-group"><label>Customer Message</label><p>${i.message}</p></div>
+            <div class="form-group"><label>Created At</label><p>${i.createdAt}</p></div>
+            
+            <div class="form-group" style="margin-top: 15px; border-top: 1px solid var(--border); padding-top: 15px;">
+                <label for="inquiry-status-select">Status</label>
+                <select id="inquiry-status-select" style="padding: 0.5rem; background: var(--darker); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: 'Montserrat', sans-serif; width: 100%;">
+                    <option value="new" ${i.status === 'new' ? 'selected' : ''}>New</option>
+                    <option value="contacted" ${i.status === 'contacted' ? 'selected' : ''}>Contacted</option>
+                    <option value="responded" ${i.status === 'responded' ? 'selected' : ''}>Responded / Completed</option>
+                    <option value="cancelled" ${i.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="inquiry-notes-textarea">Internal Notes</label>
+                <textarea id="inquiry-notes-textarea" rows="4" style="width: 100%; padding: 0.5rem; background: var(--darker); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: 'Montserrat', sans-serif;" placeholder="Add internal notes about this product enquiry...">${i.internalNotes}</textarea>
+            </div>
+
+            <div style="display: flex; gap: 0.5rem; margin-top: 20px;">
+                <button class="btn btn-primary btn-full" onclick="updateInquiry('${i.id}', '${collectionName}')">Save Updates</button>
+            </div>
+        `;
+        document.getElementById('inquiry-detail-modal').classList.add('active');
+    } catch (error) {
+        console.error('Error viewing inquiry:', error);
+        alert('Failed to load inquiry details: ' + error.message);
+    }
+}
+
+function closeInquiryDetailModal() {
+    document.getElementById('inquiry-detail-modal').classList.remove('active');
+}
+
+async function updateInquiry(id, collectionName) {
+    const status = document.getElementById('inquiry-status-select').value;
+    const notes = document.getElementById('inquiry-notes-textarea').value.trim();
+
     try {
         await db.collection(collectionName).doc(id).update({
-            status: 'responded',
+            status: status,
+            internalNotes: notes,
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         });
+
+        alert('Inquiry updated successfully!');
+        closeInquiryDetailModal();
         loadInquiries();
     } catch (error) {
         console.error('Error updating inquiry:', error);
-        alert('Failed to update inquiry: ' + error.message);
+        alert('Failed to save inquiry changes: ' + error.message);
     }
 }
 
