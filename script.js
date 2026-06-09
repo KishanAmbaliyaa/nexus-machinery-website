@@ -272,7 +272,7 @@ const showcaseSlides = [
     {
         title: 'MACHINE PART SERVICE',
         desc: 'High-quality replacement parts and professional repair services for spindles, turrets, live turrets, rotary cylinders, and hydraulic components.',
-        image: 'Images/VTL.png',
+        image: 'Images/part-1.png',
         cta: '#enquiry-tabs',
         ctaLabel: 'Send Part Enquiry',
         targetTab: 'service',
@@ -289,7 +289,7 @@ const showcaseSlides = [
     {
         title: 'AUTOMATION SOLUTION',
         desc: 'Complete industrial automation systems — Pick & Place, Robotic arm integration, and Gantry systems customized for your production lines.',
-        image: 'Images/HMC.png',
+        image: 'Images/automation.png',
         cta: '#enquiry-tabs',
         ctaLabel: 'Automation Enquiry',
         targetTab: 'automation'
