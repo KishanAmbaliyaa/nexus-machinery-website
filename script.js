@@ -882,7 +882,7 @@ async function simulateSubmit(data) {
     const collectionName = collectionMap[data.type];
     if (!collectionName) throw new Error('Unknown form type: ' + data.type);
 
-    // Upload media files if present
+    // Upload media files if present (failures are non-fatal — form still submits)
     let prefix = null;
     if (data.type === 'breakdown') prefix = 'bd';
     if (data.type === 'part') prefix = 'pt';
@@ -891,12 +891,22 @@ async function simulateSubmit(data) {
     if (prefix) {
         const photoInput = document.getElementById(`${prefix}-photo`);
         if (photoInput && photoInput.files && photoInput.files[0]) {
-            data.photoUrl = await uploadFileToStorage(photoInput.files[0], prefix);
+            try {
+                data.photoUrl = await uploadFileToStorage(photoInput.files[0], prefix);
+            } catch (uploadErr) {
+                console.warn('⚠️ Photo upload failed (Storage may not be configured yet). Submitting without photo.', uploadErr.message);
+                data.photoUrl = null;
+            }
         }
         
         const audioEl = document.getElementById(`${prefix}-audio-preview`);
         if (audioEl && audioEl._blob) {
-            data.voiceUrl = await uploadFileToStorage(audioEl._blob, prefix);
+            try {
+                data.voiceUrl = await uploadFileToStorage(audioEl._blob, prefix);
+            } catch (uploadErr) {
+                console.warn('⚠️ Voice upload failed (Storage may not be configured yet). Submitting without voice note.', uploadErr.message);
+                data.voiceUrl = null;
+            }
         }
     }
 
@@ -915,13 +925,19 @@ async function uploadFileToStorage(fileOrBlob, prefix) {
     const fb = window._firebase;
     if (!storage || !fb) return null;
     
-    const extension = fileOrBlob.name ? fileOrBlob.name.split('.').pop() : (fileOrBlob.type.includes('audio') ? 'webm' : 'bin');
+    const extension = fileOrBlob.name 
+        ? fileOrBlob.name.split('.').pop() 
+        : (fileOrBlob.type && fileOrBlob.type.includes('audio') ? 'webm' : 'bin');
     const filename = `enquiries/${prefix}_${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${extension}`;
     const storageRef = fb.ref(storage, filename);
     
-    await fb.uploadBytes(storageRef, fileOrBlob);
-    const downloadUrl = await fb.getDownloadURL(storageRef);
-    return downloadUrl;
+    // Set a 15-second timeout so upload never hangs forever
+    const uploadPromise = fb.uploadBytes(storageRef, fileOrBlob).then(() => fb.getDownloadURL(storageRef));
+    const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Upload timed out after 15s')), 15000)
+    );
+    
+    return await Promise.race([uploadPromise, timeoutPromise]);
 }
 
 // ============================================================
