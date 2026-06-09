@@ -34,9 +34,12 @@ function sanitizeEmail(input) {
 // ============================================================
 // AUTH
 // ============================================================
-// ============================================================
-// AUTH
-// ============================================================
+// Configure session persistence so that closing the tab/window logs the admin out automatically
+firebase.auth().setPersistence(firebase.auth.Auth.Persistence.SESSION)
+    .catch((error) => {
+        console.error("Error setting session persistence:", error);
+    });
+
 firebase.auth().onAuthStateChanged((user) => {
     if (user) {
         currentUser = user;
