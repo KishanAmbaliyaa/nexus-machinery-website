@@ -1654,13 +1654,14 @@ h1, h2, h3 { text-transform: uppercase; font-weight: 900; letter-spacing: 1px; }
     .grid-large { grid-template-columns: 1fr; }
 
     .fab { width: 60px; height: 60px; font-size: 2.4rem; bottom: 25px; right: 25px; }
+    .scroll-indicator { display: none !important; }
 }
 
 @media (max-width: 576px) {
-    .tab-buttons { gap: 0.3rem; }
-    .tab-btn { padding: 0.7rem 0.3rem; font-size: 0.7rem; }
-    .tab-btn span { display: none; }
-    .tab-btn i { font-size: 1.3rem; }
+    .tab-buttons { gap: 0.3rem; flex-wrap: wrap; justify-content: center; }
+    .tab-btn { flex: 1 1 80px; padding: 0.6rem 0.2rem; font-size: 0.65rem; }
+    .tab-btn span { display: block; font-size: 0.6rem; font-weight: 600; text-align: center; }
+    .tab-btn i { font-size: 1.1rem; }
 
     .trust-item { min-width: 100%; justify-content: flex-start; padding-left: 2rem; }
     .logo { font-size: 0.9rem; }

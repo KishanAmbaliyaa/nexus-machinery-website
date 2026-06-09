@@ -261,60 +261,38 @@ function toggleGlobalMenu() {
 // ============================================================
 const showcaseSlides = [
     {
-        title: 'CNC MACHINE SERVICE',
-        desc: 'Comprehensive diagnostic and repair services. Restoring precision and minimizing downtime for your production lines.',
+        title: 'MACHINE BREAKDOWN SERVICE',
+        desc: 'Expert diagnostic and repair services for all machine types including Turning Machines, VMC, HMC, VTL, and Double Column. Restoring precision and minimizing downtime.',
         image: 'Images/CNC.png',
         cta: '#enquiry-tabs',
-        ctaLabel: 'Send Service Enquiry'
+        ctaLabel: 'Send Service Enquiry',
+        targetTab: 'service',
+        targetSubTab: 'breakdown'
     },
     {
-        title: 'VMC MACHINE SERVICE',
-        desc: 'Expert vertical machining center maintenance. From spindle repairs to axis alignment, we keep your VMCs at peak performance.',
-        image: 'Images/VMC.png',
-        cta: '#enquiry-tabs',
-        ctaLabel: 'Send Service Enquiry'
-    },
-    {
-        title: 'HMC MACHINE SERVICE',
-        desc: 'Horizontal machining center solutions tailored for complex industrial needs. We troubleshoot issues rapidly.',
-        image: 'Images/HMC.png',
-        cta: '#enquiry-tabs',
-        ctaLabel: 'Send Service Enquiry'
-    },
-    {
-        title: 'VTL MACHINE SERVICE',
-        desc: 'Specialized vertical turret lathe services. Heavy-duty turning machine repairs ensuring stability and accuracy.',
+        title: 'MACHINE PART SERVICE',
+        desc: 'High-quality replacement parts and professional repair services for spindles, turrets, live turrets, rotary cylinders, and hydraulic components.',
         image: 'Images/VTL.png',
         cta: '#enquiry-tabs',
-        ctaLabel: 'Send Service Enquiry'
+        ctaLabel: 'Send Part Enquiry',
+        targetTab: 'service',
+        targetSubTab: 'part'
     },
     {
-        title: 'DOUBLE COLUMN MACHINE SERVICE',
-        desc: 'Large-scale double column machine servicing. Complex geometry alignments and heavy mechanics handled safely.',
-        image: 'Images/DOUBLE COLUMN.png',
-        cta: '#enquiry-tabs',
-        ctaLabel: 'Send Service Enquiry'
-    },
-    {
-        title: 'NEW & USED MACHINES FOR SALE',
-        desc: 'Premium CNC, VMC, HMC, VTL machines — new and certified pre-owned. Just enquire.',
+        title: 'NEW & USED PRODUCT',
+        desc: 'Premium CNC, VMC, HMC, and VTL machines — new and certified pre-owned. Browse our selection and enquire for pricing.',
         image: 'Images/VMC.png',
         cta: '#enquiry-tabs',
-        ctaLabel: 'View Machines'
+        ctaLabel: 'View Machines',
+        targetTab: 'new-product'
     },
     {
-        title: 'SPINDLE, TURRET & COMPONENT SERVICES',
-        desc: 'Expert repair for belt drive spindles, integrated spindles, turrets, live turrets, rotary & hydraulic cylinders.',
-        image: 'Images/CNC.png',
-        cta: '#component-services',
-        ctaLabel: 'See All Services'
-    },
-    {
-        title: 'AUTOMATION SOLUTIONS',
-        desc: 'End-to-end automation — Pick & Place, Robotic Arms, Gantry systems. Design, installation and programming.',
+        title: 'AUTOMATION SOLUTION',
+        desc: 'Complete industrial automation systems — Pick & Place, Robotic arm integration, and Gantry systems customized for your production lines.',
         image: 'Images/HMC.png',
         cta: '#enquiry-tabs',
-        ctaLabel: 'Automation Enquiry'
+        ctaLabel: 'Automation Enquiry',
+        targetTab: 'automation'
     }
 ];
 
@@ -346,13 +324,16 @@ function rotateShowcase() {
         ctaEl.textContent   = slide.ctaLabel || 'Enquire Now';
         ctaEl.href          = slide.cta;
 
-        if (slide.ctaLabel === 'Automation Enquiry') {
-            ctaEl.onclick = (e) => { e.preventDefault(); switchTab('automation'); document.getElementById('enquiry-tabs').scrollIntoView({ behavior: 'smooth' }); };
-        } else if (slide.ctaLabel === 'View Machines') {
-            ctaEl.onclick = (e) => { e.preventDefault(); switchTab('new-product'); document.getElementById('enquiry-tabs').scrollIntoView({ behavior: 'smooth' }); };
-        } else {
-            ctaEl.onclick = null;
-        }
+        ctaEl.onclick = (e) => {
+            e.preventDefault();
+            if (slide.targetTab) {
+                switchTab(slide.targetTab);
+            }
+            if (slide.targetSubTab) {
+                switchSubTab(slide.targetSubTab);
+            }
+            document.getElementById('enquiry-tabs').scrollIntoView({ behavior: 'smooth' });
+        };
 
         elements.forEach(el => el.classList.add('active'));
     }, 600);
