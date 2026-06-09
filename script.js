@@ -921,23 +921,49 @@ async function simulateSubmit(data) {
 }
 
 async function uploadFileToStorage(fileOrBlob, prefix) {
-    const storage = window._nexusStorage;
-    const fb = window._firebase;
-    if (!storage || !fb) return null;
-    
-    const extension = fileOrBlob.name 
-        ? fileOrBlob.name.split('.').pop() 
-        : (fileOrBlob.type && fileOrBlob.type.includes('audio') ? 'webm' : 'bin');
-    const filename = `enquiries/${prefix}_${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${extension}`;
-    const storageRef = fb.ref(storage, filename);
-    
-    // Set a 15-second timeout so upload never hangs forever
-    const uploadPromise = fb.uploadBytes(storageRef, fileOrBlob).then(() => fb.getDownloadURL(storageRef));
-    const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Upload timed out after 15s')), 15000)
-    );
-    
-    return await Promise.race([uploadPromise, timeoutPromise]);
+    // ── Cloudinary unsigned upload (no Firebase Storage required) ──
+    const CLOUD_NAME   = 'dofphhum5';
+    const UPLOAD_PRESET = 'ucfof5kx';
+
+    // Determine resource type: audio files go to 'video' endpoint on Cloudinary
+    const isAudio = fileOrBlob.type && fileOrBlob.type.includes('audio');
+    const resourceType = isAudio ? 'video' : 'image';
+    const uploadUrl = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/${resourceType}/upload`;
+
+    const formData = new FormData();
+    formData.append('file', fileOrBlob);
+    formData.append('upload_preset', UPLOAD_PRESET);
+    formData.append('folder', 'nexus-enquiries');
+    formData.append('public_id', `${prefix}_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`);
+
+    // 30-second timeout
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 30000);
+
+    try {
+        const response = await fetch(uploadUrl, {
+            method: 'POST',
+            body: formData,
+            signal: controller.signal
+        });
+        clearTimeout(timer);
+
+        if (!response.ok) {
+            const errText = await response.text();
+            throw new Error(`Cloudinary upload failed (${response.status}): ${errText}`);
+        }
+
+        const result = await response.json();
+        console.log('✅ Uploaded to Cloudinary:', result.secure_url);
+        return result.secure_url;
+
+    } catch (err) {
+        clearTimeout(timer);
+        if (err.name === 'AbortError') {
+            throw new Error('Upload timed out after 30s');
+        }
+        throw err;
+    }
 }
 
 // ============================================================
