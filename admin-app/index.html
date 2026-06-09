@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus Admin Panel</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="login-screen" class="login-screen">
+        <div class="login-card">
+            <h1>NEXUS ADMIN</h1>
+            <p>Sign in to manage your business</p>
+            <form id="login-form" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label for="login-email">Email</label>
+                    <input type="email" id="login-email" placeholder="admin@nexusmachinery.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Password</label>
+                    <input type="password" id="login-password" placeholder="Enter password" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">Sign In</button>
+                <p id="login-error" class="error-text"></p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Admin Panel -->
+    <div id="admin-panel" class="admin-panel hidden">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>NEXUS</h2>
+                <span>Admin Panel</span>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" onclick="switchTab('dashboard')">
+                    <i class="fa-solid fa-chart-line"></i> Dashboard
+                </a>
+                <a href="#" class="nav-item" onclick="switchTab('bookings')">
+                    <i class="fa-solid fa-calendar-check"></i> Bookings
+                </a>
+                <a href="#" class="nav-item" onclick="switchTab('products')">
+                    <i class="fa-solid fa-box"></i> Products
+                </a>
+                <a href="#" class="nav-item" onclick="switchTab('employees')">
+                    <i class="fa-solid fa-users"></i> Employees
+                </a>
+                <a href="#" class="nav-item" onclick="switchTab('inquiries')">
+                    <i class="fa-solid fa-envelope"></i> Inquiries
+                </a>
+                <a href="#" class="nav-item" onclick="switchTab('customers')">
+                    <i class="fa-solid fa-address-book"></i> Customers
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <button class="btn btn-outline btn-full" onclick="handleLogout()">
+                    <i class="fa-solid fa-right-from-bracket"></i> Logout
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Bar -->
+            <header class="topbar">
+                <button class="mobile-menu-btn" onclick="toggleSidebar()">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <h1 id="page-title">Dashboard</h1>
+                <div class="topbar-right">
+                    <span id="admin-email"></span>
+                </div>
+            </header>
+
+            <!-- Dashboard Tab -->
+            <section id="tab-dashboard" class="tab-content active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <i class="fa-solid fa-calendar-check"></i>
+                        <div class="stat-info">
+                            <h3 id="stat-bookings">0</h3>
+                            <p>Open Bookings</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fa-solid fa-box"></i>
+                        <div class="stat-info">
+                            <h3 id="stat-products">0</h3>
+                            <p>Active Products</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fa-solid fa-users"></i>
+                        <div class="stat-info">
+                            <h3 id="stat-employees">0</h3>
+                            <p>Employees</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fa-solid fa-envelope"></i>
+                        <div class="stat-info">
+                            <h3 id="stat-inquiries">0</h3>
+                            <p>New Inquiries</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="recent-section">
+                    <h2>Recent Bookings</h2>
+                    <div id="recent-bookings" class="table-container">
+                        <p class="loading">Loading...</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Bookings Tab -->
+            <section id="tab-bookings" class="tab-content">
+                <div class="tab-header">
+                    <h2>Service Bookings</h2>
+                    <div class="filter-group" style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
+                        <select id="booking-status-filter" onchange="loadBookings()">
+                            <option value="">All Status</option>
+                            <option value="new">New / Open</option>
+                            <option value="accepted">Accepted</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="completed">Completed</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                        <select id="booking-type-filter" onchange="loadBookings()">
+                            <option value="">All Types</option>
+                            <option value="breakdown_enquiries">Breakdown Service</option>
+                            <option value="part_enquiries">Part Enquiry</option>
+                            <option value="other_service_enquiries">Other Service</option>
+                        </select>
+                        <input type="date" id="booking-date-filter" onchange="loadBookings()" style="padding: 0.5rem 0.8rem; font-size: 0.8rem; background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: 'Montserrat', sans-serif;">
+                    </div>
+                </div>
+                <div id="bookings-list" class="table-container">
+                    <p class="loading">Loading...</p>
+                </div>
+            </section>
+
+            <!-- Products Tab -->
+            <section id="tab-products" class="tab-content">
+                <div class="tab-header">
+                    <h2>Product Listings</h2>
+                    <button class="btn btn-primary" onclick="openProductModal()">
+                        <i class="fa-solid fa-plus"></i> Add Product
+                    </button>
+                </div>
+                <div id="products-list" class="table-container">
+                    <p class="loading">Loading...</p>
+                </div>
+            </section>
+
+            <!-- Employees Tab -->
+            <section id="tab-employees" class="tab-content">
+                <div class="tab-header">
+                    <h2>Employees</h2>
+                    <button class="btn btn-primary" onclick="openEmployeeModal()">
+                        <i class="fa-solid fa-plus"></i> Add Employee
+                    </button>
+                </div>
+                <div id="employees-list" class="table-container">
+                    <p class="loading">Loading...</p>
+                </div>
+            </section>
+
+            <!-- Inquiries Tab -->
+            <section id="tab-inquiries" class="tab-content">
+                <div class="tab-header">
+                    <h2>Product Inquiries</h2>
+                    <div class="filter-group" style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
+                        <input type="text" id="inquiry-search-filter" placeholder="Search product/customer..." oninput="loadInquiries()" style="padding: 0.5rem 0.8rem; font-size: 0.8rem; background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: 'Montserrat', sans-serif;">
+                        <select id="inquiry-status-filter" onchange="loadInquiries()">
+                            <option value="">All Status</option>
+                            <option value="new">New</option>
+                            <option value="responded">Responded</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="inquiries-list" class="table-container">
+                    <p class="loading">Loading...</p>
+                </div>
+            </section>
+
+            <!-- Customers Tab -->
+            <section id="tab-customers" class="tab-content">
+                <div class="tab-header">
+                    <h2>Customers</h2>
+                    <div class="filter-group" style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
+                        <input type="text" id="customer-name-filter" placeholder="Search by name..." oninput="loadCustomers()" style="padding: 0.5rem 0.8rem; font-size: 0.8rem; background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: 'Montserrat', sans-serif;">
+                        <input type="text" id="customer-phone-filter" placeholder="Search by phone..." oninput="loadCustomers()" style="padding: 0.5rem 0.8rem; font-size: 0.8rem; background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: 'Montserrat', sans-serif;">
+                    </div>
+                </div>
+                <div id="customers-list" class="table-container">
+                    <p class="loading">Loading...</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Product Modal -->
+    <div id="product-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="product-modal-title">Add New Product</h2>
+                <button class="close-btn" onclick="closeProductModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="product-form" onsubmit="handleProductSubmit(event)">
+                <input type="hidden" id="product-edit-id">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Product Name *</label>
+                        <input type="text" id="product-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Machine Type *</label>
+                        <select id="product-machine-type" required>
+                            <option value="">Select Type</option>
+                            <option value="CNC">CNC</option>
+                            <option value="VMC">VMC</option>
+                            <option value="HMC">HMC</option>
+                            <option value="VTL">VTL</option>
+                            <option value="Double Column">Double Column</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Category *</label>
+                        <select id="product-category" required>
+                            <option value="">Select Category</option>
+                            <option value="new">New Machine</option>
+                            <option value="used">Used / Pre-Owned</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="display: none;">
+                        <label>Price</label>
+                        <input type="hidden" id="product-price" value="Contact for Price">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Stock Count</label>
+                        <input type="number" id="product-stock" min="0" value="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Condition</label>
+                        <input type="text" id="product-condition" placeholder="e.g. Brand New, Refurbished">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="product-description" rows="3" placeholder="Product details and specifications..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Image URL(s) (comma separated)</label>
+                    <input type="text" id="product-images" placeholder="https://example.com/image1.jpg, https://...">
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">Save Product</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Employee Modal -->
+    <div id="employee-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="employee-modal-title">Add New Employee</h2>
+                <button class="close-btn" onclick="closeEmployeeModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="employee-form" onsubmit="handleEmployeeSubmit(event)">
+                <input type="hidden" id="employee-edit-id">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Full Name *</label>
+                        <input type="text" id="employee-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Phone *</label>
+                        <input type="tel" id="employee-phone" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="employee-email">
+                    </div>
+                    <div class="form-group">
+                        <label>Role</label>
+                        <select id="employee-role">
+                            <option value="Service Engineer">Service Engineer</option>
+                            <option value="Assembly Engineer">Assembly Engineer</option>
+                            <option value="Sales Engineer">Sales Engineer</option>
+                            <option value="Store Engineer">Store Engineer</option>
+                            <option value="Admin (Owner)">Admin (Owner)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Skills (comma separated)</label>
+                    <input type="text" id="employee-skills" placeholder="CNC, VMC, HMC, VTL">
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">Save Employee</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Booking Detail Modal -->
+    <div id="booking-detail-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Booking Details</h2>
+                <button class="close-btn" onclick="closeBookingDetailModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div id="booking-detail-content"></div>
+        </div>
+    </div>
+
+    <!-- Customer History Modal -->
+    <div id="customer-history-modal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h2 id="customer-history-title">Customer History</h2>
+                <button class="close-btn" onclick="closeCustomerHistoryModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div id="customer-history-content">
+                <p class="loading">Loading...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Code Modal -->
+    <div id="code-modal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 400px; text-align: center;">
+            <div class="modal-header">
+                <h2>Login Code Generated</h2>
+                <button class="close-btn" onclick="closeCodeModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div style="margin: 1.5rem 0;">
+                <p style="color: var(--text-muted); margin-bottom: 1rem;">Share this code with the employee. Valid for 5 minutes.</p>
+                <div id="generated-code-display" style="font-size: 2.2rem; font-weight: 800; letter-spacing: 0.15rem; color: var(--primary); background: var(--darker); padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border);">000000</div>
+                <p style="color: var(--warning); font-size: 0.8rem; margin-top: 1rem;"><i class="fa-solid fa-clock"></i> Expires in 5 minutes</p>
+            </div>
+            <button class="btn btn-primary btn-full" onclick="closeCodeModal()">Close</button>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore-compat.js"></script>
+    <script src="config.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
