@@ -10,6 +10,5 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 
-// API URLs for both backends
-const SERVICE_API = 'http://localhost:5000/api';
-const SELLING_API = 'http://localhost:5001/api';
+// Initialize Firestore
+const db = firebase.firestore();

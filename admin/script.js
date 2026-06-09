@@ -102,23 +102,135 @@ function toggleSidebar() {
 }
 
 // ============================================================
+// FIRESTORE DATA HELPERS
+// ============================================================
+async function fetchAllEnquiries() {
+    const collections = [
+        { name: 'breakdown_enquiries', label: 'Breakdown Service' },
+        { name: 'part_enquiries', label: 'Part Enquiry' },
+        { name: 'other_service_enquiries', label: 'Other Service' },
+        { name: 'automation_enquiries', label: 'Automation Solution' },
+        { name: 'general_enquiries', label: 'General Enquiry' }
+    ];
+
+    const promises = collections.map(async (col) => {
+        try {
+            const snapshot = await db.collection(col.name).get();
+            return snapshot.docs.map(doc => {
+                const data = doc.data();
+                let createdAt = '';
+                if (data.createdAt) {
+                    if (typeof data.createdAt.toDate === 'function') {
+                        createdAt = data.createdAt.toDate().toISOString();
+                    } else if (data.createdAt instanceof Date) {
+                        createdAt = data.createdAt.toISOString();
+                    } else {
+                        createdAt = String(data.createdAt);
+                    }
+                }
+                
+                return {
+                    id: doc.id,
+                    _collectionName: col.name,
+                    customerName: data.name || 'N/A',
+                    customerPhone: data.phone || data.contact || 'N/A',
+                    customerAddress: data.location || 'N/A',
+                    machineType: data.machineType || col.label,
+                    serviceType: data.supportType || data.automationType || col.label,
+                    preferredDate: data.preferredDate || (createdAt ? new Date(createdAt).toLocaleDateString() : 'N/A'),
+                    preferredTime: data.preferredTime || (createdAt ? new Date(createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'N/A'),
+                    status: data.status || 'new',
+                    priority: data.priority || 'medium',
+                    source: data.source || 'Web',
+                    issueDescription: data.message || data.description || '',
+                    photoUrl: data.photoUrl || null,
+                    voiceUrl: data.voiceUrl || null,
+                    email: data.email || '',
+                    company: data.company || '',
+                    createdAt: createdAt
+                };
+            });
+        } catch (err) {
+            console.error(`Error fetching collection ${col.name}:`, err);
+            return [];
+        }
+    });
+
+    const results = await Promise.all(promises);
+    return results.flat().sort((a, b) => {
+        const dateA = a.createdAt ? new Date(a.createdAt) : new Date(0);
+        const dateB = b.createdAt ? new Date(b.createdAt) : new Date(0);
+        return dateB - dateA;
+    });
+}
+
+async function fetchProductInquiries() {
+    const collections = [
+        { name: 'new_product_enquiries', label: 'New Machine' },
+        { name: 'used_product_enquiries', label: 'Pre-Owned Machine' }
+    ];
+
+    const promises = collections.map(async (col) => {
+        try {
+            const snapshot = await db.collection(col.name).get();
+            return snapshot.docs.map(doc => {
+                const data = doc.data();
+                let createdAt = '';
+                if (data.createdAt) {
+                    if (typeof data.createdAt.toDate === 'function') {
+                        createdAt = data.createdAt.toDate().toISOString();
+                    } else if (data.createdAt instanceof Date) {
+                        createdAt = data.createdAt.toISOString();
+                    } else {
+                        createdAt = String(data.createdAt);
+                    }
+                }
+
+                return {
+                    id: doc.id,
+                    _collectionName: col.name,
+                    customerName: data.name || 'N/A',
+                    customerPhone: data.phone || data.contact || 'N/A',
+                    productName: data.productName || 'N/A',
+                    message: data.message || '-',
+                    status: data.status || 'new',
+                    email: data.email || '',
+                    company: data.company || '',
+                    createdAt: createdAt
+                };
+            });
+        } catch (err) {
+            console.error(`Error fetching collection ${col.name}:`, err);
+            return [];
+        }
+    });
+
+    const results = await Promise.all(promises);
+    return results.flat().sort((a, b) => {
+        const dateA = a.createdAt ? new Date(a.createdAt) : new Date(0);
+        const dateB = b.createdAt ? new Date(b.createdAt) : new Date(0);
+        return dateB - dateA;
+    });
+}
+
+// ============================================================
 // DASHBOARD
 // ============================================================
 async function loadDashboard() {
     try {
-        const [bookings, products, employees, inquiries] = await Promise.all([
-            fetch(`${SERVICE_API}/bookings`).then(r => r.json()),
-            fetch(`${SELLING_API}/products`).then(r => r.json()),
-            fetch(`${SERVICE_API}/employees`).then(r => r.json()),
-            fetch(`${SELLING_API}/inquiries`).then(r => r.json()),
+        const [bookings, productsSnapshot, employeesSnapshot, inquiries] = await Promise.all([
+            fetchAllEnquiries(),
+            db.collection('products').get(),
+            db.collection('employees').get(),
+            fetchProductInquiries()
         ]);
 
-        const openBookings = bookings.filter(b => b.status === 'open' || b.status === 'accepted');
+        const openBookings = bookings.filter(b => b.status === 'new' || b.status === 'open' || b.status === 'accepted' || b.status === 'in_progress');
         const newInquiries = inquiries.filter(i => i.status === 'new');
 
         document.getElementById('stat-bookings').textContent = openBookings.length;
-        document.getElementById('stat-products').textContent = products.length;
-        document.getElementById('stat-employees').textContent = employees.length;
+        document.getElementById('stat-products').textContent = productsSnapshot.size;
+        document.getElementById('stat-employees').textContent = employeesSnapshot.size;
         document.getElementById('stat-inquiries').textContent = newInquiries.length;
 
         // Recent bookings table
@@ -150,7 +262,8 @@ async function loadDashboard() {
             `;
         }
     } catch (error) {
-        document.getElementById('recent-bookings').innerHTML = '<p class="no-data">Could not connect to backend. Make sure both servers are running.</p>';
+        console.error('Error loading dashboard:', error);
+        document.getElementById('recent-bookings').innerHTML = '<p class="no-data">Error loading dashboard: ' + error.message + '</p>';
     }
 }
 
@@ -162,8 +275,7 @@ async function loadBookings() {
     container.innerHTML = '<p class="loading">Loading...</p>';
 
     try {
-        const response = await fetch(`${SERVICE_API}/bookings`);
-        const bookings = await response.json();
+        const bookings = await fetchAllEnquiries();
 
         const filter = document.getElementById('booking-status-filter').value;
         const filtered = filter ? bookings.filter(b => b.status === filter) : bookings;
@@ -196,10 +308,10 @@ async function loadBookings() {
                             <td>${b.preferredDate}<br><small>${b.preferredTime}</small></td>
                             <td><span class="badge badge-${b.status}">${b.status}</span></td>
                             <td class="action-btns">
-                                <button class="btn btn-small btn-outline" onclick="viewBooking('${b.id}')">View</button>
-                                ${b.status === 'open' ? `<button class="btn btn-small btn-primary" onclick="updateBookingStatus('${b.id}', 'accepted')">Accept</button>` : ''}
-                                ${b.status === 'accepted' ? `<button class="btn btn-small btn-primary" onclick="updateBookingStatus('${b.id}', 'in_progress')">Start</button>` : ''}
-                                ${b.status === 'in_progress' ? `<button class="btn btn-small btn-primary" onclick="updateBookingStatus('${b.id}', 'completed')">Complete</button>` : ''}
+                                <button class="btn btn-small btn-outline" onclick="viewBooking('${b.id}', '${b._collectionName}')">View</button>
+                                ${b.status === 'new' || b.status === 'open' ? `<button class="btn btn-small btn-primary" onclick="updateBookingStatus('${b.id}', '${b._collectionName}', 'accepted')">Accept</button>` : ''}
+                                ${b.status === 'accepted' ? `<button class="btn btn-small btn-primary" onclick="updateBookingStatus('${b.id}', '${b._collectionName}', 'in_progress')">Start</button>` : ''}
+                                ${b.status === 'in_progress' ? `<button class="btn btn-small btn-primary" onclick="updateBookingStatus('${b.id}', '${b._collectionName}', 'completed')">Complete</button>` : ''}
                             </td>
                         </tr>
                     `).join('')}
@@ -207,14 +319,50 @@ async function loadBookings() {
             </table>
         `;
     } catch (error) {
-        container.innerHTML = '<p class="no-data">Failed to load bookings. Is the service backend running?</p>';
+        console.error('Error loading bookings:', error);
+        container.innerHTML = '<p class="no-data">Failed to load bookings: ' + error.message + '</p>';
     }
 }
 
-async function viewBooking(id) {
+async function viewBooking(id, collectionName) {
     try {
-        const response = await fetch(`${SERVICE_API}/bookings/${id}`);
-        const b = await response.json();
+        const doc = await db.collection(collectionName).doc(id).get();
+        if (!doc.exists) {
+            alert('Booking not found');
+            return;
+        }
+        const data = doc.data();
+
+        // Convert timestamp
+        let createdAt = '';
+        if (data.createdAt) {
+            if (typeof data.createdAt.toDate === 'function') {
+                createdAt = data.createdAt.toDate().toLocaleString();
+            } else if (data.createdAt instanceof Date) {
+                createdAt = data.createdAt.toLocaleString();
+            } else {
+                createdAt = String(data.createdAt);
+            }
+        }
+
+        // Standardize fields
+        const b = {
+            id: doc.id,
+            customerName: data.name || 'N/A',
+            customerPhone: data.phone || data.contact || 'N/A',
+            customerAddress: data.location || 'N/A',
+            machineType: data.machineType || 'N/A',
+            serviceType: data.supportType || data.automationType || 'N/A',
+            issueDescription: data.message || data.description || 'Not specified',
+            preferredDate: data.preferredDate || 'N/A',
+            preferredTime: data.preferredTime || 'N/A',
+            status: data.status || 'new',
+            priority: data.priority || 'medium',
+            source: data.source || 'Web',
+            photoUrl: data.photoUrl || null,
+            voiceUrl: data.voiceUrl || null,
+            createdAt: createdAt
+        };
 
         document.getElementById('booking-detail-content').innerHTML = `
             <div class="form-group"><label>Booking ID</label><p>${b.id}</p></div>
@@ -227,7 +375,7 @@ async function viewBooking(id) {
                 <div class="form-group"><label>Machine</label><p>${b.machineType}</p></div>
                 <div class="form-group"><label>Service</label><p>${b.serviceType}</p></div>
             </div>
-            <div class="form-group"><label>Issue</label><p>${b.issueDescription || 'Not specified'}</p></div>
+            <div class="form-group"><label>Issue/Message</label><p>${b.issueDescription}</p></div>
             <div class="form-row">
                 <div class="form-group"><label>Date</label><p>${b.preferredDate}</p></div>
                 <div class="form-group"><label>Time</label><p>${b.preferredTime}</p></div>
@@ -237,11 +385,35 @@ async function viewBooking(id) {
                 <div class="form-group"><label>Priority</label><p>${b.priority}</p></div>
             </div>
             <div class="form-group"><label>Source</label><p>${b.source}</p></div>
-            <div class="form-group"><label>Created</label><p>${new Date(b.createdAt).toLocaleString()}</p></div>
+            <div class="form-group"><label>Created</label><p>${b.createdAt}</p></div>
+            
+            ${b.photoUrl ? `
+            <div class="form-group">
+                <label>Photo Attachment</label>
+                <div style="margin-top: 5px;">
+                    <a href="${b.photoUrl}" target="_blank" class="btn btn-small btn-outline" style="text-decoration:none; display:inline-flex; align-items:center; gap:5px;">
+                        <i class="fa-solid fa-image"></i> View Photo
+                    </a>
+                </div>
+                <div style="margin-top: 10px; max-width: 100%;">
+                    <img src="${b.photoUrl}" alt="Attachment" style="max-height: 200px; border-radius: 6px; border: 1px solid #ddd;" />
+                </div>
+            </div>
+            ` : ''}
+            
+            ${b.voiceUrl ? `
+            <div class="form-group">
+                <label>Voice Description</label>
+                <div style="margin-top: 5px;">
+                    <audio src="${b.voiceUrl}" controls style="width: 100%; border-radius: 4px;"></audio>
+                </div>
+            </div>
+            ` : ''}
         `;
         document.getElementById('booking-detail-modal').classList.add('active');
     } catch (error) {
-        alert('Failed to load booking details');
+        console.error('Error viewing booking:', error);
+        alert('Failed to load booking details: ' + error.message);
     }
 }
 
@@ -249,16 +421,23 @@ function closeBookingDetailModal() {
     document.getElementById('booking-detail-modal').classList.remove('active');
 }
 
-async function updateBookingStatus(id, status) {
+async function updateBookingStatus(id, collectionName, status) {
     try {
-        await fetch(`${SERVICE_API}/bookings/${id}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ status }),
+        await db.collection(collectionName).doc(id).update({
+            status: status,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         });
-        loadBookings();
+        
+        // Reload whichever tab or view is active
+        const activeTab = document.querySelector('.nav-item.active').textContent.trim().toLowerCase();
+        if (activeTab.includes('dashboard')) {
+            loadDashboard();
+        } else {
+            loadBookings();
+        }
     } catch (error) {
-        alert('Failed to update booking');
+        console.error('Error updating booking status:', error);
+        alert('Failed to update booking: ' + error.message);
     }
 }
 
@@ -270,8 +449,8 @@ async function loadProducts() {
     container.innerHTML = '<p class="loading">Loading...</p>';
 
     try {
-        const response = await fetch(`${SELLING_API}/products`);
-        const products = await response.json();
+        const snapshot = await db.collection('products').get();
+        const products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
         if (products.length === 0) {
             container.innerHTML = '<p class="no-data">No products listed yet. Click "Add Product" to get started.</p>';
@@ -294,12 +473,12 @@ async function loadProducts() {
                 <tbody>
                     ${products.map(p => `
                         <tr>
-                            <td>${p.name}</td>
-                            <td>${p.machineType}</td>
-                            <td>${p.category}</td>
-                            <td>${p.price}</td>
-                            <td>${p.stockCount}</td>
-                            <td><span class="badge badge-${p.status}">${p.status}</span></td>
+                            <td>${p.name || 'N/A'}</td>
+                            <td>${p.machineType || 'N/A'}</td>
+                            <td>${p.category || 'N/A'}</td>
+                            <td>${p.price || 'N/A'}</td>
+                            <td>${p.stockCount !== undefined ? p.stockCount : 1}</td>
+                            <td><span class="badge badge-${p.status || 'active'}">${p.status || 'active'}</span></td>
                             <td class="action-btns">
                                 <button class="btn btn-small btn-outline" onclick="editProduct('${p.id}')">Edit</button>
                                 <button class="btn btn-small btn-danger" onclick="deleteProduct('${p.id}')">Delete</button>
@@ -310,7 +489,8 @@ async function loadProducts() {
             </table>
         `;
     } catch (error) {
-        container.innerHTML = '<p class="no-data">Failed to load products. Is the selling backend running?</p>';
+        console.error('Error loading products:', error);
+        container.innerHTML = '<p class="no-data">Failed to load products: ' + error.message + '</p>';
     }
 }
 
@@ -321,11 +501,11 @@ function openProductModal(product) {
 
     if (product) {
         document.getElementById('product-edit-id').value = product.id;
-        document.getElementById('product-name').value = product.name;
-        document.getElementById('product-machine-type').value = product.machineType;
-        document.getElementById('product-category').value = product.category;
-        document.getElementById('product-price').value = product.price;
-        document.getElementById('product-stock').value = product.stockCount;
+        document.getElementById('product-name').value = product.name || '';
+        document.getElementById('product-machine-type').value = product.machineType || '';
+        document.getElementById('product-category').value = product.category || '';
+        document.getElementById('product-price').value = product.price || '';
+        document.getElementById('product-stock').value = product.stockCount !== undefined ? product.stockCount : 1;
         document.getElementById('product-condition').value = product.condition || '';
         document.getElementById('product-description').value = product.description || '';
         document.getElementById('product-images').value = (product.images || []).join(', ');
@@ -354,36 +534,37 @@ async function handleProductSubmit(event) {
         condition: sanitizeText(document.getElementById('product-condition').value, 50),
         description: sanitizeText(document.getElementById('product-description').value, 1000),
         images: images.map(img => sanitizeText(img, 500)),
+        status: 'active',
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     };
 
     try {
         if (editId) {
-            await fetch(`${SELLING_API}/products/${editId}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data),
-            });
+            await db.collection('products').doc(editId).update(data);
         } else {
-            await fetch(`${SELLING_API}/products`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data),
-            });
+            data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+            await db.collection('products').add(data);
         }
         closeProductModal();
         loadProducts();
     } catch (error) {
-        alert('Failed to save product');
+        console.error('Error saving product:', error);
+        alert('Failed to save product: ' + error.message);
     }
 }
 
 async function editProduct(id) {
     try {
-        const response = await fetch(`${SELLING_API}/products/${id}`);
-        const product = await response.json();
+        const doc = await db.collection('products').doc(id).get();
+        if (!doc.exists) {
+            alert('Product not found');
+            return;
+        }
+        const product = { id: doc.id, ...doc.data() };
         openProductModal(product);
     } catch (error) {
-        alert('Failed to load product');
+        console.error('Error loading product:', error);
+        alert('Failed to load product: ' + error.message);
     }
 }
 
@@ -391,10 +572,11 @@ async function deleteProduct(id) {
     if (!confirm('Are you sure you want to delete this product?')) return;
 
     try {
-        await fetch(`${SELLING_API}/products/${id}`, { method: 'DELETE' });
+        await db.collection('products').doc(id).delete();
         loadProducts();
     } catch (error) {
-        alert('Failed to delete product');
+        console.error('Error deleting product:', error);
+        alert('Failed to delete product: ' + error.message);
     }
 }
 
@@ -406,8 +588,8 @@ async function loadEmployees() {
     container.innerHTML = '<p class="loading">Loading...</p>';
 
     try {
-        const response = await fetch(`${SERVICE_API}/employees`);
-        const employees = await response.json();
+        const snapshot = await db.collection('employees').get();
+        const employees = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
         if (employees.length === 0) {
             container.innerHTML = '<p class="no-data">No employees added yet. Click "Add Employee" to get started.</p>';
@@ -430,11 +612,11 @@ async function loadEmployees() {
                 <tbody>
                     ${employees.map(e => `
                         <tr>
-                            <td>${e.name}</td>
-                            <td>${e.phone}</td>
+                            <td>${e.name || 'N/A'}</td>
+                            <td>${e.phone || e.contact || 'N/A'}</td>
                             <td>${e.email || '-'}</td>
-                            <td>${e.role}</td>
-                            <td><span class="badge badge-${e.status}">${e.status}</span></td>
+                            <td>${e.role || 'technician'}</td>
+                            <td><span class="badge badge-${e.status || 'active'}">${e.status || 'active'}</span></td>
                             <td>${e.jobsCompleted || 0}</td>
                             <td class="action-btns">
                                 <button class="btn btn-small btn-outline" onclick="editEmployee('${e.id}')">Edit</button>
@@ -446,7 +628,8 @@ async function loadEmployees() {
             </table>
         `;
     } catch (error) {
-        container.innerHTML = '<p class="no-data">Failed to load employees. Is the service backend running?</p>';
+        console.error('Error loading employees:', error);
+        container.innerHTML = '<p class="no-data">Failed to load employees: ' + error.message + '</p>';
     }
 }
 
@@ -457,8 +640,8 @@ function openEmployeeModal(employee) {
 
     if (employee) {
         document.getElementById('employee-edit-id').value = employee.id;
-        document.getElementById('employee-name').value = employee.name;
-        document.getElementById('employee-phone').value = employee.phone;
+        document.getElementById('employee-name').value = employee.name || '';
+        document.getElementById('employee-phone').value = employee.phone || employee.contact || '';
         document.getElementById('employee-email').value = employee.email || '';
         document.getElementById('employee-role').value = employee.role || 'technician';
         document.getElementById('employee-skills').value = (employee.skills || []).join(', ');
@@ -499,36 +682,47 @@ async function handleEmployeeSubmit(event) {
         email: emailClean,
         role: sanitizeText(document.getElementById('employee-role').value, 50),
         skills: skills.map(skill => sanitizeText(skill, 50)),
+        status: 'active',
+        jobsCompleted: 0,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     };
 
     try {
         if (editId) {
-            await fetch(`${SERVICE_API}/employees/${editId}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data),
+            await db.collection('employees').doc(editId).update({
+                name: data.name,
+                phone: data.phone,
+                email: data.email,
+                role: data.role,
+                skills: data.skills,
+                updatedAt: data.updatedAt
             });
         } else {
-            await fetch(`${SERVICE_API}/employees`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data),
-            });
+            data.status = 'active';
+            data.jobsCompleted = 0;
+            data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+            await db.collection('employees').add(data);
         }
         closeEmployeeModal();
         loadEmployees();
     } catch (error) {
-        alert('Failed to save employee');
+        console.error('Error saving employee:', error);
+        alert('Failed to save employee: ' + error.message);
     }
 }
 
 async function editEmployee(id) {
     try {
-        const response = await fetch(`${SERVICE_API}/employees/${id}`);
-        const employee = await response.json();
+        const doc = await db.collection('employees').doc(id).get();
+        if (!doc.exists) {
+            alert('Employee not found');
+            return;
+        }
+        const employee = { id: doc.id, ...doc.data() };
         openEmployeeModal(employee);
     } catch (error) {
-        alert('Failed to load employee');
+        console.error('Error loading employee:', error);
+        alert('Failed to load employee: ' + error.message);
     }
 }
 
@@ -536,10 +730,11 @@ async function deleteEmployee(id) {
     if (!confirm('Are you sure you want to delete this employee?')) return;
 
     try {
-        await fetch(`${SERVICE_API}/employees/${id}`, { method: 'DELETE' });
+        await db.collection('employees').doc(id).delete();
         loadEmployees();
     } catch (error) {
-        alert('Failed to delete employee');
+        console.error('Error deleting employee:', error);
+        alert('Failed to delete employee: ' + error.message);
     }
 }
 
@@ -551,8 +746,7 @@ async function loadInquiries() {
     container.innerHTML = '<p class="loading">Loading...</p>';
 
     try {
-        const response = await fetch(`${SELLING_API}/inquiries`);
-        const inquiries = await response.json();
+        const inquiries = await fetchProductInquiries();
 
         if (inquiries.length === 0) {
             container.innerHTML = '<p class="no-data">No inquiries yet</p>';
@@ -578,11 +772,11 @@ async function loadInquiries() {
                             <td>${i.customerName}</td>
                             <td>${i.customerPhone}</td>
                             <td>${i.productName}</td>
-                            <td>${i.message || '-'}</td>
-                            <td>${new Date(i.createdAt).toLocaleDateString()}</td>
+                            <td>${i.message}</td>
+                            <td>${i.createdAt ? new Date(i.createdAt).toLocaleDateString() : 'N/A'}</td>
                             <td><span class="badge badge-${i.status}">${i.status}</span></td>
                             <td class="action-btns">
-                                ${i.status === 'new' ? `<button class="btn btn-small btn-primary" onclick="markInquiryResponded('${i.id}')">Mark Responded</button>` : ''}
+                                ${i.status === 'new' ? `<button class="btn btn-small btn-primary" onclick="markInquiryResponded('${i.id}', '${i._collectionName}')">Mark Responded</button>` : ''}
                             </td>
                         </tr>
                     `).join('')}
@@ -590,20 +784,21 @@ async function loadInquiries() {
             </table>
         `;
     } catch (error) {
-        container.innerHTML = '<p class="no-data">Failed to load inquiries. Is the selling backend running?</p>';
+        console.error('Error loading inquiries:', error);
+        container.innerHTML = '<p class="no-data">Failed to load inquiries: ' + error.message + '</p>';
     }
 }
 
-async function markInquiryResponded(id) {
+async function markInquiryResponded(id, collectionName) {
     try {
-        await fetch(`${SELLING_API}/inquiries/${id}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ status: 'responded' }),
+        await db.collection(collectionName).doc(id).update({
+            status: 'responded',
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         });
         loadInquiries();
     } catch (error) {
-        alert('Failed to update inquiry');
+        console.error('Error updating inquiry:', error);
+        alert('Failed to update inquiry: ' + error.message);
     }
 }
 
@@ -615,11 +810,51 @@ async function loadCustomers() {
     container.innerHTML = '<p class="loading">Loading...</p>';
 
     try {
-        const response = await fetch(`${SERVICE_API}/customers`);
-        const customers = await response.json();
+        const [bookings, inquiries] = await Promise.all([
+            fetchAllEnquiries(),
+            fetchProductInquiries()
+        ]);
+
+        const allSubmissions = [...bookings, ...inquiries];
+        const customerMap = {};
+
+        allSubmissions.forEach(sub => {
+            const rawPhone = sub.customerPhone || '';
+            const cleanPhone = rawPhone.replace(/\D/g, ''); // Digits only
+            
+            if (!cleanPhone || cleanPhone === 'NA' || cleanPhone === 'N/A' || cleanPhone.length < 5) return;
+
+            const subDate = sub.createdAt ? new Date(sub.createdAt) : new Date(0);
+
+            if (!customerMap[cleanPhone]) {
+                customerMap[cleanPhone] = {
+                    name: sub.customerName !== 'N/A' ? sub.customerName : '',
+                    phone: sub.customerPhone,
+                    email: sub.email || '',
+                    address: sub.customerAddress !== 'N/A' ? sub.customerAddress : '',
+                    company: sub.company || '',
+                    createdAt: subDate
+                };
+            } else {
+                const existing = customerMap[cleanPhone];
+                if (subDate > existing.createdAt) {
+                    if (sub.customerName !== 'N/A') existing.name = sub.customerName;
+                    if (sub.customerPhone) existing.phone = sub.customerPhone;
+                    if (sub.email) existing.email = sub.email;
+                    if (sub.customerAddress !== 'N/A') existing.address = sub.customerAddress;
+                    if (sub.company) existing.company = sub.company;
+                }
+                
+                if (subDate < existing.createdAt && subDate.getTime() > 0) {
+                    existing.createdAt = subDate;
+                }
+            }
+        });
+
+        const customers = Object.values(customerMap).sort((a, b) => b.createdAt - a.createdAt);
 
         if (customers.length === 0) {
-            container.innerHTML = '<p class="no-data">No customers yet. Customers are created automatically when bookings are made.</p>';
+            container.innerHTML = '<p class="no-data">No customers yet. Customers are created automatically when bookings or inquiries are made.</p>';
             return;
         }
 
@@ -638,18 +873,19 @@ async function loadCustomers() {
                 <tbody>
                     ${customers.map(c => `
                         <tr>
-                            <td>${c.name}</td>
+                            <td>${c.name || 'N/A'}</td>
                             <td>${c.phone}</td>
                             <td>${c.email || '-'}</td>
                             <td>${c.address || '-'}</td>
                             <td>${c.company || '-'}</td>
-                            <td>${new Date(c.createdAt).toLocaleDateString()}</td>
+                            <td>${c.createdAt.getTime() > 0 ? c.createdAt.toLocaleDateString() : 'N/A'}</td>
                         </tr>
                     `).join('')}
                 </tbody>
             </table>
         `;
     } catch (error) {
-        container.innerHTML = '<p class="no-data">Failed to load customers. Is the service backend running?</p>';
+        console.error('Error loading customers:', error);
+        container.innerHTML = '<p class="no-data">Failed to load customers: ' + error.message + '</p>';
     }
 }
