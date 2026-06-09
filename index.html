@@ -937,5 +937,29 @@
         </div>
     </div>
 
+    <!-- Firebase SDK Integration -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js';
+        import { getFirestore, collection, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';
+        import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-storage.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBYjOZqjDfUG5gkZatuJI2AVHw8WWwU92M",
+            authDomain: "nexus-machinery.firebaseapp.com",
+            projectId: "nexus-machinery",
+            storageBucket: "nexus-machinery.firebasestorage.app",
+            messagingSenderId: "165083917791",
+            appId: "1:165083917791:web:c6f8bca1ce81d3c272286a"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const storage = getStorage(app);
+
+        // Make Firebase APIs globally accessible for script.js
+        window._nexusDB = db;
+        window._nexusStorage = storage;
+        window._firebase = { collection, addDoc, serverTimestamp, ref, uploadBytes, getDownloadURL };
+    </script>
 </body>
 </html>

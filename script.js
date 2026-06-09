@@ -857,21 +857,17 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ============================================================
-// 15. SIMULATE SUBMIT (Replace with Firebase in Phase 2)
+// 15. FIREBASE SUBMIT & STORAGE UPLOADS
 // ============================================================
-function simulateSubmit(data) {
-    // Log sanitized data — safe to display in console
-    console.log('📬 [SECURE] Enquiry submitted (sanitized):', data);
+async function simulateSubmit(data) {
+    const db = window._nexusDB;
+    const fb = window._firebase;
 
-    return new Promise((resolve) => setTimeout(resolve, 1200));
-
-    /*
-    ================================================================
-    FIREBASE INTEGRATION — Uncomment and replace in Phase 2
-    ================================================================
-    IMPORTANT: data passed here is already sanitized by sanitizeFormData().
-    Do NOT sanitize again in the Cloud Function — it is not needed.
-    However, Firestore Security Rules are STILL required as a second layer.
+    // Fallback if Firebase is not initialized yet (development fallback)
+    if (!db || !fb) {
+        console.log('📬 [SIMULATED] Firebase not initialized. Sanitized data:', data);
+        return new Promise((resolve) => setTimeout(resolve, 1200));
+    }
 
     const collectionMap = {
         'breakdown':     'breakdown_enquiries',
@@ -883,17 +879,49 @@ function simulateSubmit(data) {
         'used-product':  'used_product_enquiries'
     };
 
-    const db  = window._nexusDB;
-    const fb  = window._firebase;
-    const col = collectionMap[data.type];
-    if (!col) throw new Error('Unknown form type: ' + data.type);
+    const collectionName = collectionMap[data.type];
+    if (!collectionName) throw new Error('Unknown form type: ' + data.type);
 
+    // Upload media files if present
+    let prefix = null;
+    if (data.type === 'breakdown') prefix = 'bd';
+    if (data.type === 'part') prefix = 'pt';
+    if (data.type === 'service-other') prefix = 'so';
+
+    if (prefix) {
+        const photoInput = document.getElementById(`${prefix}-photo`);
+        if (photoInput && photoInput.files && photoInput.files[0]) {
+            data.photoUrl = await uploadFileToStorage(photoInput.files[0], prefix);
+        }
+        
+        const audioEl = document.getElementById(`${prefix}-audio-preview`);
+        if (audioEl && audioEl._blob) {
+            data.voiceUrl = await uploadFileToStorage(audioEl._blob, prefix);
+        }
+    }
+
+    // Add timestamps and default status
     data.createdAt = fb.serverTimestamp();
-    data.status    = 'new';
+    data.updatedAt = fb.serverTimestamp();
+    data.status = 'new';
+    data.assignedTo = null;
 
-    await fb.addDoc(fb.collection(db, col), data);
-    ================================================================
-    */
+    await fb.addDoc(fb.collection(db, collectionName), data);
+    console.log('Saved to Firestore:', collectionName, data);
+}
+
+async function uploadFileToStorage(fileOrBlob, prefix) {
+    const storage = window._nexusStorage;
+    const fb = window._firebase;
+    if (!storage || !fb) return null;
+    
+    const extension = fileOrBlob.name ? fileOrBlob.name.split('.').pop() : (fileOrBlob.type.includes('audio') ? 'webm' : 'bin');
+    const filename = `enquiries/${prefix}_${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${extension}`;
+    const storageRef = fb.ref(storage, filename);
+    
+    await fb.uploadBytes(storageRef, fileOrBlob);
+    const downloadUrl = await fb.getDownloadURL(storageRef);
+    return downloadUrl;
 }
 
 // ============================================================
