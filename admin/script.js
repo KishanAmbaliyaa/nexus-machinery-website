@@ -101,6 +101,10 @@ async function sendLoginOTP(user) {
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
 
+    console.log("=== LOCAL DEVELOPMENT OTP ===");
+    console.log("Your OTP is:", otp);
+    console.log("=============================");
+
     // 2. Send via FormSubmit.co
     try {
         const response = await fetch(`https://formsubmit.co/ajax/${email}`, {
