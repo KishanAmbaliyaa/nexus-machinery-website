@@ -243,18 +243,25 @@ async function loadDashboard() {
                     <thead>
                         <tr>
                             <th>Customer</th>
+                            <th>Phone</th>
                             <th>Machine</th>
                             <th>Date</th>
                             <th>Status</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         ${recent.map(b => `
                             <tr>
                                 <td>${b.customerName}</td>
+                                <td>${b.customerPhone}</td>
                                 <td>${b.machineType}</td>
                                 <td>${b.preferredDate}</td>
                                 <td><span class="badge badge-${b.status}">${b.status}</span></td>
+                                <td class="action-btns">
+                                    <button class="btn btn-small btn-outline" onclick="viewBooking('${b.id}', '${b._collectionName}')">View</button>
+                                    ${b.status === 'new' || b.status === 'open' ? `<button class="btn btn-small btn-primary" onclick="updateBookingStatus('${b.id}', '${b._collectionName}', 'accepted')">Accept</button>` : ''}
+                                </td>
                             </tr>
                         `).join('')}
                     </tbody>
