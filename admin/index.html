@@ -123,14 +123,22 @@
             <section id="tab-bookings" class="tab-content">
                 <div class="tab-header">
                     <h2>Service Bookings</h2>
-                    <div class="filter-group">
+                    <div class="filter-group" style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
                         <select id="booking-status-filter" onchange="loadBookings()">
                             <option value="">All Status</option>
-                            <option value="open">Open</option>
+                            <option value="new">New / Open</option>
                             <option value="accepted">Accepted</option>
                             <option value="in_progress">In Progress</option>
                             <option value="completed">Completed</option>
+                            <option value="cancelled">Cancelled</option>
                         </select>
+                        <select id="booking-type-filter" onchange="loadBookings()">
+                            <option value="">All Types</option>
+                            <option value="breakdown_enquiries">Breakdown Service</option>
+                            <option value="part_enquiries">Part Enquiry</option>
+                            <option value="other_service_enquiries">Other Service</option>
+                        </select>
+                        <input type="date" id="booking-date-filter" onchange="loadBookings()" style="padding: 0.5rem 0.8rem; font-size: 0.8rem; background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: 'Montserrat', sans-serif;">
                     </div>
                 </div>
                 <div id="bookings-list" class="table-container">
@@ -168,6 +176,14 @@
             <section id="tab-inquiries" class="tab-content">
                 <div class="tab-header">
                     <h2>Product Inquiries</h2>
+                    <div class="filter-group" style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
+                        <input type="text" id="inquiry-search-filter" placeholder="Search product/customer..." oninput="loadInquiries()" style="padding: 0.5rem 0.8rem; font-size: 0.8rem; background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: 'Montserrat', sans-serif;">
+                        <select id="inquiry-status-filter" onchange="loadInquiries()">
+                            <option value="">All Status</option>
+                            <option value="new">New</option>
+                            <option value="responded">Responded</option>
+                        </select>
+                    </div>
                 </div>
                 <div id="inquiries-list" class="table-container">
                     <p class="loading">Loading...</p>
@@ -178,6 +194,10 @@
             <section id="tab-customers" class="tab-content">
                 <div class="tab-header">
                     <h2>Customers</h2>
+                    <div class="filter-group" style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
+                        <input type="text" id="customer-name-filter" placeholder="Search by name..." oninput="loadCustomers()" style="padding: 0.5rem 0.8rem; font-size: 0.8rem; background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: 'Montserrat', sans-serif;">
+                        <input type="text" id="customer-phone-filter" placeholder="Search by phone..." oninput="loadCustomers()" style="padding: 0.5rem 0.8rem; font-size: 0.8rem; background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: 'Montserrat', sans-serif;">
+                    </div>
                 </div>
                 <div id="customers-list" class="table-container">
                     <p class="loading">Loading...</p>
@@ -222,9 +242,9 @@
                             <option value="used">Used / Pre-Owned</option>
                         </select>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" style="display: none;">
                         <label>Price</label>
-                        <input type="text" id="product-price" placeholder="e.g. 12,50,000 or Contact for Price">
+                        <input type="hidden" id="product-price" value="Contact for Price">
                     </div>
                 </div>
                 <div class="form-row">
@@ -277,8 +297,11 @@
                     <div class="form-group">
                         <label>Role</label>
                         <select id="employee-role">
-                            <option value="technician">Technician</option>
-                            <option value="manager">Manager</option>
+                            <option value="Service Engineer">Service Engineer</option>
+                            <option value="Assembly Engineer">Assembly Engineer</option>
+                            <option value="Sales Engineer">Sales Engineer</option>
+                            <option value="Store Engineer">Store Engineer</option>
+                            <option value="Admin (Owner)">Admin (Owner)</option>
                         </select>
                     </div>
                 </div>
@@ -299,6 +322,35 @@
                 <button class="close-btn" onclick="closeBookingDetailModal()"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div id="booking-detail-content"></div>
+        </div>
+    </div>
+
+    <!-- Customer History Modal -->
+    <div id="customer-history-modal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h2 id="customer-history-title">Customer History</h2>
+                <button class="close-btn" onclick="closeCustomerHistoryModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div id="customer-history-content">
+                <p class="loading">Loading...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Code Modal -->
+    <div id="code-modal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 400px; text-align: center;">
+            <div class="modal-header">
+                <h2>Login Code Generated</h2>
+                <button class="close-btn" onclick="closeCodeModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div style="margin: 1.5rem 0;">
+                <p style="color: var(--text-muted); margin-bottom: 1rem;">Share this code with the employee. Valid for 5 minutes.</p>
+                <div id="generated-code-display" style="font-size: 2.2rem; font-weight: 800; letter-spacing: 0.15rem; color: var(--primary); background: var(--darker); padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border);">000000</div>
+                <p style="color: var(--warning); font-size: 0.8rem; margin-top: 1rem;"><i class="fa-solid fa-clock"></i> Expires in 5 minutes</p>
+            </div>
+            <button class="btn btn-primary btn-full" onclick="closeCodeModal()">Close</button>
         </div>
     </div>
 

@@ -284,8 +284,38 @@ async function loadBookings() {
     try {
         const bookings = await fetchAllEnquiries();
 
-        const filter = document.getElementById('booking-status-filter').value;
-        const filtered = filter ? bookings.filter(b => b.status === filter) : bookings;
+        const statusFilter = document.getElementById('booking-status-filter').value;
+        const typeFilter = document.getElementById('booking-type-filter').value;
+        const dateFilter = document.getElementById('booking-date-filter').value;
+
+        let filtered = bookings;
+
+        if (statusFilter) {
+            if (statusFilter === 'new') {
+                filtered = filtered.filter(b => b.status === 'new' || b.status === 'open');
+            } else {
+                filtered = filtered.filter(b => b.status === statusFilter);
+            }
+        }
+
+        if (typeFilter) {
+            filtered = filtered.filter(b => b._collectionName === typeFilter);
+        }
+
+        if (dateFilter) {
+            filtered = filtered.filter(b => {
+                let itemDateStr = '';
+                if (b.createdAt) {
+                    itemDateStr = b.createdAt.substring(0, 10);
+                } else if (b.preferredDate && b.preferredDate !== 'N/A') {
+                    const parsed = new Date(b.preferredDate);
+                    if (!isNaN(parsed.getTime())) {
+                        itemDateStr = parsed.toISOString().substring(0, 10);
+                    }
+                }
+                return itemDateStr === dateFilter;
+            });
+        }
 
         if (filtered.length === 0) {
             container.innerHTML = '<p class="no-data">No bookings found</p>';
@@ -300,6 +330,7 @@ async function loadBookings() {
                         <th>Phone</th>
                         <th>Machine</th>
                         <th>Service</th>
+                        <th>Assigned To</th>
                         <th>Date & Time</th>
                         <th>Status</th>
                         <th>Actions</th>
@@ -312,6 +343,7 @@ async function loadBookings() {
                             <td>${b.customerPhone}</td>
                             <td>${b.machineType}</td>
                             <td>${b.serviceType}</td>
+                            <td>${b.assignedToName || '<span style="color:var(--text-muted);">Unassigned</span>'}</td>
                             <td>${b.preferredDate}<br><small>${b.preferredTime}</small></td>
                             <td><span class="badge badge-${b.status}">${b.status}</span></td>
                             <td class="action-btns">
@@ -368,8 +400,16 @@ async function viewBooking(id, collectionName) {
             source: data.source || 'Web',
             photoUrl: data.photoUrl || null,
             voiceUrl: data.voiceUrl || null,
-            createdAt: createdAt
+            createdAt: createdAt,
+            assignedTo: data.assignedTo || '',
+            assignedToName: data.assignedToName || 'Unassigned'
         };
+
+        // Fetch active Service Engineers / technicians for assignment
+        const empSnapshot = await db.collection('employees').get();
+        const engineers = empSnapshot.docs
+            .map(emp => ({ id: emp.id, ...emp.data() }))
+            .filter(emp => emp.status === 'active' && (emp.role === 'Service Engineer' || emp.role === 'technician'));
 
         document.getElementById('booking-detail-content').innerHTML = `
             <div class="form-group"><label>Booking ID</label><p>${b.id}</p></div>
@@ -415,6 +455,27 @@ async function viewBooking(id, collectionName) {
                     <audio src="${b.voiceUrl}" controls style="width: 100%; border-radius: 4px;"></audio>
                 </div>
             </div>
+            ` : ''}
+
+            <div class="form-group" style="margin-top: 15px; border-top: 1px solid var(--border); padding-top: 15px;">
+                <label>Assigned Engineer</label>
+                <p id="current-assignee-display"><strong>${b.assignedToName}</strong></p>
+            </div>
+            
+            ${b.status !== 'completed' && b.status !== 'cancelled' ? `
+                <div class="form-group">
+                    <label>Assign/Reassign Service Engineer</label>
+                    <div style="display: flex; gap: 0.5rem; margin-top: 5px;">
+                        <select id="assign-engineer-select" style="flex: 1; padding: 0.5rem; background: var(--darker); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: 'Montserrat', sans-serif;">
+                            <option value="">-- Select Service Engineer --</option>
+                            ${engineers.map(eng => `<option value="${eng.id}" ${b.assignedTo === eng.id ? 'selected' : ''}>${eng.name}</option>`).join('')}
+                        </select>
+                        <button class="btn btn-primary btn-small" onclick="assignBooking('${b.id}', '${collectionName}')">Assign</button>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 0.5rem; margin-top: 20px;">
+                    <button class="btn btn-danger btn-full" onclick="cancelBooking('${b.id}', '${collectionName}')">Cancel / Close Booking</button>
+                </div>
             ` : ''}
         `;
         document.getElementById('booking-detail-modal').classList.add('active');
@@ -471,7 +532,6 @@ async function loadProducts() {
                         <th>Name</th>
                         <th>Type</th>
                         <th>Category</th>
-                        <th>Price</th>
                         <th>Stock</th>
                         <th>Status</th>
                         <th>Actions</th>
@@ -483,7 +543,6 @@ async function loadProducts() {
                             <td>${p.name || 'N/A'}</td>
                             <td>${p.machineType || 'N/A'}</td>
                             <td>${p.category || 'N/A'}</td>
-                            <td>${p.price || 'N/A'}</td>
                             <td>${p.stockCount !== undefined ? p.stockCount : 1}</td>
                             <td><span class="badge badge-${p.status || 'active'}">${p.status || 'active'}</span></td>
                             <td class="action-btns">
@@ -622,12 +681,18 @@ async function loadEmployees() {
                             <td>${e.name || 'N/A'}</td>
                             <td>${e.phone || e.contact || 'N/A'}</td>
                             <td>${e.email || '-'}</td>
-                            <td>${e.role || 'technician'}</td>
+                            <td>${e.role || 'Service Engineer'}</td>
                             <td><span class="badge badge-${e.status || 'active'}">${e.status || 'active'}</span></td>
                             <td>${e.jobsCompleted || 0}</td>
                             <td class="action-btns">
                                 <button class="btn btn-small btn-outline" onclick="editEmployee('${e.id}')">Edit</button>
-                                <button class="btn btn-small btn-danger" onclick="deleteEmployee('${e.id}')">Delete</button>
+                                <button class="btn btn-small ${e.status === 'inactive' ? 'btn-primary' : 'btn-danger'}" onclick="toggleEmployeeStatus('${e.id}', '${e.status || 'active'}')">
+                                    ${e.status === 'inactive' ? 'Activate' : 'Deactivate'}
+                                </button>
+                                <button class="btn btn-small btn-outline" onclick="generateLoginCode('${e.id}', '${e.name}', '${e.role || 'Service Engineer'}')">
+                                    <i class="fa-solid fa-key"></i> Code
+                                </button>
+                                <button class="btn btn-small btn-danger" onclick="deleteEmployee('${e.id}')"><i class="fa-solid fa-trash"></i></button>
                             </td>
                         </tr>
                     `).join('')}
@@ -704,14 +769,18 @@ async function handleEmployeeSubmit(event) {
                 skills: data.skills,
                 updatedAt: data.updatedAt
             });
+            closeEmployeeModal();
+            loadEmployees();
         } else {
             data.status = 'active';
             data.jobsCompleted = 0;
             data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
-            await db.collection('employees').add(data);
+            const docRef = await db.collection('employees').add(data);
+            closeEmployeeModal();
+            loadEmployees();
+            // Generate code for new employee
+            generateLoginCode(docRef.id, data.name, data.role);
         }
-        closeEmployeeModal();
-        loadEmployees();
     } catch (error) {
         console.error('Error saving employee:', error);
         alert('Failed to save employee: ' + error.message);
@@ -755,8 +824,25 @@ async function loadInquiries() {
     try {
         const inquiries = await fetchProductInquiries();
 
-        if (inquiries.length === 0) {
-            container.innerHTML = '<p class="no-data">No inquiries yet</p>';
+        const searchFilter = document.getElementById('inquiry-search-filter').value.toLowerCase().trim();
+        const statusFilter = document.getElementById('inquiry-status-filter').value;
+
+        let filtered = inquiries;
+
+        if (statusFilter) {
+            filtered = filtered.filter(i => i.status === statusFilter);
+        }
+
+        if (searchFilter) {
+            filtered = filtered.filter(i => 
+                i.customerName.toLowerCase().includes(searchFilter) || 
+                i.productName.toLowerCase().includes(searchFilter) ||
+                i.customerPhone.includes(searchFilter)
+            );
+        }
+
+        if (filtered.length === 0) {
+            container.innerHTML = '<p class="no-data">No inquiries match current filters</p>';
             return;
         }
 
@@ -774,7 +860,7 @@ async function loadInquiries() {
                     </tr>
                 </thead>
                 <tbody>
-                    ${inquiries.map(i => `
+                    ${filtered.map(i => `
                         <tr>
                             <td>${i.customerName}</td>
                             <td>${i.customerPhone}</td>
@@ -858,10 +944,20 @@ async function loadCustomers() {
             }
         });
 
-        const customers = Object.values(customerMap).sort((a, b) => b.createdAt - a.createdAt);
+        const nameFilter = document.getElementById('customer-name-filter').value.toLowerCase().trim();
+        const phoneFilter = document.getElementById('customer-phone-filter').value.toLowerCase().trim();
+
+        let customers = Object.values(customerMap).sort((a, b) => b.createdAt - a.createdAt);
+
+        if (nameFilter) {
+            customers = customers.filter(c => c.name.toLowerCase().includes(nameFilter));
+        }
+        if (phoneFilter) {
+            customers = customers.filter(c => c.phone.replace(/\D/g, '').includes(phoneFilter.replace(/\D/g, '')));
+        }
 
         if (customers.length === 0) {
-            container.innerHTML = '<p class="no-data">No customers yet. Customers are created automatically when bookings or inquiries are made.</p>';
+            container.innerHTML = '<p class="no-data">No customers found</p>';
             return;
         }
 
@@ -875,6 +971,7 @@ async function loadCustomers() {
                         <th>Address</th>
                         <th>Company</th>
                         <th>Since</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -886,6 +983,9 @@ async function loadCustomers() {
                             <td>${c.address || '-'}</td>
                             <td>${c.company || '-'}</td>
                             <td>${c.createdAt.getTime() > 0 ? c.createdAt.toLocaleDateString() : 'N/A'}</td>
+                            <td>
+                                <button class="btn btn-small btn-outline" onclick="viewCustomerHistory('${c.phone}')">View History</button>
+                            </td>
                         </tr>
                     `).join('')}
                 </tbody>
@@ -895,4 +995,223 @@ async function loadCustomers() {
         console.error('Error loading customers:', error);
         container.innerHTML = '<p class="no-data">Failed to load customers: ' + error.message + '</p>';
     }
+}
+
+// ============================================================
+// ASSIGNMENT AND CANCEL ACTIONS
+// ============================================================
+async function assignBooking(bookingId, collectionName) {
+    const select = document.getElementById('assign-engineer-select');
+    const employeeId = select.value;
+    if (!employeeId) {
+        alert('Please select a Service Engineer.');
+        return;
+    }
+
+    try {
+        const empDoc = await db.collection('employees').doc(employeeId).get();
+        if (!empDoc.exists) {
+            alert('Selected employee not found.');
+            return;
+        }
+        const empData = empDoc.data();
+
+        await db.collection(collectionName).doc(bookingId).update({
+            assignedTo: employeeId,
+            assignedToName: empData.name,
+            status: 'accepted',
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        alert(`Assigned to ${empData.name} successfully!`);
+        closeBookingDetailModal();
+        
+        // Reload whichever tab or view is active
+        const activeTab = document.querySelector('.nav-item.active').textContent.trim().toLowerCase();
+        if (activeTab.includes('dashboard')) {
+            loadDashboard();
+        } else {
+            loadBookings();
+        }
+    } catch (error) {
+        console.error('Error assigning engineer:', error);
+        alert('Failed to assign: ' + error.message);
+    }
+}
+
+async function cancelBooking(bookingId, collectionName) {
+    if (!confirm('Are you sure you want to cancel/close this booking?')) return;
+
+    try {
+        await db.collection(collectionName).doc(bookingId).update({
+            status: 'cancelled',
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        alert('Booking cancelled/closed successfully.');
+        closeBookingDetailModal();
+
+        // Reload whichever tab or view is active
+        const activeTab = document.querySelector('.nav-item.active').textContent.trim().toLowerCase();
+        if (activeTab.includes('dashboard')) {
+            loadDashboard();
+        } else {
+            loadBookings();
+        }
+    } catch (error) {
+        console.error('Error cancelling booking:', error);
+        alert('Failed to cancel booking: ' + error.message);
+    }
+}
+
+// ============================================================
+// CUSTOMER HISTORY & OTP CODES
+// ============================================================
+async function viewCustomerHistory(phone) {
+    const modal = document.getElementById('customer-history-modal');
+    const content = document.getElementById('customer-history-content');
+    content.innerHTML = '<p class="loading">Loading customer history...</p>';
+    modal.classList.add('active');
+
+    try {
+        const [bookings, inquiries] = await Promise.all([
+            fetchAllEnquiries(),
+            fetchProductInquiries()
+        ]);
+
+        const cleanPhone = phone.replace(/\D/g, '');
+        const filterPhone = (num) => String(num).replace(/\D/g, '') === cleanPhone;
+
+        const customerBookings = bookings.filter(b => filterPhone(b.customerPhone));
+        const customerInquiries = inquiries.filter(i => filterPhone(i.customerPhone));
+
+        if (customerBookings.length === 0 && customerInquiries.length === 0) {
+            content.innerHTML = '<p class="no-data">No history found for this customer.</p>';
+            return;
+        }
+
+        const customerName = customerBookings[0]?.customerName || customerInquiries[0]?.customerName || 'Customer';
+        const customerEmail = customerBookings[0]?.email || customerInquiries[0]?.email || 'N/A';
+        const customerCompany = customerBookings[0]?.company || customerInquiries[0]?.company || 'N/A';
+
+        let html = `
+            <div style="background: var(--darker); padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem; border: 1px solid var(--border);">
+                <h3 style="color: var(--primary); margin-bottom: 0.5rem; font-size: 1.1rem;">${customerName}</h3>
+                <p style="font-size: 0.85rem; margin-bottom: 0.25rem;"><strong style="color:var(--text-muted);">Phone:</strong> ${phone}</p>
+                <p style="font-size: 0.85rem; margin-bottom: 0.25rem;"><strong style="color:var(--text-muted);">Email:</strong> ${customerEmail}</p>
+                <p style="font-size: 0.85rem;"><strong style="color:var(--text-muted);">Company:</strong> ${customerCompany}</p>
+            </div>
+            
+            <h4 style="margin-bottom: 0.75rem; font-size: 1rem;">Service Bookings (${customerBookings.length})</h4>
+        `;
+
+        if (customerBookings.length === 0) {
+            html += '<p class="no-data" style="padding:1rem; margin-bottom: 1.5rem;">No service bookings</p>';
+        } else {
+            html += `
+                <table style="margin-bottom: 1.5rem;">
+                    <thead>
+                        <tr>
+                            <th>Machine</th>
+                            <th>Service</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${customerBookings.map(b => `
+                            <tr>
+                                <td>${b.machineType}</td>
+                                <td>${b.serviceType}</td>
+                                <td>${b.preferredDate}</td>
+                                <td><span class="badge badge-${b.status}">${b.status}</span></td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        html += `<h4 style="margin-bottom: 0.75rem; font-size: 1rem;">Product Inquiries (${customerInquiries.length})</h4>`;
+
+        if (customerInquiries.length === 0) {
+            html += '<p class="no-data" style="padding:1rem;">No product inquiries</p>';
+        } else {
+            html += `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Message</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${customerInquiries.map(i => `
+                            <tr>
+                                <td>${i.productName}</td>
+                                <td>${i.message}</td>
+                                <td>${i.createdAt ? new Date(i.createdAt).toLocaleDateString() : 'N/A'}</td>
+                                <td><span class="badge badge-${i.status}">${i.status}</span></td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        content.innerHTML = html;
+    } catch (err) {
+        console.error('Error loading history:', err);
+        content.innerHTML = '<p class="no-data">Error: ' + err.message + '</p>';
+    }
+}
+
+function closeCustomerHistoryModal() {
+    document.getElementById('customer-history-modal').classList.remove('active');
+}
+
+async function toggleEmployeeStatus(id, currentStatus) {
+    const newStatus = currentStatus === 'inactive' ? 'active' : 'inactive';
+    if (!confirm(`Are you sure you want to make this employee ${newStatus}?`)) return;
+
+    try {
+        await db.collection('employees').doc(id).update({
+            status: newStatus,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        loadEmployees();
+    } catch (error) {
+        console.error('Error toggling employee status:', error);
+        alert('Failed to toggle status: ' + error.message);
+    }
+}
+
+async function generateLoginCode(employeeId, name, role) {
+    const code = String(Math.floor(100000 + Math.random() * 900000));
+    const now = new Date();
+    const expiresAt = new Date(now.getTime() + 5 * 60 * 1000); // 5 minutes validity
+
+    try {
+        await db.collection('login_codes').add({
+            code: code,
+            employeeId: employeeId,
+            employeeName: name,
+            role: role,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            expiresAt: expiresAt,
+            isUsed: false
+        });
+
+        document.getElementById('generated-code-display').textContent = code;
+        document.getElementById('code-modal').classList.add('active');
+    } catch (error) {
+        console.error('Error generating login code:', error);
+        alert('Failed to generate code: ' + error.message);
+    }
+}
+
+function closeCodeModal() {
+    document.getElementById('code-modal').classList.remove('active');
 }
