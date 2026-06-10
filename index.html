@@ -251,8 +251,9 @@
                                 <div class="form-group media-group">
                                     <label>Photo <span class="optional">(optional)</span></label>
                                     <div class="media-capture-area">
-                                        <input type="file" id="bd-photo" accept="image/*" class="file-input-hidden" onchange="handlePhotoSelected(this, 'bd-photo-preview')">
-                                        <button type="button" class="media-btn" onclick="document.getElementById('bd-photo').click()">
+                                        <input type="file" id="bd-photo-camera" accept="image/*" capture="environment" class="file-input-hidden" onchange="handlePhotoSelected(this, 'bd-photo-preview')">
+                                        <input type="file" id="bd-photo-gallery" accept="image/*" class="file-input-hidden" onchange="handlePhotoSelected(this, 'bd-photo-preview')">
+                                        <button type="button" class="media-btn" onclick="openPhotoSourceModal('bd')">
                                             <i class="fa-solid fa-camera"></i> Take / Upload Photo
                                         </button>
                                         <div class="photo-preview-area" id="bd-photo-preview"></div>
@@ -318,8 +319,9 @@
                                 <div class="form-group media-group">
                                     <label>Photo of Part <span class="optional">(optional)</span></label>
                                     <div class="media-capture-area">
-                                        <input type="file" id="pt-photo" accept="image/*" class="file-input-hidden" onchange="handlePhotoSelected(this, 'pt-photo-preview')">
-                                        <button type="button" class="media-btn" onclick="document.getElementById('pt-photo').click()">
+                                        <input type="file" id="pt-photo-camera" accept="image/*" capture="environment" class="file-input-hidden" onchange="handlePhotoSelected(this, 'pt-photo-preview')">
+                                        <input type="file" id="pt-photo-gallery" accept="image/*" class="file-input-hidden" onchange="handlePhotoSelected(this, 'pt-photo-preview')">
+                                        <button type="button" class="media-btn" onclick="openPhotoSourceModal('pt')">
                                             <i class="fa-solid fa-camera"></i> Take / Upload Photo
                                         </button>
                                         <div class="photo-preview-area" id="pt-photo-preview"></div>
@@ -385,8 +387,9 @@
                                 <div class="form-group media-group">
                                     <label>Photo <span class="optional">(optional)</span></label>
                                     <div class="media-capture-area">
-                                        <input type="file" id="so-photo" accept="image/*" class="file-input-hidden" onchange="handlePhotoSelected(this, 'so-photo-preview')">
-                                        <button type="button" class="media-btn" onclick="document.getElementById('so-photo').click()">
+                                        <input type="file" id="so-photo-camera" accept="image/*" capture="environment" class="file-input-hidden" onchange="handlePhotoSelected(this, 'so-photo-preview')">
+                                        <input type="file" id="so-photo-gallery" accept="image/*" class="file-input-hidden" onchange="handlePhotoSelected(this, 'so-photo-preview')">
+                                        <button type="button" class="media-btn" onclick="openPhotoSourceModal('so')">
                                             <i class="fa-solid fa-camera"></i> Take / Upload Photo
                                         </button>
                                         <div class="photo-preview-area" id="so-photo-preview"></div>
@@ -993,6 +996,24 @@
                     <button type="button" class="map-cancel-btn" onclick="closeMapModal()">Cancel</button>
                     <button type="button" class="map-confirm-btn" id="confirm-map-btn" onclick="confirmMapLocation()">Confirm Location</button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Photo Source Picker Modal -->
+    <div id="photo-source-modal" class="modal-overlay" style="z-index: 5000;">
+        <div class="modal-content photo-source-modal-content">
+            <h3 style="margin-bottom: 1.2rem; font-size: 1.1rem; color: white; text-transform: uppercase;">Select Photo Source</h3>
+            <div style="display: flex; flex-direction: column; gap: 0.8rem;">
+                <button type="button" class="media-btn" style="background: var(--accent-color); border: none; color: white; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 700; padding: 0.8rem;" onclick="triggerPhotoCapture('camera')">
+                    <i class="fa-solid fa-camera"></i> Take Photo (Camera)
+                </button>
+                <button type="button" class="media-btn" style="background: transparent; border: 1px solid var(--border-color); color: var(--text-color); display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 700; padding: 0.8rem;" onclick="triggerPhotoCapture('gallery')">
+                    <i class="fa-solid fa-images"></i> Choose from Gallery
+                </button>
+                <button type="button" class="media-btn" style="background: transparent; border: none; color: #666; font-weight: 600; padding: 0.5rem; margin-top: 0.2rem;" onclick="closePhotoSourceModal()">
+                    Cancel
+                </button>
             </div>
         </div>
     </div>
