@@ -1252,6 +1252,22 @@ function showMapToast(message) {
     }, 4500);
 }
 
+// Proximity helpers for searching
+function getDistance(lat1, lon1, lat2, lon2) {
+    const dLat = lat1 - lat2;
+    const dLon = lon1 - lon2;
+    return dLat * dLat + dLon * dLon;
+}
+
+function getDynamicViewbox() {
+    // Bounding box +/- 1.5 degrees around current marker location
+    const left = selectedLng - 1.5;
+    const right = selectedLng + 1.5;
+    const top = selectedLat + 1.5;
+    const bottom = selectedLat - 1.5;
+    return `${left.toFixed(4)},${top.toFixed(4)},${right.toFixed(4)},${bottom.toFixed(4)}`;
+}
+
 async function searchMapAddress() {
     const queryInput = document.getElementById('map-search-input');
     const query = queryInput.value.trim();
@@ -1264,12 +1280,20 @@ async function searchMapAddress() {
     hideMapSuggestions();
 
     try {
-        // 1. Try search with viewbox bias (focusing Gujarat: 68.0, 24.5 to 74.5, 20.0)
-        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1&countrycodes=in&viewbox=68.0,24.5,74.5,20.0&bounded=0`;
+        // 1. Try search with dynamic viewbox bias (focusing +/- 1.5 deg around current location)
+        const viewbox = getDynamicViewbox();
+        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=10&countrycodes=in&viewbox=${viewbox}&bounded=0`;
         const res = await fetch(url);
         const results = await res.json();
 
         if (results && results.length > 0) {
+            // Sort by proximity
+            results.sort((a, b) => {
+                const distA = getDistance(parseFloat(a.lat), parseFloat(a.lon), selectedLat, selectedLng);
+                const distB = getDistance(parseFloat(b.lat), parseFloat(b.lon), selectedLat, selectedLng);
+                return distA - distB;
+            });
+
             const lat = parseFloat(results[0].lat);
             const lon = parseFloat(results[0].lon);
             setMarkerPosition(lat, lon);
@@ -1297,7 +1321,7 @@ async function searchMapAddress() {
         }
 
         if (fallbackQuery && fallbackQuery !== query.toLowerCase()) {
-            const fallbackUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(fallbackQuery)}&limit=1&countrycodes=in&viewbox=68.0,24.5,74.5,20.0&bounded=0`;
+            const fallbackUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(fallbackQuery)}&limit=1&countrycodes=in&viewbox=${viewbox}&bounded=0`;
             const fallbackRes = await fetch(fallbackUrl);
             const fallbackResults = await fallbackRes.json();
 
@@ -1408,13 +1432,24 @@ async function fetchMapSuggestions(query) {
     const signal = autocompleteAbortController.signal;
 
     try {
-        // Prioritize results from India (countrycodes=in) with a viewbox bias focusing Gujarat (68.0, 24.5 to 74.5, 20.0)
-        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=8&countrycodes=in&viewbox=68.0,24.5,74.5,20.0&bounded=0`, { signal });
+        const viewbox = getDynamicViewbox();
+        // Request up to 15 results so we have enough candidate matches to sort by proximity
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=15&countrycodes=in&viewbox=${viewbox}&bounded=0`, { signal });
         const data = await res.json();
         
         if (data && data.length > 0) {
+            // Sort results by proximity to current selectedLat/selectedLng
+            data.sort((a, b) => {
+                const distA = getDistance(parseFloat(a.lat), parseFloat(a.lon), selectedLat, selectedLng);
+                const distB = getDistance(parseFloat(b.lat), parseFloat(b.lon), selectedLat, selectedLng);
+                return distA - distB;
+            });
+
+            // Display top 8 closest suggestions
+            const topResults = data.slice(0, 8);
+
             suggestionsContainer.innerHTML = '';
-            data.forEach(item => {
+            topResults.forEach(item => {
                 const parts = item.display_name.split(',');
                 const mainText = parts.slice(0, 2).join(',').trim();
                 const subText = parts.slice(2).join(',').trim();
