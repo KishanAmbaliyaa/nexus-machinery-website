@@ -1144,8 +1144,17 @@ function openMapModal(prefix) {
             maxZoom: 20
         }).addTo(leafletMap);
 
-        // Create draggable marker
+        // Custom premium red location marker using inline SVG to match Nexus branding and resolve CDN assets loading issues
+        const customRedIcon = L.divIcon({
+            html: `<i class="fa-solid fa-location-dot" style="font-size: 2.5rem; color: #C41221; filter: drop-shadow(0 3px 6px rgba(0,0,0,0.6));"></i>`,
+            className: 'custom-map-marker-icon',
+            iconSize: [30, 42],
+            iconAnchor: [15, 38]
+        });
+
+        // Create draggable marker using custom premium red icon
         leafletMarker = L.marker([selectedLat, selectedLng], {
+            icon: customRedIcon,
             draggable: true
         }).addTo(leafletMap);
 
