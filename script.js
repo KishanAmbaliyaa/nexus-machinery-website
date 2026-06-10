@@ -1144,8 +1144,17 @@ function openMapModal(prefix) {
             maxZoom: 20
         }).addTo(leafletMap);
 
-        // Create draggable marker
+        // Custom premium red location marker using inline SVG to match Nexus branding and resolve CDN assets loading issues
+        const customRedIcon = L.divIcon({
+            html: `<i class="fa-solid fa-location-dot" style="font-size: 2.5rem; color: #C41221; filter: drop-shadow(0 3px 6px rgba(0,0,0,0.6));"></i>`,
+            className: 'custom-map-marker-icon',
+            iconSize: [30, 42],
+            iconAnchor: [15, 38]
+        });
+
+        // Create draggable marker using custom premium red icon
         leafletMarker = L.marker([selectedLat, selectedLng], {
+            icon: customRedIcon,
             draggable: true
         }).addTo(leafletMap);
 
@@ -1226,19 +1235,40 @@ function requestMapGeolocation() {
     }
 }
 
+// Map modal toast notification helper
+function showMapToast(message) {
+    const toast = document.getElementById('map-toast');
+    if (!toast) return;
+    toast.textContent = message;
+    toast.classList.remove('hidden');
+    toast.style.opacity = '1';
+    
+    clearTimeout(window.mapToastTimer);
+    window.mapToastTimer = setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => {
+            toast.classList.add('hidden');
+        }, 300);
+    }, 4500);
+}
+
 async function searchMapAddress() {
-    const query = document.getElementById('map-search-input').value.trim();
+    const queryInput = document.getElementById('map-search-input');
+    const query = queryInput.value.trim();
     if (!query) return;
 
     const searchBtn = document.querySelector('.map-search-group button');
     const originalHTML = searchBtn.innerHTML;
     searchBtn.disabled = true;
-    searchBtn.innerHTML = 'Searching...';
+    searchBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Searching';
     hideMapSuggestions();
 
     try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1&countrycodes=in`);
+        // 1. Try search with viewbox bias (focusing Gujarat: 68.0, 24.5 to 74.5, 20.0)
+        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1&countrycodes=in&viewbox=68.0,24.5,74.5,20.0&bounded=0`;
+        const res = await fetch(url);
         const results = await res.json();
+
         if (results && results.length > 0) {
             const lat = parseFloat(results[0].lat);
             const lon = parseFloat(results[0].lon);
@@ -1246,11 +1276,48 @@ async function searchMapAddress() {
             if (leafletMap) {
                 leafletMap.setView([lat, lon], 15);
             }
-        } else {
-            alert('Location not found. Please try a different town or landmark.');
+            return;
         }
+
+        // 2. Fallback: try to extract a city name in Gujarat to center
+        const gujaratCities = ['vadodara', 'baroda', 'ahmedabad', 'rajkot', 'surat', 'gandhinagar', 'jamnagar', 'bhavnagar', 'junagadh', 'anand', 'nadiad', 'morbi', 'mehsana', 'bhuj', 'navsari', 'valsad', 'vapi', 'bharuch', 'ankleshwar'];
+        let fallbackQuery = '';
+        const words = query.toLowerCase().split(/\s+/);
+        
+        for (const city of gujaratCities) {
+            if (words.includes(city)) {
+                fallbackQuery = city;
+                break;
+            }
+        }
+
+        // If no known city keyword, try using the last 2 words of the query
+        if (!fallbackQuery && words.length > 1) {
+            fallbackQuery = words.slice(-2).join(' ');
+        }
+
+        if (fallbackQuery && fallbackQuery !== query.toLowerCase()) {
+            const fallbackUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(fallbackQuery)}&limit=1&countrycodes=in&viewbox=68.0,24.5,74.5,20.0&bounded=0`;
+            const fallbackRes = await fetch(fallbackUrl);
+            const fallbackResults = await fallbackRes.json();
+
+            if (fallbackResults && fallbackResults.length > 0) {
+                const lat = parseFloat(fallbackResults[0].lat);
+                const lon = parseFloat(fallbackResults[0].lon);
+                setMarkerPosition(lat, lon);
+                if (leafletMap) {
+                    leafletMap.setView([lat, lon], 14);
+                }
+                
+                showMapToast(`Could not find exact landmark. Centered map on "${fallbackQuery}". Please drag the pin.`);
+                return;
+            }
+        }
+
+        showMapToast('Location not found. Please search for a broader town/area name.');
     } catch (err) {
         console.error('Nominatim Search error:', err);
+        showMapToast('Search failed. Please check your network connection.');
     } finally {
         searchBtn.disabled = false;
         searchBtn.innerHTML = originalHTML;
@@ -1300,6 +1367,7 @@ async function confirmMapLocation() {
 // 20. REAL-TIME SEARCH AUTO-COMPLETE SUGGESTIONS
 // ============================================================
 let searchDebounceTimer = null;
+let autocompleteAbortController = null;
 
 document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('map-search-input');
@@ -1333,17 +1401,41 @@ async function fetchMapSuggestions(query) {
     const suggestionsContainer = document.getElementById('map-suggestions');
     if (!suggestionsContainer) return;
 
+    if (autocompleteAbortController) {
+        autocompleteAbortController.abort();
+    }
+    autocompleteAbortController = new AbortController();
+    const signal = autocompleteAbortController.signal;
+
     try {
-        // Prioritize results from India country codes (in)
-        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&countrycodes=in`);
+        // Prioritize results from India (countrycodes=in) with a viewbox bias focusing Gujarat (68.0, 24.5 to 74.5, 20.0)
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=8&countrycodes=in&viewbox=68.0,24.5,74.5,20.0&bounded=0`, { signal });
         const data = await res.json();
         
         if (data && data.length > 0) {
             suggestionsContainer.innerHTML = '';
             data.forEach(item => {
+                const parts = item.display_name.split(',');
+                const mainText = parts.slice(0, 2).join(',').trim();
+                const subText = parts.slice(2).join(',').trim();
+
                 const div = document.createElement('div');
                 div.className = 'suggestion-item';
-                div.textContent = item.display_name;
+
+                const mainSpan = document.createElement('span');
+                mainSpan.className = 'suggestion-main';
+                mainSpan.textContent = mainText;
+
+                const subSpan = document.createElement('span');
+                subSpan.className = 'suggestion-sub';
+                subSpan.textContent = subText ? `, ${subText}` : '';
+
+                div.appendChild(mainSpan);
+                if (subText) {
+                    div.appendChild(document.createElement('br'));
+                    div.appendChild(subSpan);
+                }
+                
                 div.addEventListener('click', () => {
                     const lat = parseFloat(item.lat);
                     const lon = parseFloat(item.lon);
@@ -1362,7 +1454,9 @@ async function fetchMapSuggestions(query) {
             hideMapSuggestions();
         }
     } catch (err) {
-        console.error('Failed to fetch autocomplete suggestions:', err);
+        if (err.name !== 'AbortError') {
+            console.error('Failed to fetch autocomplete suggestions:', err);
+        }
     }
 }
 
