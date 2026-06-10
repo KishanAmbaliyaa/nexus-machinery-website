@@ -561,6 +561,7 @@ async function viewBooking(id, collectionName) {
             customerName: data.name || 'N/A',
             customerPhone: data.phone || data.contact || 'N/A',
             customerAddress: data.location || 'N/A',
+            mapsLink: data.mapsLink || null,
             machineType: data.machineType || 'N/A',
             serviceType: data.supportType || data.automationType || 'N/A',
             issueDescription: data.message || data.description || 'Not specified',
@@ -588,7 +589,17 @@ async function viewBooking(id, collectionName) {
                 <div class="form-group"><label>Customer</label><p>${b.customerName}</p></div>
                 <div class="form-group"><label>Phone</label><p>${b.customerPhone}</p></div>
             </div>
-            <div class="form-group"><label>Address</label><p>${b.customerAddress}</p></div>
+            <div class="form-group">
+                <label>Address</label>
+                <p>${b.customerAddress}</p>
+                ${b.mapsLink ? `
+                <div style="margin-top: 5px;">
+                    <a href="${b.mapsLink}" target="_blank" class="btn btn-small btn-outline" style="text-decoration:none; display:inline-flex; align-items:center; gap:5px; border-color:var(--primary); color:var(--primary); font-weight:600;">
+                        <i class="fa-solid fa-map-location-dot"></i> Navigate on Google Maps
+                    </a>
+                </div>
+                ` : ''}
+            </div>
             <div class="form-row">
                 <div class="form-group"><label>Machine</label><p>${b.machineType}</p></div>
                 <div class="form-group"><label>Service</label><p>${b.serviceType}</p></div>

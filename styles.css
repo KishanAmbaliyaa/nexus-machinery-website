@@ -1692,3 +1692,67 @@ h1, h2, h3 { text-transform: uppercase; font-weight: 900; letter-spacing: 1px; }
     .wa-options-grid { grid-template-columns: 1fr; }
     .fab { width: 55px; height: 55px; font-size: 2.2rem; bottom: 20px; right: 20px; }
 }
+
+/* ============================================================
+   MAP SELECTOR STYLES
+============================================================ */
+.location-input-group {
+    display: flex;
+    gap: 0.5rem;
+    width: 100%;
+}
+.location-input-group input {
+    flex: 1;
+}
+.btn-map-pin {
+    background-color: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-color);
+    padding: 0.7rem 1.2rem;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 800;
+    font-size: 0.9rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+    white-space: nowrap;
+    text-transform: uppercase;
+}
+.btn-map-pin:hover {
+    border-color: var(--accent-hover);
+    color: var(--accent-hover);
+    background-color: rgba(227, 24, 40, 0.05);
+}
+
+/* Leaflet Dark Customizations */
+.leaflet-container {
+    background-color: #111 !important;
+}
+.leaflet-bar {
+    border: 1px solid var(--border-color) !important;
+    box-shadow: none !important;
+}
+.leaflet-bar a {
+    background-color: var(--card-bg) !important;
+    color: var(--text-color) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    transition: all 0.2s;
+}
+.leaflet-bar a:hover {
+    background-color: var(--card-bg-2) !important;
+    color: var(--accent-hover) !important;
+}
+.leaflet-popup-content-wrapper {
+    background: var(--card-bg-2) !important;
+    color: var(--text-color) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 6px !important;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5) !important;
+}
+.leaflet-popup-tip {
+    background: var(--card-bg-2) !important;
+    border: 1px solid var(--border-color) !important;
+}

@@ -146,6 +146,10 @@ function sanitizeFormData(data) {
     for (const [key, value] of Object.entries(data)) {
         if (key === 'phone') continue; // Handle separately below
         if (key === 'email') continue; // Handle separately below
+        if (key === 'latitude' || key === 'longitude') {
+            safe[key] = value ? parseFloat(value) : null;
+            continue;
+        }
         const limit = limits[key] || 500;
         safe[key] = sanitizeText(value, limit);
     }
@@ -770,6 +774,18 @@ function collectFormData(formType) {
         data.automationType = selectedAutomationType;
     }
 
+    const prefixMap = { 'breakdown': 'bd', 'part': 'pt', 'service-other': 'so' };
+    const prefix = prefixMap[formType];
+    if (prefix) {
+        const latEl = document.getElementById(`${prefix}-latitude`);
+        const lngEl = document.getElementById(`${prefix}-longitude`);
+        if (latEl && lngEl && latEl.value && lngEl.value) {
+            data.latitude = latEl.value;
+            data.longitude = lngEl.value;
+            data.mapsLink = `https://www.google.com/maps?q=${latEl.value},${lngEl.value}`;
+        }
+    }
+
     return data;
 }
 
@@ -1093,9 +1109,167 @@ document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
         closeWaWizard();
         closeProductModal();
+        closeMapModal();
         const menuOverlay = document.getElementById('global-menu-overlay');
         if (menuOverlay && menuOverlay.classList.contains('active')) {
             toggleGlobalMenu();
         }
     }
 });
+
+// ============================================================
+// 19. GOOGLE MAP-LIKE PIN SELECTOR (LEAFLET.JS)
+// ============================================================
+let activeMapPrefix = '';
+let leafletMap = null;
+let leafletMarker = null;
+let selectedLat = 22.3039; // Rajkot Lat (Default)
+let selectedLng = 70.8022; // Rajkot Lng (Default)
+
+function openMapModal(prefix) {
+    activeMapPrefix = prefix;
+    document.getElementById('map-modal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+
+    // Initialize Leaflet Map if not done already
+    if (!leafletMap) {
+        // Create map centered on Rajkot
+        leafletMap = L.map('location-map', {
+            zoomControl: true,
+            attributionControl: false
+        }).setView([selectedLat, selectedLng], 13);
+
+        // Add CartoDB Dark Matter tiles (premium dark theme matching Nexus)
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            maxZoom: 20
+        }).addTo(leafletMap);
+
+        // Create draggable marker
+        leafletMarker = L.marker([selectedLat, selectedLng], {
+            draggable: true
+        }).addTo(leafletMap);
+
+        // Click on map to place pin
+        leafletMap.on('click', function(e) {
+            const { lat, lng } = e.latlng;
+            setMarkerPosition(lat, lng);
+        });
+
+        // Marker dragend listener
+        leafletMarker.on('dragend', function() {
+            const position = leafletMarker.getLatLng();
+            setMarkerPosition(position.lat, position.lng);
+        });
+    } else {
+        // Redraw map correctly when modal displays
+        setTimeout(() => {
+            leafletMap.invalidateSize();
+            leafletMap.setView([selectedLat, selectedLng], 13);
+            leafletMarker.setLatLng([selectedLat, selectedLng]);
+        }, 200);
+    }
+
+    // Attempt to autodetect geolocation
+    requestMapGeolocation();
+}
+
+function setMarkerPosition(lat, lng) {
+    selectedLat = lat;
+    selectedLng = lng;
+    if (leafletMarker) {
+        leafletMarker.setLatLng([lat, lng]);
+    }
+}
+
+function closeMapModal() {
+    document.getElementById('map-modal').classList.remove('active');
+    document.body.style.overflow = '';
+    document.getElementById('map-search-input').value = '';
+}
+
+function requestMapGeolocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition((position) => {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            setMarkerPosition(lat, lng);
+            if (leafletMap) {
+                leafletMap.setView([lat, lng], 15);
+            }
+        }, (err) => {
+            console.warn('Geolocation access failed/denied:', err);
+        }, {
+            enableHighAccuracy: true,
+            timeout: 8000
+        });
+    }
+}
+
+async function searchMapAddress() {
+    const query = document.getElementById('map-search-input').value.trim();
+    if (!query) return;
+
+    const searchBtn = document.querySelector('.map-search-group button');
+    const originalHTML = searchBtn.innerHTML;
+    searchBtn.disabled = true;
+    searchBtn.innerHTML = 'Searching...';
+
+    try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`);
+        const results = await res.json();
+        if (results && results.length > 0) {
+            const lat = parseFloat(results[0].lat);
+            const lon = parseFloat(results[0].lon);
+            setMarkerPosition(lat, lon);
+            if (leafletMap) {
+                leafletMap.setView([lat, lon], 15);
+            }
+        } else {
+            alert('Location not found. Please try a different town or landmark.');
+        }
+    } catch (err) {
+        console.error('Nominatim Search error:', err);
+    } finally {
+        searchBtn.disabled = false;
+        searchBtn.innerHTML = originalHTML;
+    }
+}
+
+async function confirmMapLocation() {
+    const confirmBtn = document.getElementById('confirm-map-btn');
+    const originalHTML = confirmBtn.innerHTML;
+    confirmBtn.disabled = true;
+    confirmBtn.innerHTML = 'Confirming...';
+
+    try {
+        // Set values in inputs
+        const latInput = document.getElementById(`${activeMapPrefix}-latitude`);
+        const lngInput = document.getElementById(`${activeMapPrefix}-longitude`);
+        if (latInput) latInput.value = selectedLat;
+        if (lngInput) lngInput.value = selectedLng;
+
+        // Perform reverse geocoding to retrieve address name
+        let reverseAddress = `${selectedLat.toFixed(6)}, ${selectedLng.toFixed(6)}`;
+        try {
+            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${selectedLat}&lon=${selectedLng}&zoom=18`);
+            const data = await res.json();
+            if (data && data.display_name) {
+                reverseAddress = data.display_name;
+            }
+        } catch (revErr) {
+            console.warn('Reverse geocoding error:', revErr);
+        }
+
+        const locationInput = document.getElementById(`${activeMapPrefix}-location`);
+        if (locationInput) {
+            locationInput.value = reverseAddress;
+        }
+
+        closeMapModal();
+    } catch (err) {
+        console.error('Confirm map location failed:', err);
+    } finally {
+        confirmBtn.disabled = false;
+        confirmBtn.innerHTML = originalHTML;
+    }
+}
