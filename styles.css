@@ -1943,3 +1943,42 @@ h1, h2, h3 { text-transform: uppercase; font-weight: 900; letter-spacing: 1px; }
         text-align: center;
     }
 }
+
+/* Suggestion Item Premium Details */
+.suggestion-main {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--text-color);
+}
+.suggestion-sub {
+    font-size: 0.75rem;
+    color: #888;
+}
+.suggestion-item:hover .suggestion-main {
+    color: var(--accent-hover);
+}
+
+/* Map Toast Notification Floating on Map */
+.map-toast {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(17, 17, 17, 0.95);
+    border: 1px solid var(--accent-color);
+    color: white;
+    padding: 0.6rem 1rem;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    z-index: 1020;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    max-width: 90%;
+    pointer-events: none;
+    transition: opacity 0.3s;
+    font-family: 'Montserrat', sans-serif;
+}
+.map-toast.hidden {
+    display: none;
+    opacity: 0;
+}

@@ -980,7 +980,10 @@
                 <div id="map-suggestions" class="map-suggestions-dropdown hidden"></div>
             </div>
             <!-- Map box -->
-            <div id="location-map" style="height: 350px; border-radius: 8px; border: 1px solid var(--border-color); background: #111; position: relative; z-index: 1;"></div>
+            <div style="position: relative; width: 100%;">
+                <div id="location-map" style="height: 350px; border-radius: 8px; border: 1px solid var(--border-color); background: #111; position: relative; z-index: 1;"></div>
+                <div id="map-toast" class="map-toast hidden"></div>
+            </div>
             <!-- Button Bar -->
             <div class="map-btn-bar">
                 <button type="button" id="map-locate-btn" class="map-locate-btn" onclick="requestMapGeolocation()">
