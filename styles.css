@@ -2000,3 +2000,18 @@ h1, h2, h3 { text-transform: uppercase; font-weight: 900; letter-spacing: 1px; }
 .modal-overlay.active .photo-source-modal-content {
     transform: scale(1) translateY(0);
 }
+
+/* Map Instruction Muted Description Text */
+.map-instruction-text {
+    font-size: 0.8rem;
+    color: #888;
+    margin-bottom: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+    font-family: 'Montserrat', sans-serif;
+}
+.map-instruction-text i {
+    color: var(--accent-color);
+}
