@@ -1,0 +1,387 @@
+================================================================================
+   NEXUS MACHINERY SOLUTIONS — FIREBASE SETUP GUIDE
+   Complete From-Scratch Setup for the New Unified Architecture
+================================================================================
+
+Last Updated: 06 June 2026
+Author: Kishan (Developer)
+Applies To: /website/ folder (unified site), future admin-app and customer-app
+
+This guide replaces the deleted SETUP_GUIDE_FIREBASE.txt and SETUP_GUIDE_BACKEND.txt.
+Follow every step in order. Do not skip.
+
+================================================================================
+PREREQUISITES — WHAT YOU NEED BEFORE STARTING
+================================================================================
+
+  1. Google Account (gmail) — Use a business Gmail, not personal
+  2. Node.js installed — Download from https://nodejs.org (LTS version)
+     Verify: Open PowerShell, type: node --version  (should show v18 or higher)
+  3. VS Code installed (already have it)
+  4. Internet connection
+
+================================================================================
+PART 1 — CREATE FIREBASE PROJECT
+================================================================================
+
+Step 1: Go to Firebase Console
+  → https://console.firebase.google.com
+  → Click "Add project"
+
+Step 2: Name the project
+  → Project name: nexus-machinery-solutions
+  → Click Continue
+
+Step 3: Google Analytics
+  → You can DISABLE Google Analytics (not needed for our use case)
+  → Click "Create project"
+  → Wait ~30 seconds for project creation
+  → Click "Continue"
+
+Step 4: You are now inside the Firebase project dashboard.
+
+================================================================================
+PART 2 — ENABLE FIRESTORE DATABASE
+================================================================================
+
+Step 1: In left sidebar → click "Firestore Database"
+
+Step 2: Click "Create database"
+
+Step 3: Location setting
+  → Select: asia-south1 (Mumbai) — IMPORTANT for India-based business
+  → This cannot be changed later, so get this right
+
+Step 4: Security rules
+  → Select "Start in TEST mode" for now (we will fix rules in Part 6)
+  → Click "Next" then "Enable"
+  → Wait for database to be created (about 1 minute)
+
+Step 5: You will see an empty Firestore database. This is correct.
+
+================================================================================
+PART 3 — ENABLE FIREBASE STORAGE (for photos and voice recordings)
+================================================================================
+
+Step 1: In left sidebar → click "Storage"
+
+Step 2: Click "Get started"
+
+Step 3: Security rules
+  → Select "Start in TEST mode"
+  → Click "Next"
+
+Step 4: Location
+  → Same as Firestore: asia-south1 (Mumbai)
+  → Click "Done"
+
+Step 5: Storage is now enabled. You will see a storage bucket URL like:
+  gs://nexus-machinery-solutions.appspot.com
+
+================================================================================
+PART 4 — GET FIREBASE CONFIGURATION FOR THE WEBSITE
+================================================================================
+
+Step 1: In Firebase console → click the gear icon ⚙️ → "Project settings"
+
+Step 2: Scroll down to "Your apps" section
+
+Step 3: Click the web icon < / > (Add web app)
+
+Step 4: App nickname: nexus-website
+  → Check "Also set up Firebase Hosting" — OPTIONAL (good for deployment)
+  → Click "Register app"
+
+Step 5: You will see a config object like this:
+
+  const firebaseConfig = {
+    apiKey: "AIzaSy...",
+    authDomain: "nexus-machinery-solutions.firebaseapp.com",
+    projectId: "nexus-machinery-solutions",
+    storageBucket: "nexus-machinery-solutions.appspot.com",
+    messagingSenderId: "123456789",
+    appId: "1:123456789:web:abc123"
+  };
+
+Step 6: COPY THIS ENTIRE CONFIG OBJECT.
+  → Save it somewhere safe.
+
+================================================================================
+PART 5 — ADD FIREBASE TO THE WEBSITE
+================================================================================
+
+Step 1: Open /website/index.html in VS Code
+
+Step 2: Find the closing </body> tag at the bottom of the file
+
+Step 3: BEFORE </body>, add these script tags:
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+    import { getFirestore, collection, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+    import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js';
+
+    const firebaseConfig = {
+      apiKey: "PASTE YOUR API KEY HERE",
+      authDomain: "YOUR-PROJECT.firebaseapp.com",
+      projectId: "YOUR-PROJECT-ID",
+      storageBucket: "YOUR-PROJECT.appspot.com",
+      messagingSenderId: "YOUR-MESSAGING-ID",
+      appId: "YOUR-APP-ID"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+
+    // Make db and storage available globally for script.js
+    window._nexusDB = db;
+    window._nexusStorage = storage;
+    window._firebase = { collection, addDoc, serverTimestamp, ref, uploadBytes, getDownloadURL };
+  </script>
+
+Step 4: Replace the placeholder values with your ACTUAL config from Part 4 Step 5.
+
+Step 5: In /website/script.js, find the `simulateSubmit` function.
+  Replace the entire function body with:
+
+  async function simulateSubmit(data) {
+    const db = window._nexusDB;
+    const fb = window._firebase;
+
+    const collectionMap = {
+      'breakdown':     'breakdown_enquiries',
+      'part':          'part_enquiries',
+      'service-other': 'other_service_enquiries',
+      'automation':    'automation_enquiries',
+      'other':         'general_enquiries',
+      'new-product':   'new_product_enquiries',
+      'used-product':  'used_product_enquiries'
+    };
+
+    const collectionName = collectionMap[data.type];
+    if (!collectionName) throw new Error('Unknown form type: ' + data.type);
+
+    // Add timestamp from server
+    data.createdAt = fb.serverTimestamp();
+    data.status = 'new';
+
+    await fb.addDoc(fb.collection(db, collectionName), data);
+    console.log('Saved to Firestore:', collectionName, data);
+  }
+
+Step 6: Save both files. The website now submits to Firebase.
+
+================================================================================
+PART 6 — FIRESTORE SECURITY RULES (PRODUCTION READY)
+================================================================================
+
+IMPORTANT: The default "test mode" rules allow ANYONE to read and write all data.
+This is DANGEROUS in production. Apply these rules before going live.
+
+Step 1: In Firebase console → Firestore → "Rules" tab
+
+Step 2: Replace the existing rules with these:
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ENQUIRY COLLECTIONS: Public can only CREATE (submit enquiry).
+    // Authenticated admin users can read, update, and delete.
+    match /breakdown_enquiries/{docId} {
+      allow create: if true;
+      allow read, write: if request.auth != null;
+    }
+    match /part_enquiries/{docId} {
+      allow create: if true;
+      allow read, write: if request.auth != null;
+    }
+    match /other_service_enquiries/{docId} {
+      allow create: if true;
+      allow read, write: if request.auth != null;
+    }
+    match /automation_enquiries/{docId} {
+      allow create: if true;
+      allow read, write: if request.auth != null;
+    }
+    match /general_enquiries/{docId} {
+      allow create: if true;
+      allow read, write: if request.auth != null;
+    }
+    match /new_product_enquiries/{docId} {
+      allow create: if true;
+      allow read, write: if request.auth != null;
+    }
+    match /used_product_enquiries/{docId} {
+      allow create: if true;
+      allow read, write: if request.auth != null;
+    }
+
+    // PRODUCTS: Anyone can read listings (public website), only authenticated admins can write.
+    match /products/{docId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // OTP VERIFICATION: Authenticated users can read/write their own OTP document.
+    match /admin_otps/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // TRUSTED IPS: Authenticated users can read/write their own trusted IP documents.
+    match /trusted_ips/{docId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // OTHER COLLECTIONS (Employees, Customers, Login Codes): Authenticated admin access only.
+    match /employees/{docId} {
+      allow read, write: if request.auth != null;
+    }
+    match /login_codes/{docId} {
+      allow read, write: if request.auth != null;
+    }
+    match /customers/{docId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Default fallback
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
+
+Step 3: Click "Publish" to apply these rules.
+
+Step 4: For Firebase Storage rules → Storage → "Rules" tab:
+
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // ENQUIRY MEDIA: Allow write (upload), deny read from browser
+    // (Admin app reads using service account, not browser SDK)
+    match /enquiries/{allPaths=**} {
+      allow write: if request.resource.size < 20 * 1024 * 1024; // Max 20MB
+      allow read: if false;
+    }
+
+    // PRODUCT IMAGES: Allow public read, deny write from browser
+    match /products/{allPaths=**} {
+      allow read: if true;
+      allow write: if false;
+    }
+  }
+}
+
+================================================================================
+PART 7 — FIREBASE HOSTING DEPLOYMENT (Optional — for going live)
+================================================================================
+
+If you want to host the website on Firebase instead of a separate host:
+
+Step 1: Open PowerShell in the /website/ folder
+
+Step 2: Install Firebase tools (one time):
+  npm install -g firebase-tools
+
+Step 3: Login:
+  firebase login
+
+Step 4: Initialize:
+  firebase init hosting
+  → Select "Use an existing project" → choose nexus-machinery-solutions
+  → Public directory: . (just a dot, meaning current folder)
+  → Configure as single-page app: N (No)
+  → Set up GitHub Action deploys: N (No)
+
+Step 5: Deploy:
+  firebase deploy --only hosting
+
+Step 6: Your site is now live at:
+  https://nexus-machinery-solutions.web.app
+
+  NOTE: For HTTPS to work (required for camera/microphone), this URL works perfectly.
+  You can also add a custom domain (e.g., nexusmachinery.in) in Firebase Hosting settings.
+
+================================================================================
+PART 8 — SERVICE ACCOUNT KEY (for Admin App backend)
+================================================================================
+
+The /website/firebase-adminsdk.json file is the SERVICE ACCOUNT KEY.
+This gives full admin access to Firebase — NEVER expose it in the browser.
+
+It is only used by:
+  - The Node.js backend (if you run one)
+  - The Admin App server-side functions
+
+SECURITY RULES FOR THIS FILE:
+  - Add firebase-adminsdk.json to .gitignore immediately
+  - Never commit it to GitHub
+  - Never put it in any public folder
+
+To add to .gitignore:
+  Create /website/.gitignore with content:
+    firebase-adminsdk.json
+    .env
+    node_modules/
+
+================================================================================
+PART 9 — SPAM PROTECTION (Cooldown System)
+================================================================================
+
+See CREATIVE_IDEAS.txt, Section 2 for the full spam protection design.
+
+Quick implementation for Phase 1 (browser-side localStorage cooldown):
+
+In script.js, add before form submission:
+
+  function checkSpamCooldown(formType) {
+    const key = `nexus_cooldown_${formType}`;
+    const lastSubmit = localStorage.getItem(key);
+    const cooldownMs = 15 * 60 * 1000; // 15 minutes
+
+    if (lastSubmit) {
+      const elapsed = Date.now() - parseInt(lastSubmit);
+      if (elapsed < cooldownMs) {
+        const remaining = Math.ceil((cooldownMs - elapsed) / 60000);
+        return { blocked: true, minutes: remaining };
+      }
+    }
+    return { blocked: false };
+  }
+
+  function recordSubmission(formType) {
+    localStorage.setItem(`nexus_cooldown_${formType}`, Date.now().toString());
+  }
+
+Then in submitForm(), add at the start:
+  const spam = checkSpamCooldown(formType);
+  if (spam.blocked) {
+    alert(`You already sent an enquiry. Please wait ${spam.minutes} more minute(s) before sending again.`);
+    return;
+  }
+
+And after successful submit:
+  recordSubmission(formType);
+
+For server-side spam protection (Phase 4), use Firebase Cloud Functions
+with IP-based rate limiting via Firestore document timestamps.
+
+================================================================================
+PART 10 — TESTING CHECKLIST
+================================================================================
+
+  [ ] Open website in Chrome (or Edge)
+  [ ] Submit a breakdown enquiry with all fields filled
+  [ ] Check Firebase Console → Firestore → breakdown_enquiries → should see new document
+  [ ] Take a photo and submit — check Firebase Storage for the uploaded image
+  [ ] Record voice and submit — check Firebase Storage for the .webm file
+  [ ] Try submitting again within 15 minutes — should show cooldown message
+  [ ] Open Firebase Console from mobile browser — check documents appear
+
+================================================================================
+END OF FIREBASE SETUP GUIDE
+================================================================================

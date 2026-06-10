@@ -1,0 +1,303 @@
+================================================================================
+   NEXUS MACHINERY SOLUTIONS — SECURITY GUIDE
+   Admin Panel, Executive App Login & Data Protection
+================================================================================
+
+Last Updated: 06 June 2026
+Author: Kishan (Developer)
+
+This document explains:
+  A. What security measures are in place
+  B. What threats we protect against
+  C. How to make it better (recommendations)
+  D. The executive login system in detail
+
+================================================================================
+PART 1 — CURRENT SECURITY OVERVIEW
+================================================================================
+
+Our system has THREE user-facing surfaces, each with different security needs:
+
+  SURFACE 1: Website (nexusmachinery.in)
+    - PUBLIC ACCESS — anyone can see it
+    - Only WRITES allowed (submit enquiry), no reads
+    - Security goal: Prevent spam and abuse
+
+  SURFACE 2: Executive / Admin App (private APK, not on Play Store)
+    - PRIVATE ACCESS — only employees with a code can use it
+    - Full access to all enquiries and management functions
+    - Security goal: Prevent unauthorized access + data theft
+
+  SURFACE 3: Firebase Console (Google admin panel)
+    - OWNER-ONLY — only the developer and owner access this
+    - Manages all data, rules, storage
+    - Security goal: Strong Google account 2FA
+
+================================================================================
+PART 2 — WEBSITE SECURITY
+================================================================================
+
+2.1 WHAT IS PROTECTED:
+    ✅ Customers can SUBMIT enquiries (write to Firestore)
+    ✅ Customers CANNOT READ other enquiries
+    ✅ Customers CANNOT READ employee data
+    ✅ Customers CANNOT READ internal product pricing or notes
+    ✅ Customers CANNOT DELETE anything
+    ✅ Upload size limited to 20MB per file (prevents storage abuse)
+
+2.2 FIRESTORE SECURITY RULES (set in Firebase Console):
+    The rules we set in the Firebase Setup Guide enforce this.
+    Summary: "create: true, read/update/delete: false" on all enquiry collections.
+
+2.3 SPAM PROTECTION LAYERS (as also documented in CREATIVE_IDEAS.txt):
+
+    LAYER 1 — Browser Cooldown (Phase 1, in current code):
+      After submitting, a 15-minute cooldown is stored in browser localStorage.
+      If same browser tries again: blocked with error message.
+      WEAKNESS: Can be bypassed by clearing browser cache or using incognito.
+
+    LAYER 2 — Phone Number Deduplication (Phase 2):
+      Cloud Function checks if same phone submitted same form type in 2 hours.
+      CANNOT be bypassed by clearing cache (server-side check).
+
+    LAYER 3 — Google reCAPTCHA v3 (Phase 4):
+      Invisible, frictionless. Blocks bots. Scores 0.0–1.0.
+      Submissions below 0.5 score are rejected by Cloud Function.
+
+2.4 FIREBASE API KEY — IS IT SAFE TO EXPOSE?
+    YES — the Firebase web API key (in the website code) is designed to be public.
+    It ONLY identifies your Firebase project. Access is controlled by:
+      - Firestore Security Rules (what operations are allowed)
+      - Storage Security Rules
+      - Domain restrictions (you can restrict API key to only your domain in Google Cloud Console)
+
+    DO NOT confuse the web API key with the Service Account key (adminsdk.json).
+    Service Account key = PRIVATE. Must never be in public code.
+
+2.5 DATABASE INJECTION & XSS PROTECTION:
+    
+    A. NO RAW QUERIES:
+       Firestore is a NoSQL database. We do not construct raw query strings (like SQL).
+       Instead, we use structured object payloads. This makes traditional SQL Injection
+       (like `' OR '1'='1`) completely impossible.
+
+    B. NoSQL OBJECT INJECTION PREVENTION:
+       Attackers sometimes try to inject JSON query operators (e.g. {"$gt": ""}) to
+       manipulate database behavior. We prevent this by forcing all user input text to
+       primitive string types using String(input) before processing. This converts any
+       injected object to the literal text "[object Object]", neutralizing the attack.
+
+    C. XSS (CROSS-SITE SCRIPTING) PREVENTION:
+       To prevent attackers from storing malicious <script> or HTML tags that run when 
+       viewed by admins:
+       - Every input field passes through sanitizeText() which strips all HTML tags (/<[^>]*>/g)
+         and symbols like <, >, ", ', \, {, }, [, ], ;, |, &, ^.
+       - The admin app uses textContent (via safeSetText()) instead of innerHTML when
+         rendering user-submitted data, preventing the browser from executing scripts.
+
+================================================================================
+PART 3 — EXECUTIVE APP LOGIN SECURITY
+================================================================================
+
+3.1 THE PROBLEM WITH TRADITIONAL PASSWORDS:
+    Giving each employee a username/password means:
+    - Passwords get shared between employees
+    - Employees forget passwords and call you for reset
+    - Fired employees might still have their password
+    - No way to know WHO accessed what
+
+3.2 OUR SOLUTION — OWNER-GENERATED TEMPORARY ACCESS CODE:
+
+    HOW IT WORKS:
+    ┌─────────────────────────────────────────────────────────────────┐
+    │  OWNER adds employee in admin-app                               │
+    │     ↓                                                           │
+    │  App generates a random 8-character code: NMS-A7K2              │
+    │  Code is stored in Firestore: login_codes collection            │
+    │  Code expires in: 5 MINUTES                                     │
+    │     ↓                                                           │
+    │  Owner verbally tells employee the code (face-to-face or call)  │
+    │     ↓                                                           │
+    │  Employee enters code in app login screen                       │
+    │     ↓                                                           │
+    │  Cloud Function verifies: Is code valid? Not expired? Not used? │
+    │     ↓                                                           │
+    │  If valid: Employee is logged in. Code marked as USED.          │
+    │  Device gets a Firebase Auth token (stays logged in)            │
+    │  Code CANNOT be reused, even if written down                    │
+    └─────────────────────────────────────────────────────────────────┘
+
+3.3 WHY THIS IS BETTER THAN PASSWORDS:
+
+    THREAT: Fired employee trying to access the system
+    DEFENSE: Owner deactivates employee in admin-app → their Firebase Auth token
+             is revoked → they are instantly locked out, even mid-session
+
+    THREAT: Employee sharing their login with outsider
+    DEFENSE: Each device gets its own session token. Owner can see all active
+             sessions per employee and revoke specific ones.
+
+    THREAT: Someone finding the 8-character code
+    DEFENSE: Code expires in 5 minutes. Even if intercepted, it's useless.
+
+    THREAT: Brute-forcing login codes
+    DEFENSE: Firebase limits attempts per IP. Also, 8-char alphanumeric = 
+             2.8 trillion combinations. Impossible to brute-force in 5 minutes.
+
+3.4 OWNER'S MASTER ACCESS:
+    The owner's account is set up by the developer during initial app setup.
+    Owner uses a strong passphrase (not a code, not a password — a full sentence).
+    Example: "nexus2024rajkot" → long, memorable, resistant to guessing
+    Owner's account: NEVER expires, NEVER auto-generated.
+    Only the developer can reset it (requires Firebase Console access).
+
+3.5 SESSION SECURITY:
+    - All sessions use Firebase Auth tokens (industry-standard JWT)
+    - Tokens automatically refresh every hour
+    - If employee's phone is lost/stolen: Owner deactivates employee in app →
+      all their sessions are immediately revoked
+    - Sessions are tied to the specific device (cannot be transferred)
+
+================================================================================
+PART 4 — ADMIN APP SECURITY
+================================================================================
+
+4.1 WHO CAN ACCESS WHAT (Role-Based Access Control):
+
+    The app checks the employee's role in Firestore on every screen load.
+    Even if someone guesses another employee's login, they only see their role's data.
+
+    ROLE MATRIX:
+    ┌─────────────────┬───────────┬───────────┬──────────────┬─────────┐
+    │ DATA/ACTION     │ SERVICE   │ SALES     │ ASSEMBLY     │ ADMIN   │
+    │                 │ ENGINEER  │ ENGINEER  │ ENGINEER     │ (OWNER) │
+    ├─────────────────┼───────────┼───────────┼──────────────┼─────────┤
+    │ Breakdown enqs  │ ✅ Read   │ ❌ Hidden │ ❌ Hidden    │ ✅ All  │
+    │ Product enqs    │ ❌ Hidden │ ✅ Read   │ ❌ Hidden    │ ✅ All  │
+    │ Automation enqs │ ❌ Hidden │ ✅ Read   │ ❌ Hidden    │ ✅ All  │
+    │ Add employee    │ ❌        │ ❌        │ ❌           │ ✅ Only │
+    │ Remove employee │ ❌        │ ❌        │ ❌           │ ✅ Only │
+    │ Add products    │ ❌        │ ❌        │ ❌           │ ✅ Only │
+    │ Delete anything │ ❌        │ ❌        │ ❌           │ ✅ Only │
+    │ View all enqs   │ ❌        │ ❌        │ ❌           │ ✅ Only │
+    └─────────────────┴───────────┴───────────┴──────────────┴─────────┘
+
+4.2 FIRESTORE SECURITY RULES FOR ADMIN APP:
+    The app uses service account OR Firebase Auth tokens for database access.
+    Each rule enforces the role matrix above at the DATABASE level — not just
+    in the app UI. This means even if someone hacks the app, the database
+    rules still block unauthorized access.
+
+4.3 APP DISTRIBUTION SECURITY:
+    The admin app is NOT on Google Play Store (intentional).
+    Owner distributes APK directly to employees.
+    Benefits:
+    - Not discoverable by the public
+    - No risk of someone finding and downloading it
+    - Owner controls EXACTLY who gets the APK
+
+    How to securely distribute APK:
+    - Share via WhatsApp or email directly to employee's phone
+    - Instruct employee to enable "Install from unknown sources" (one-time)
+    - After install, instruct them to disable that setting again
+
+================================================================================
+PART 5 — DATA SECURITY & PRIVACY
+================================================================================
+
+5.1 CUSTOMER DATA WE COLLECT:
+    - Name, Phone, Email (optional), Address, Photo, Voice message
+    - This is classified as PERSONAL DATA under Indian IT Act 2000
+
+5.2 HOW WE PROTECT IT:
+    ✅ Data stored in Google Firebase (Google Cloud data centers)
+    ✅ Data encrypted at rest and in transit (HTTPS, TLS 1.3)
+    ✅ Only Firebase project owners can export raw data
+    ✅ Employees see data through controlled app (not raw database access)
+    ✅ No customer data shared with third parties
+
+5.3 DATA RETENTION:
+    Recommendation: Delete completed enquiry data after 2 years.
+    Implementation: Scheduled Firebase Cloud Function that deletes old documents.
+    (This also controls storage costs.)
+
+5.4 WHAT TO TELL CUSTOMERS (Add to website footer or contact page):
+    "Your contact information is used only to respond to your enquiry and
+     is not shared with any third party. Data is stored securely on Google
+     Firebase servers."
+
+================================================================================
+PART 6 — WHAT COULD GO WRONG (THREAT MODEL) & HOW WE PREVENT IT
+================================================================================
+
+  THREAT                            │ LIKELIHOOD │ PREVENTION
+  ──────────────────────────────────┼────────────┼──────────────────────────────
+  Spam enquiries from bots          │ Medium     │ reCAPTCHA v3 (Phase 4)
+  Employee leaking customer data    │ Low        │ Role-based access + audit log
+  Fired employee accessing app      │ Low        │ Owner deactivates in 1 click
+  Someone finding the APK           │ Low        │ Not on Play Store, no branding
+  Firebase account compromised      │ Very Low   │ Owner's Gmail 2FA enabled
+  Service account key leak          │ Very Low   │ In .gitignore, never in code
+  DDOS attack on website            │Very Low    │ Firebase/Cloudflare handles this
+
+================================================================================
+PART 7 — SECURITY CHECKLIST (Do before going live)
+================================================================================
+
+  FIREBASE CONSOLE:
+  [ ] Enable 2-Factor Authentication on the owner's Google account
+  [ ] Apply production Firestore Security Rules (from Firebase Setup Guide)
+  [ ] Apply production Storage Security Rules
+  [ ] Restrict API key to only your domain (Google Cloud Console → Credentials)
+  [ ] Enable Firebase App Check (prevents unauthorized app clients)
+
+  WEBSITE:
+  [ ] Website served over HTTPS (required for camera/mic)
+  [ ] Add adminsdk.json to .gitignore
+  [ ] Never commit API keys to GitHub (use environment variables)
+  [ ] Add spam protection (localStorage cooldown — Phase 1)
+  [ ] Add phone number validation on all forms
+
+  ADMIN APP:
+  [ ] Owner's admin account configured before distributing to employees
+  [ ] APK distributed only via direct share (not a public link)
+  [ ] Test role restrictions for each employee type before giving access
+  [ ] Confirm employee deactivation works (revokes access immediately)
+
+  GENERAL:
+  [ ] Store adminsdk.json in a password manager (not in the project folder)
+  [ ] Enable Firebase usage alerts (set budget alert in Firebase Console)
+  [ ] Test: Can someone access enquiry data without going through the app?
+      (The answer should be: NO, if Firestore rules are correctly applied)
+
+================================================================================
+PART 8 — SECURITY UPGRADE ROADMAP
+================================================================================
+
+  Phase 1 (Now):
+    - localStorage cooldown for spam protection
+    - Firestore + Storage rules applied
+    - Owner Gmail 2FA enabled
+    - adminsdk.json in .gitignore
+
+  Phase 2 (Admin App):
+    - Temporary access code login system
+    - Role-based access control in Firestore rules
+    - Employee deactivation
+
+  Phase 3 (Customer App):
+    - Firebase App Check (prevents fake app clients)
+    - Device binding (prevents account sharing)
+
+  Phase 4 (Security Hardening):
+    - reCAPTCHA v3 on website forms
+    - Phone number deduplication (server-side)
+    - Audit logs (who viewed what enquiry, when)
+    - Cloudflare CDN + DDoS protection
+
+  Phase 5:
+    - Security audit by a third party (optional, for large scale)
+
+================================================================================
+END OF SECURITY GUIDE
+================================================================================

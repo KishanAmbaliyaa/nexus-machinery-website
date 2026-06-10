@@ -40,7 +40,18 @@ firebase.auth().setPersistence(firebase.auth.Auth.Persistence.SESSION)
         console.error("Error setting session persistence:", error);
     });
 
-firebase.auth().onAuthStateChanged((user) => {
+async function getUserIP() {
+    try {
+        const res = await fetch('https://api.ipify.org?format=json');
+        const data = await res.json();
+        return data.ip || null;
+    } catch (err) {
+        console.error("IP check failed:", err);
+        return null;
+    }
+}
+
+firebase.auth().onAuthStateChanged(async (user) => {
     if (user) {
         currentUser = user;
         // Check if OTP has been verified in this session
@@ -50,16 +61,41 @@ firebase.auth().onAuthStateChanged((user) => {
             document.getElementById('admin-email').textContent = user.email;
             loadDashboard();
         } else {
-            // Show OTP form and send OTP if not already sent
-            document.getElementById('login-screen').classList.remove('hidden');
-            document.getElementById('admin-panel').classList.add('hidden');
-            document.getElementById('login-form').classList.add('hidden');
-            document.getElementById('otp-form').classList.remove('hidden');
-            
-            // Check if we need to send OTP
-            if (!window.otpSentForUid || window.otpSentForUid !== user.uid) {
-                window.otpSentForUid = user.uid;
-                sendLoginOTP(user);
+            // Check if current IP is trusted
+            let isTrusted = false;
+            const ip = await getUserIP();
+            if (ip) {
+                try {
+                    const ipSnapshot = await db.collection('trusted_ips')
+                        .where('uid', '==', user.uid)
+                        .where('ip', '==', ip)
+                        .get();
+                    if (!ipSnapshot.empty) {
+                        isTrusted = true;
+                    }
+                } catch (e) {
+                    console.error("Error checking trusted IP:", e);
+                }
+            }
+
+            if (isTrusted) {
+                sessionStorage.setItem('admin_otp_verified', 'true');
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('admin-panel').classList.remove('hidden');
+                document.getElementById('admin-email').textContent = user.email;
+                loadDashboard();
+            } else {
+                // Show OTP form and send OTP if not already sent
+                document.getElementById('login-screen').classList.remove('hidden');
+                document.getElementById('admin-panel').classList.add('hidden');
+                document.getElementById('login-form').classList.add('hidden');
+                document.getElementById('otp-form').classList.remove('hidden');
+                
+                // Check if we need to send OTP
+                if (!window.otpSentForUid || window.otpSentForUid !== user.uid) {
+                    window.otpSentForUid = user.uid;
+                    sendLoginOTP(user);
+                }
             }
         }
     } else {
@@ -157,6 +193,22 @@ async function handleVerifyOTP(event) {
 
         // Success!
         sessionStorage.setItem('admin_otp_verified', 'true');
+        
+        // Save current IP to trusted_ips
+        const ip = await getUserIP();
+        if (ip) {
+            try {
+                const docId = `${currentUser.uid}_${ip.replace(/\./g, '_')}`;
+                await db.collection('trusted_ips').doc(docId).set({
+                    uid: currentUser.uid,
+                    ip: ip,
+                    addedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            } catch (e) {
+                console.error("Failed to save trusted IP:", e);
+            }
+        }
+
         document.getElementById('login-screen').classList.add('hidden');
         document.getElementById('admin-panel').classList.remove('hidden');
         document.getElementById('admin-email').textContent = currentUser.email;
