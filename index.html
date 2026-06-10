@@ -974,17 +974,18 @@
                 <button type="button" class="close-btn" onclick="closeMapModal()"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <!-- Search Control -->
-            <div class="map-search-group" style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+            <div class="map-search-group" style="position: relative; display: flex; gap: 0.5rem; margin-bottom: 1rem;">
                 <input type="text" id="map-search-input" placeholder="Search landmark, town, or road..." style="flex: 1; padding: 0.7rem; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-color); font-family: 'Montserrat', sans-serif;">
                 <button type="button" class="media-btn" style="padding: 0 1rem; border-radius: 6px; background: var(--accent-color); border: none; color: white; display: flex; align-items: center; gap: 5px; font-weight: 600;" onclick="searchMapAddress()">
                     <i class="fa-solid fa-magnifying-glass"></i> Search
                 </button>
+                <div id="map-suggestions" class="map-suggestions-dropdown hidden"></div>
             </div>
             <!-- Map box -->
             <div id="location-map" style="height: 350px; border-radius: 8px; border: 1px solid var(--border-color); background: #111; position: relative; z-index: 1;"></div>
             <!-- Button Bar -->
             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.2rem; gap: 0.5rem; flex-wrap: wrap;">
-                <button type="button" class="media-btn" style="background: transparent; border: 1px solid var(--border-color); color: var(--text-color); display: flex; align-items: center; gap: 5px; font-weight: 600;" onclick="requestMapGeolocation()">
+                <button type="button" id="map-locate-btn" class="media-btn" style="background: transparent; border: 1px solid var(--border-color); color: var(--text-color); display: flex; align-items: center; gap: 5px; font-weight: 600;" onclick="requestMapGeolocation()">
                     <i class="fa-solid fa-location-crosshairs"></i> Locate Me
                 </button>
                 <div style="display: flex; gap: 0.5rem;">

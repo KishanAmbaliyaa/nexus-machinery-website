@@ -1185,9 +1185,17 @@ function closeMapModal() {
     document.getElementById('map-modal').classList.remove('active');
     document.body.style.overflow = '';
     document.getElementById('map-search-input').value = '';
+    hideMapSuggestions();
 }
 
 function requestMapGeolocation() {
+    const locateBtn = document.getElementById('map-locate-btn');
+    const originalHTML = locateBtn ? locateBtn.innerHTML : '';
+    if (locateBtn) {
+        locateBtn.disabled = true;
+        locateBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Locating...';
+    }
+
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition((position) => {
             const lat = position.coords.latitude;
@@ -1196,12 +1204,25 @@ function requestMapGeolocation() {
             if (leafletMap) {
                 leafletMap.setView([lat, lng], 15);
             }
+            if (locateBtn) {
+                locateBtn.disabled = false;
+                locateBtn.innerHTML = originalHTML;
+            }
         }, (err) => {
             console.warn('Geolocation access failed/denied:', err);
+            if (locateBtn) {
+                locateBtn.disabled = false;
+                locateBtn.innerHTML = originalHTML;
+            }
         }, {
             enableHighAccuracy: true,
             timeout: 8000
         });
+    } else {
+        if (locateBtn) {
+            locateBtn.disabled = false;
+            locateBtn.innerHTML = originalHTML;
+        }
     }
 }
 
@@ -1213,9 +1234,10 @@ async function searchMapAddress() {
     const originalHTML = searchBtn.innerHTML;
     searchBtn.disabled = true;
     searchBtn.innerHTML = 'Searching...';
+    hideMapSuggestions();
 
     try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`);
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1&countrycodes=in`);
         const results = await res.json();
         if (results && results.length > 0) {
             const lat = parseFloat(results[0].lat);
@@ -1271,5 +1293,82 @@ async function confirmMapLocation() {
     } finally {
         confirmBtn.disabled = false;
         confirmBtn.innerHTML = originalHTML;
+    }
+}
+
+// ============================================================
+// 20. REAL-TIME SEARCH AUTO-COMPLETE SUGGESTIONS
+// ============================================================
+let searchDebounceTimer = null;
+
+document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('map-search-input');
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.trim();
+            clearTimeout(searchDebounceTimer);
+            
+            if (query.length < 3) {
+                hideMapSuggestions();
+                return;
+            }
+
+            searchDebounceTimer = setTimeout(() => {
+                fetchMapSuggestions(query);
+            }, 350); // 350ms Debounce
+        });
+    }
+
+    // Hide suggestions dropdown if clicked outside search group
+    document.addEventListener('click', (e) => {
+        const suggestions = document.getElementById('map-suggestions');
+        const searchInput = document.getElementById('map-search-input');
+        if (suggestions && !suggestions.contains(e.target) && e.target !== searchInput) {
+            hideMapSuggestions();
+        }
+    });
+});
+
+async function fetchMapSuggestions(query) {
+    const suggestionsContainer = document.getElementById('map-suggestions');
+    if (!suggestionsContainer) return;
+
+    try {
+        // Prioritize results from India country codes (in)
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&countrycodes=in`);
+        const data = await res.json();
+        
+        if (data && data.length > 0) {
+            suggestionsContainer.innerHTML = '';
+            data.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'suggestion-item';
+                div.textContent = item.display_name;
+                div.addEventListener('click', () => {
+                    const lat = parseFloat(item.lat);
+                    const lon = parseFloat(item.lon);
+                    setMarkerPosition(lat, lon);
+                    if (leafletMap) {
+                        leafletMap.setView([lat, lon], 15);
+                    }
+                    const searchInput = document.getElementById('map-search-input');
+                    if (searchInput) searchInput.value = item.display_name;
+                    hideMapSuggestions();
+                });
+                suggestionsContainer.appendChild(div);
+            });
+            suggestionsContainer.classList.remove('hidden');
+        } else {
+            hideMapSuggestions();
+        }
+    } catch (err) {
+        console.error('Failed to fetch autocomplete suggestions:', err);
+    }
+}
+
+function hideMapSuggestions() {
+    const suggestionsContainer = document.getElementById('map-suggestions');
+    if (suggestionsContainer) {
+        suggestionsContainer.classList.add('hidden');
     }
 }
