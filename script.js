@@ -1206,33 +1206,63 @@ function requestMapGeolocation() {
     }
 
     if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition((position) => {
-            const lat = position.coords.latitude;
-            const lng = position.coords.longitude;
-            setMarkerPosition(lat, lng);
-            if (leafletMap) {
-                leafletMap.setView([lat, lng], 15);
-            }
-            if (locateBtn) {
-                locateBtn.disabled = false;
-                locateBtn.innerHTML = originalHTML;
-            }
-        }, (err) => {
-            console.warn('Geolocation access failed/denied:', err);
-            if (locateBtn) {
-                locateBtn.disabled = false;
-                locateBtn.innerHTML = originalHTML;
-            }
-        }, {
-            enableHighAccuracy: true,
-            timeout: 8000
-        });
+        // Try high accuracy first (GPS level accuracy)
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                handleGeoSuccess(position, locateBtn, originalHTML);
+            },
+            (err) => {
+                console.warn('High accuracy geolocation failed/timed out, trying low accuracy...', err);
+                // Fallback to low accuracy (resolves instantly using IP/Wi-Fi)
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        handleGeoSuccess(position, locateBtn, originalHTML);
+                    },
+                    (lowErr) => {
+                        handleGeoError(lowErr, locateBtn, originalHTML);
+                    },
+                    { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 }
+                );
+            },
+            { enableHighAccuracy: true, timeout: 6000, maximumAge: 0 }
+        );
     } else {
+        showMapToast("Geolocation is not supported by your browser.");
         if (locateBtn) {
             locateBtn.disabled = false;
             locateBtn.innerHTML = originalHTML;
         }
     }
+}
+
+function handleGeoSuccess(position, locateBtn, originalHTML) {
+    const lat = position.coords.latitude;
+    const lng = position.coords.longitude;
+    setMarkerPosition(lat, lng);
+    if (leafletMap) {
+        leafletMap.setView([lat, lng], 15);
+    }
+    if (locateBtn) {
+        locateBtn.disabled = false;
+        locateBtn.innerHTML = originalHTML;
+    }
+    showMapToast("Location updated successfully!");
+}
+
+function handleGeoError(err, locateBtn, originalHTML) {
+    console.warn('Geolocation failed:', err);
+    if (locateBtn) {
+        locateBtn.disabled = false;
+        locateBtn.innerHTML = originalHTML;
+    }
+    
+    let msg = "Could not retrieve location. Please search manually.";
+    if (err.code === 1) { // PERMISSION_DENIED
+        msg = "Location access denied. Please enable permissions in browser.";
+    } else if (err.code === 3) { // TIMEOUT
+        msg = "Location query timed out. Please try again or search manually.";
+    }
+    showMapToast(msg);
 }
 
 // Map modal toast notification helper
