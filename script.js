@@ -478,6 +478,15 @@ function handlePhotoSelected(input, previewAreaId) {
     const file = input.files[0];
     if (!file) return;
 
+    // Reset sibling input (camera or gallery) so only one holds a file reference at a time
+    const prefix = previewAreaId.split('-')[0]; // e.g. "bd"
+    const currentInputId = input.id; // e.g. "bd-photo-camera"
+    const siblingInputId = currentInputId.endsWith('-camera') ? `${prefix}-photo-gallery` : `${prefix}-photo-camera`;
+    const siblingInput = document.getElementById(siblingInputId);
+    if (siblingInput) {
+        siblingInput.value = '';
+    }
+
     // SECURITY: Validate file type by MIME type (not just extension)
     // Extension can be faked (e.g. rename virus.exe to virus.jpg)
     // MIME type is set by the browser based on actual file content
@@ -517,6 +526,10 @@ function handlePhotoSelected(input, previewAreaId) {
         removeBtn.onclick = () => {
             previewArea.innerHTML = '';
             input.value = '';
+            const prefix = previewAreaId.split('-')[0];
+            const siblingId = input.id.endsWith('-camera') ? `${prefix}-photo-gallery` : `${prefix}-photo-camera`;
+            const sibling = document.getElementById(siblingId);
+            if (sibling) sibling.value = '';
         };
 
         previewArea.appendChild(img);
@@ -925,10 +938,19 @@ async function simulateSubmit(data) {
     if (data.type === 'service-other') prefix = 'so';
 
     if (prefix) {
-        const photoInput = document.getElementById(`${prefix}-photo`);
-        if (photoInput && photoInput.files && photoInput.files[0]) {
+        // Retrieve file from whichever input (camera or gallery) was used
+        let photoFile = null;
+        const cameraInput = document.getElementById(`${prefix}-photo-camera`);
+        const galleryInput = document.getElementById(`${prefix}-photo-gallery`);
+        if (cameraInput && cameraInput.files && cameraInput.files[0]) {
+            photoFile = cameraInput.files[0];
+        } else if (galleryInput && galleryInput.files && galleryInput.files[0]) {
+            photoFile = galleryInput.files[0];
+        }
+
+        if (photoFile) {
             try {
-                data.photoUrl = await uploadFileToStorage(photoInput.files[0], prefix);
+                data.photoUrl = await uploadFileToStorage(photoFile, prefix);
             } catch (uploadErr) {
                 console.warn('⚠️ Photo upload failed (Storage may not be configured yet). Submitting without photo.', uploadErr.message);
                 data.photoUrl = null;
@@ -1529,5 +1551,32 @@ function hideMapSuggestions() {
     const suggestionsContainer = document.getElementById('map-suggestions');
     if (suggestionsContainer) {
         suggestionsContainer.classList.add('hidden');
+    }
+}
+
+// ============================================================
+// 21. PHOTO SOURCE PICKER MODAL (CAMERA VS GALLERY)
+// ============================================================
+let activePhotoPrefix = '';
+
+function openPhotoSourceModal(prefix) {
+    activePhotoPrefix = prefix;
+    document.getElementById('photo-source-modal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closePhotoSourceModal() {
+    document.getElementById('photo-source-modal').classList.remove('active');
+    document.body.style.overflow = '';
+    activePhotoPrefix = '';
+}
+
+function triggerPhotoCapture(sourceType) {
+    const prefix = activePhotoPrefix;
+    closePhotoSourceModal();
+    const inputId = `${prefix}-photo-${sourceType}`;
+    const fileInput = document.getElementById(inputId);
+    if (fileInput) {
+        fileInput.click();
     }
 }
