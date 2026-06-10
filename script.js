@@ -186,22 +186,30 @@ function safeSetText(elementId, text) {
 // Uses localStorage (browser-side Layer 1 protection).
 // ============================================================
 const COOLDOWN_MINUTES = 15;
+const MAX_SUBMISSIONS_IN_WINDOW = 3;
 
 function checkSpamCooldown(formType) {
     try {
         const key = `nms_cd_${formType}`;
-        const lastSubmit = localStorage.getItem(key);
-        if (!lastSubmit) return { blocked: false };
+        const submitsStr = localStorage.getItem(key);
+        if (!submitsStr) return { blocked: false };
 
-        const elapsed = Date.now() - parseInt(lastSubmit, 10);
-        const cooldownMs = COOLDOWN_MINUTES * 60 * 1000;
+        let submits = JSON.parse(submitsStr);
+        if (!Array.isArray(submits)) submits = [];
 
-        if (elapsed < cooldownMs) {
-            const remaining = Math.ceil((cooldownMs - elapsed) / 60000);
-            return { blocked: true, minutes: remaining };
+        const now = Date.now();
+        const windowMs = COOLDOWN_MINUTES * 60 * 1000;
+        submits = submits.filter(ts => (now - ts) < windowMs);
+
+        localStorage.setItem(key, JSON.stringify(submits));
+
+        if (submits.length >= MAX_SUBMISSIONS_IN_WINDOW) {
+            const oldest = Math.min(...submits);
+            const remainingMs = windowMs - (now - oldest);
+            const remainingMins = Math.ceil(remainingMs / 60000);
+            return { blocked: true, minutes: remainingMins };
         }
     } catch (e) {
-        // localStorage might be blocked in private mode — allow submission
         return { blocked: false };
     }
     return { blocked: false };
@@ -209,9 +217,21 @@ function checkSpamCooldown(formType) {
 
 function recordSubmission(formType) {
     try {
-        localStorage.setItem(`nms_cd_${formType}`, Date.now().toString());
+        const key = `nms_cd_${formType}`;
+        const submitsStr = localStorage.getItem(key);
+        let submits = [];
+        if (submitsStr) {
+            try {
+                submits = JSON.parse(submitsStr);
+                if (!Array.isArray(submits)) submits = [];
+            } catch (e) {
+                submits = [];
+            }
+        }
+        submits.push(Date.now());
+        localStorage.setItem(key, JSON.stringify(submits));
     } catch (e) {
-        // Silently ignore if localStorage unavailable
+        // Ignore
     }
 }
 
