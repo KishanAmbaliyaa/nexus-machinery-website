@@ -4,14 +4,14 @@
 ============================================================ */
 
 :root {
-    --bg-color: #050505;
-    --text-color: #FFFFFF;
+    --bg-color: #FFFFFF;
+    --text-color: #111111;
     --accent-color: #C41221;
     --accent-hover: #E31828;
-    --card-bg: #111111;
-    --card-bg-2: #161616;
-    --border-color: #2a2a2a;
-    --border-light: #333333;
+    --card-bg: #F5F5F5;
+    --card-bg-2: #EAEAEA;
+    --border-color: #E0E0E0;
+    --border-light: #CCCCCC;
     --font-family: 'Montserrat', sans-serif;
     --tab-radius: 10px;
     --transition: all 0.3s ease;
@@ -47,10 +47,10 @@ h1, h2, h3 { text-transform: uppercase; font-weight: 900; letter-spacing: 1px; }
     position: fixed;
     top: 0; left: 0;
     width: 100%;
-    background-color: rgba(5,5,5,0.96);
+    background-color: rgba(255,255,255,0.96);
     backdrop-filter: blur(12px);
     z-index: 2000;
-    border-bottom: 1px solid rgba(255,255,255,0.06);
+    border-bottom: 1px solid rgba(0,0,0,0.06);
 }
 
 .header-container {
@@ -65,7 +65,7 @@ h1, h2, h3 { text-transform: uppercase; font-weight: 900; letter-spacing: 1px; }
 .logo {
     font-size: 1.1rem;
     font-weight: 900;
-    color: white;
+    color: var(--text-color);
     letter-spacing: 1.5px;
     display: flex;
     align-items: center;
@@ -111,7 +111,7 @@ h1, h2, h3 { text-transform: uppercase; font-weight: 900; letter-spacing: 1px; }
     display: block;
     width: 25px;
     height: 3px;
-    background-color: white;
+    background-color: var(--text-color);
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     border-radius: 2px;
 }
@@ -127,7 +127,7 @@ h1, h2, h3 { text-transform: uppercase; font-weight: 900; letter-spacing: 1px; }
     position: fixed;
     top: 0; left: 0;
     width: 100%; height: 100vh;
-    background-color: #000;
+    background-color: var(--bg-color);
     z-index: 1999;
     display: flex;
     justify-content: center;
@@ -144,7 +144,7 @@ h1, h2, h3 { text-transform: uppercase; font-weight: 900; letter-spacing: 1px; }
     top: 1.5rem; right: 5%;
     background: transparent;
     border: none;
-    color: white;
+    color: var(--text-color);
     font-size: 2rem;
     cursor: pointer;
     transition: var(--transition);
@@ -161,7 +161,7 @@ h1, h2, h3 { text-transform: uppercase; font-weight: 900; letter-spacing: 1px; }
 }
 
 .menu-links a {
-    color: white;
+    color: var(--text-color);
     font-size: 2rem;
     font-weight: 900;
     text-decoration: none;
@@ -177,7 +177,7 @@ h1, h2, h3 { text-transform: uppercase; font-weight: 900; letter-spacing: 1px; }
     position: relative;
     width: 100%;
     min-height: 100vh;
-    background-color: #000;
+    background-color: var(--bg-color);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -230,14 +230,14 @@ h1, h2, h3 { text-transform: uppercase; font-weight: 900; letter-spacing: 1px; }
 #showcase-title {
     font-size: 1.8rem;
     font-weight: 900;
-    color: white;
+    color: var(--text-color);
     margin-bottom: 0.5rem;
     text-transform: uppercase;
 }
 
 #showcase-desc {
     font-size: 1rem;
-    color: #DDDDDD;
+    color: #333333;
     line-height: 1.6;
     max-width: 500px;
     margin: 0 auto 1.5rem;
@@ -537,7 +537,7 @@ h1, h2, h3 { text-transform: uppercase; font-weight: 900; letter-spacing: 1px; }
 .step-title {
     font-size: 1.3rem;
     margin-bottom: 1.5rem;
-    color: white;
+    color: var(--text-color);
     display: flex;
     align-items: center;
     gap: 0.8rem;
@@ -590,10 +590,10 @@ h1, h2, h3 { text-transform: uppercase; font-weight: 900; letter-spacing: 1px; }
     text-transform: uppercase;
     transition: var(--transition);
 }
-.back-btn:hover { color: white; border-color: white; }
+.back-btn:hover { color: var(--text-color); border-color: var(--text-color); }
 
 .selected-label { color: #AAA; font-size: 0.9rem; font-weight: 600; }
-.selected-label strong { color: white; }
+.selected-label strong { color: var(--text-color); }
 
 /* Selection Badges */
 .selection-badges { display: flex; gap: 0.5rem; flex-wrap: wrap; }
@@ -632,7 +632,7 @@ h1, h2, h3 { text-transform: uppercase; font-weight: 900; letter-spacing: 1px; }
     padding: 1.5rem 1rem;
     background-color: var(--bg-color);
     border: 2px solid var(--border-color);
-    color: white;
+    color: var(--text-color);
     cursor: pointer;
     font-family: var(--font-family);
     font-weight: 700;

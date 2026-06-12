@@ -364,7 +364,7 @@ function rotateShowcase() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    setInterval(rotateShowcase, 4000);
+    setInterval(rotateShowcase, 3600);
 });
 
 // ============================================================
