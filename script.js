@@ -364,7 +364,7 @@ function rotateShowcase() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    setInterval(rotateShowcase, 3600);
+    setInterval(rotateShowcase, 4000);
 });
 
 // ============================================================
@@ -376,14 +376,30 @@ function switchTab(tabName) {
         btn.classList.remove('active');
         btn.setAttribute('aria-selected', 'false');
     });
+    document.querySelectorAll('.image-tab-card').forEach(card => {
+        card.classList.remove('active');
+        card.setAttribute('aria-selected', 'false');
+    });
 
     const selectedContent = document.getElementById(`tab-${tabName}`);
     const selectedBtn     = document.getElementById(`tab-btn-${tabName}`);
+    const selectedImgCard = document.getElementById(`img-tab-${tabName}`);
 
     if (selectedContent) selectedContent.classList.add('active');
     if (selectedBtn) {
         selectedBtn.classList.add('active');
         selectedBtn.setAttribute('aria-selected', 'true');
+    }
+    if (selectedImgCard) {
+        selectedImgCard.classList.add('active');
+        selectedImgCard.setAttribute('aria-selected', 'true');
+    }
+
+    // Reset to default sub-tabs when switching main tabs
+    if (tabName === 'products') {
+        switchSubTab('new-machine');
+    } else if (tabName === 'service') {
+        switchSubTab('breakdown');
     }
 }
 

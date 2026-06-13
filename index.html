@@ -29,6 +29,15 @@
                     <img src="Images/nexus_mobile.png" alt="Nexus Machinery Solutions" class="header-logo-img">
                 </picture>
             </div>
+            
+            <!-- Desktop Nav -->
+            <ul class="desktop-nav">
+                <li><a href="#enquiry-tabs" onclick="switchTab('service')">Service</a></li>
+                <li><a href="#enquiry-tabs" onclick="switchTab('products')">New & Used Product</a></li>
+                <li><a href="#enquiry-tabs" onclick="switchTab('automation')">Automation</a></li>
+                <li><a href="#enquiry-tabs" onclick="switchTab('other')">Other</a></li>
+            </ul>
+
             <div class="header-right">
                 <a href="tel:9109190790" class="header-phone">9109190790</a>
                 <button class="hamburger" aria-label="Toggle Menu" onclick="toggleGlobalMenu()">
@@ -46,10 +55,10 @@
         <ul class="menu-links">
             <li><a href="#" onclick="toggleGlobalMenu()">Home</a></li>
             <li><a href="#enquiry-tabs" onclick="toggleGlobalMenu(); switchTab('service')">Service Enquiry</a></li>
-            <li><a href="#enquiry-tabs" onclick="toggleGlobalMenu(); switchTab('new-product')">New Machines</a></li>
-            <li><a href="#enquiry-tabs" onclick="toggleGlobalMenu(); switchTab('used-product')">Used Machines</a></li>
+            <li><a href="#enquiry-tabs" onclick="toggleGlobalMenu(); switchTab('products'); switchSubTab('new-machine');">New Machines</a></li>
+            <li><a href="#enquiry-tabs" onclick="toggleGlobalMenu(); switchTab('products'); switchSubTab('used-machine');">Used Machines</a></li>
             <li><a href="#enquiry-tabs" onclick="toggleGlobalMenu(); switchTab('automation')">Automation</a></li>
-
+            <li><a href="#enquiry-tabs" onclick="toggleGlobalMenu(); switchTab('other')">Other</a></li>
         </ul>
     </div>
 
@@ -108,19 +117,15 @@
         <section id="enquiry-tabs" class="enquiry-section container">
             <h2 class="section-title">ENQUIRE WITH US</h2>
 
-            <!-- Tab Buttons -->
-            <div class="tab-buttons" role="tablist">
+            <!-- Mobile Tab Buttons (Hidden on desktop) -->
+            <div class="tab-buttons mobile-tabs" role="tablist">
                 <button class="tab-btn active" id="tab-btn-service" onclick="switchTab('service')" role="tab" aria-selected="true">
                     <i class="fa-solid fa-screwdriver-wrench"></i>
                     <span>Service</span>
                 </button>
-                <button class="tab-btn" id="tab-btn-new-product" onclick="switchTab('new-product')" role="tab" aria-selected="false">
+                <button class="tab-btn" id="tab-btn-products" onclick="switchTab('products')" role="tab" aria-selected="false">
                     <i class="fa-solid fa-industry"></i>
-                    <span>New Product</span>
-                </button>
-                <button class="tab-btn" id="tab-btn-used-product" onclick="switchTab('used-product')" role="tab" aria-selected="false">
-                    <i class="fa-solid fa-recycle"></i>
-                    <span>Used Product</span>
+                    <span>Products</span>
                 </button>
                 <button class="tab-btn" id="tab-btn-automation" onclick="switchTab('automation')" role="tab" aria-selected="false">
                     <i class="fa-solid fa-robot"></i>
@@ -130,6 +135,26 @@
                     <i class="fa-solid fa-ellipsis"></i>
                     <span>Other</span>
                 </button>
+            </div>
+
+            <!-- Desktop Image Tabs (Hidden on mobile) -->
+            <div class="image-tabs desktop-tabs" role="tablist">
+                <div class="image-tab-card active" id="img-tab-service" onclick="switchTab('service')" role="tab">
+                    <div class="img-container"><img src="Images/CNC.png" alt="Service"></div>
+                    <div class="tab-label">SERVICE</div>
+                </div>
+                <div class="image-tab-card" id="img-tab-products" onclick="switchTab('products')" role="tab">
+                    <div class="img-container"><img src="Images/VMC.png" alt="New & Used Products"></div>
+                    <div class="tab-label">PRODUCTS</div>
+                </div>
+                <div class="image-tab-card" id="img-tab-automation" onclick="switchTab('automation')" role="tab">
+                    <div class="img-container"><img src="Images/automation.png" alt="Automation"></div>
+                    <div class="tab-label">AUTOMATION</div>
+                </div>
+                <div class="image-tab-card" id="img-tab-other" onclick="switchTab('other')" role="tab">
+                    <div class="img-container"><img src="Images/part-1.png" alt="Other"></div>
+                    <div class="tab-label">OTHER</div>
+                </div>
             </div>
 
             <!-- ====== TAB 1: SERVICE ====== -->
@@ -419,13 +444,26 @@
                 </div>
             </div><!-- end tab-service -->
 
-            <!-- ====== TAB 2: NEW PRODUCT ====== -->
-            <div class="tab-content" id="tab-new-product">
-                <div class="tab-intro">
-                    <h3>New Machines Available</h3>
-                    <p>Browse our new machine inventory. Click "Send Enquiry" on any machine to get in touch with our sales team.</p>
+            <!-- ====== TAB 2: PRODUCTS ====== -->
+            <div class="tab-content" id="tab-products">
+                
+                <!-- Product Sub-tabs -->
+                <div class="sub-tab-buttons">
+                    <button class="sub-tab-btn active" id="sub-tab-btn-new-machine" onclick="switchSubTab('new-machine')">
+                        <i class="fa-solid fa-industry"></i> New Machine
+                    </button>
+                    <button class="sub-tab-btn" id="sub-tab-btn-used-machine" onclick="switchSubTab('used-machine')">
+                        <i class="fa-solid fa-recycle"></i> Used Machine
+                    </button>
                 </div>
-                <div class="product-grid" id="new-product-grid">
+
+                <!-- New Machine Sub-tab Content -->
+                <div class="sub-tab-content active" id="sub-new-machine">
+                    <div class="tab-intro">
+                        <h3>New Machines Available</h3>
+                        <p>Browse our new machine inventory. Click "Send Enquiry" on any machine to get in touch with our sales team.</p>
+                    </div>
+                    <div class="product-grid" id="new-product-grid">
                     <!-- Product Card: CNC -->
                     <div class="product-card">
                         <div class="product-badge new-badge">NEW</div>
@@ -501,16 +539,16 @@
                             </button>
                         </div>
                     </div>
-                </div>
-            </div><!-- end tab-new-product -->
+                    </div>
+                </div><!-- end sub-new-machine -->
 
-            <!-- ====== TAB 3: USED PRODUCT ====== -->
-            <div class="tab-content" id="tab-used-product">
-                <div class="tab-intro">
-                    <h3>Pre-Owned Machines Available</h3>
-                    <p>Quality certified pre-owned machinery, fully inspected and serviced by our expert technicians.</p>
-                </div>
-                <div class="product-grid" id="used-product-grid">
+                <!-- Used Machine Sub-tab Content -->
+                <div class="sub-tab-content" id="sub-used-machine">
+                    <div class="tab-intro">
+                        <h3>Pre-Owned Machines Available</h3>
+                        <p>Quality certified pre-owned machinery, fully inspected and serviced by our expert technicians.</p>
+                    </div>
+                    <div class="product-grid" id="used-product-grid">
                     <!-- Used Product Card: CNC -->
                     <div class="product-card">
                         <div class="product-badge used-badge">PRE-OWNED</div>
@@ -556,8 +594,9 @@
                             </button>
                         </div>
                     </div>
-                </div>
-            </div><!-- end tab-used-product -->
+                    </div>
+                </div><!-- end sub-used-machine -->
+            </div><!-- end tab-products -->
 
             <!-- ====== TAB 4: AUTOMATION ====== -->
             <div class="tab-content" id="tab-automation">
