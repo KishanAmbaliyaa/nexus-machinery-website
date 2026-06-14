@@ -375,6 +375,21 @@ function toggleHeroDropdown() {
 
 window.toggleHeroDropdown = toggleHeroDropdown;
 
+function resetToHome() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    // Call switchTab to reset everything to default 'service' state
+    if (typeof switchTab === 'function') switchTab('service');
+    
+    // Forcefully re-enable auto-switching since switchTab disabled it
+    isHeroAutoSwitchingCategories = true;
+    currentHeroImageIndex = 0; // Ensure we start at the very first image
+    
+    updateHeroDisplay();
+}
+
+window.resetToHome = resetToHome;
+
 function selectHeroCategory(category) {
     isHeroDropdownOpen = false;
     isHeroAutoSwitchingCategories = false;
