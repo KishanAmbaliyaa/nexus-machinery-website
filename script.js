@@ -291,6 +291,7 @@ let heroSlidesData = {
 let isHeroAutoSwitchingCategories = true;
 let currentHeroCategory = 'service';
 let currentHeroImageIndex = 0;
+let isInitialHeroLoad = true;
 const categoryOrder = ['service', 'products', 'automation'];
 const categoryNames = {
     service: 'SERVICES',
@@ -448,11 +449,9 @@ function updateHeroDisplay() {
     if (!slides || slides.length === 0) return;
     
     const slide = slides[currentHeroImageIndex];
-
     const elements = [imgEl, titleEl, descEl, ctaEl];
-    elements.forEach(el => el.classList.remove('active'));
 
-    setTimeout(() => {
+    const setupSlideContent = () => {
         imgEl.src = slide.imageUrl;
         imgEl.alt = slide.title;
         titleEl.textContent = slide.title;
@@ -481,7 +480,19 @@ function updateHeroDisplay() {
                 document.getElementById('enquiry-tabs').scrollIntoView({ behavior: 'smooth' });
             };
         }
+    };
 
+    if (isInitialHeroLoad) {
+        setupSlideContent();
+        elements.forEach(el => el.classList.add('active'));
+        isInitialHeroLoad = false;
+        return;
+    }
+
+    elements.forEach(el => el.classList.remove('active'));
+
+    setTimeout(() => {
+        setupSlideContent();
         elements.forEach(el => el.classList.add('active'));
     }, 600);
 }
