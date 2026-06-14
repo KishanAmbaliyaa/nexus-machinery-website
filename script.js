@@ -294,11 +294,12 @@ let currentHeroImageIndex = 0;
 let isInitialHeroLoad = true;
 let isHeroDropdownOpen = false;
 let heroRotationInterval = null;
-const categoryOrder = ['service', 'products', 'automation'];
+const categoryOrder = ['service', 'products', 'automation', 'retrofitting'];
 const categoryNames = {
     service: 'SERVICES',
     products: 'NEW AND USED PRODUCTS',
-    automation: 'AUTOMATION SOLUTIONS'
+    automation: 'AUTOMATION SOLUTIONS',
+    retrofitting: 'RETROFITTING'
 };
 
 function getDefaultSlides(category) {
@@ -313,13 +314,17 @@ function getDefaultSlides(category) {
         return [
             { category: 'products', imageUrl: 'Images/CNC.png', title: 'NEW & USED PRODUCT', description: 'Premium CNC, VMC, HMC, and VTL machines — new and certified pre-owned. Browse our selection and enquire for pricing.' }
         ];
-    } else {
+    } else if (category === 'automation') {
         return [
             { category: 'automation', imageUrl: 'Images/auto-1.png', title: 'AUTOMATION SOLUTION', description: 'Complete industrial automation systems — Pick & Place, Robotic arm integration, and Gantry systems customized for your production lines.' },
             { category: 'automation', imageUrl: 'Images/auto-2.png', title: 'ROBOTIC ARM INTEGRATION', description: 'Advanced robotic arms designed for high-speed precision tasks and maximum efficiency.' },
             { category: 'automation', imageUrl: 'Images/auto-3.png', title: 'CUSTOM GANTRY SYSTEMS', description: 'Robust gantry solutions tailored for heavy payload manipulation and wide area coverage.' },
             { category: 'automation', imageUrl: 'Images/auto-4.png', title: 'SMART CONVEYORS', description: 'Intelligent conveyor belts optimized for automated quality checks and sorting.' },
             { category: 'automation', imageUrl: 'Images/auto-5.png', title: 'FULL LINE AUTOMATION', description: 'End-to-end factory automation setups ensuring seamless continuous production with minimal downtime.' }
+        ];
+    } else {
+        return [
+            { category: 'retrofitting', imageUrl: 'Images/retro_fiting.png', title: 'RETROFITTING', description: 'Upgrade your older machines with modern CNC controllers, new servo drives, and complete electrical panel rebuilds. We support all types of machines.' }
         ];
     }
 }
@@ -328,6 +333,7 @@ function useDefaultHeroSlides() {
     heroSlidesData.service = getDefaultSlides('service');
     heroSlidesData.products = getDefaultSlides('products');
     heroSlidesData.automation = getDefaultSlides('automation');
+    heroSlidesData.retrofitting = getDefaultSlides('retrofitting');
     updateHeroDisplay();
 }
 
@@ -344,7 +350,7 @@ async function fetchHeroSlides() {
             console.log("No hero slides in Firebase. Using defaults.");
             useDefaultHeroSlides();
         } else {
-            heroSlidesData = { service: [], products: [], automation: [] };
+            heroSlidesData = { service: [], products: [], automation: [], retrofitting: [] };
             snapshot.forEach(doc => {
                 const data = doc.data();
                 if (heroSlidesData[data.category]) {
@@ -355,6 +361,7 @@ async function fetchHeroSlides() {
             if (heroSlidesData.service.length === 0) heroSlidesData.service = getDefaultSlides('service');
             if (heroSlidesData.products.length === 0) heroSlidesData.products = getDefaultSlides('products');
             if (heroSlidesData.automation.length === 0) heroSlidesData.automation = getDefaultSlides('automation');
+            if (heroSlidesData.retrofitting.length === 0) heroSlidesData.retrofitting = getDefaultSlides('retrofitting');
             
             updateHeroDisplay();
         }
@@ -484,6 +491,11 @@ function updateHeroDisplay() {
     const slide = slides[currentHeroImageIndex];
     const elements = [imgEl, titleEl, descEl, ctaEl];
 
+    // Check if the content is exactly the same to avoid redundant animations for single-slide categories
+    if (!isInitialHeroLoad && imgEl.getAttribute('src') === slide.imageUrl && titleEl.textContent === slide.title) {
+        return;
+    }
+
     const setupSlideContent = () => {
         imgEl.src = slide.imageUrl;
         imgEl.alt = slide.title;
@@ -505,11 +517,18 @@ function updateHeroDisplay() {
                 if(typeof switchTab === 'function') switchTab('products');
                 document.getElementById('enquiry-tabs').scrollIntoView({ behavior: 'smooth' });
             };
-        } else {
+        } else if (currentHeroCategory === 'automation') {
             ctaEl.textContent = 'Automation Enquiry';
             ctaEl.onclick = (e) => {
                 e.preventDefault();
                 if(typeof switchTab === 'function') switchTab('automation');
+                document.getElementById('enquiry-tabs').scrollIntoView({ behavior: 'smooth' });
+            };
+        } else {
+            ctaEl.textContent = 'Retrofitting Enquiry';
+            ctaEl.onclick = (e) => {
+                e.preventDefault();
+                if(typeof switchTab === 'function') switchTab('retrofitting');
                 document.getElementById('enquiry-tabs').scrollIntoView({ behavior: 'smooth' });
             };
         }
