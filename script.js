@@ -377,6 +377,7 @@ window.toggleHeroDropdown = toggleHeroDropdown;
 
 function selectHeroCategory(category) {
     isHeroDropdownOpen = false;
+    isHeroAutoSwitchingCategories = false;
     
     const list = document.getElementById('hero-dropdown-list');
     const btn = document.querySelector('.category-dropdown-btn');
@@ -520,12 +521,15 @@ document.addEventListener('DOMContentLoaded', () => {
 // ============================================================
 function switchTab(tabName) {
     // Sync the Hero Section if it's one of the hero categories
-    if (typeof categoryNames !== 'undefined' && categoryNames[tabName] && currentHeroCategory !== tabName) {
+    if (typeof categoryNames !== 'undefined' && categoryNames[tabName]) {
         isHeroAutoSwitchingCategories = false;
-        currentHeroCategory = tabName;
-        currentHeroImageIndex = 0;
-        if (typeof updateHeroDropdownText === 'function') updateHeroDropdownText(categoryNames[tabName]);
-        if (typeof updateHeroDisplay === 'function') updateHeroDisplay();
+        
+        if (currentHeroCategory !== tabName) {
+            currentHeroCategory = tabName;
+            currentHeroImageIndex = 0;
+            if (typeof updateHeroDropdownText === 'function') updateHeroDropdownText(categoryNames[tabName]);
+            if (typeof updateHeroDisplay === 'function') updateHeroDisplay();
+        }
     }
 
     document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
