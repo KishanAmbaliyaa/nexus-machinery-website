@@ -292,6 +292,7 @@ let isHeroAutoSwitchingCategories = true;
 let currentHeroCategory = 'service';
 let currentHeroImageIndex = 0;
 let isInitialHeroLoad = true;
+let isHeroDropdownOpen = false;
 const categoryOrder = ['service', 'products', 'automation'];
 const categoryNames = {
     service: 'SERVICES',
@@ -365,6 +366,9 @@ async function fetchHeroSlides() {
 function toggleHeroDropdown() {
     const btn = document.querySelector('.category-dropdown-btn');
     const list = document.getElementById('hero-dropdown-list');
+    
+    isHeroDropdownOpen = btn ? !btn.classList.contains('open') : false;
+    
     if(btn) btn.classList.toggle('open');
     if(list) list.classList.toggle('open');
 }
@@ -372,18 +376,22 @@ function toggleHeroDropdown() {
 window.toggleHeroDropdown = toggleHeroDropdown;
 
 function selectHeroCategory(category) {
-    isHeroAutoSwitchingCategories = false;
-    currentHeroCategory = category;
-    currentHeroImageIndex = 0;
-    
-    updateHeroDropdownText(categoryNames[category]);
+    isHeroDropdownOpen = false;
     
     const list = document.getElementById('hero-dropdown-list');
     const btn = document.querySelector('.category-dropdown-btn');
     if(list) list.classList.remove('open');
     if(btn) btn.classList.remove('open');
     
-    updateHeroDisplay();
+    if (typeof switchTab === 'function') {
+        switchTab(category);
+    } else {
+        isHeroAutoSwitchingCategories = false;
+        currentHeroCategory = category;
+        currentHeroImageIndex = 0;
+        updateHeroDropdownText(categoryNames[category]);
+        updateHeroDisplay();
+    }
 }
 
 window.selectHeroCategory = selectHeroCategory;
@@ -418,6 +426,8 @@ function updateHeroDropdownText(text) {
 }
 
 function rotateHeroShowcase() {
+    if (isHeroDropdownOpen) return; // Pause auto-rotation when dropdown is open
+
     if (isHeroAutoSwitchingCategories) {
         // Auto switch category
         let currentCategoryIndex = categoryOrder.indexOf(currentHeroCategory);
@@ -509,6 +519,15 @@ document.addEventListener('DOMContentLoaded', () => {
 // 5. MAIN TAB SWITCHING
 // ============================================================
 function switchTab(tabName) {
+    // Sync the Hero Section if it's one of the hero categories
+    if (typeof categoryNames !== 'undefined' && categoryNames[tabName] && currentHeroCategory !== tabName) {
+        isHeroAutoSwitchingCategories = false;
+        currentHeroCategory = tabName;
+        currentHeroImageIndex = 0;
+        if (typeof updateHeroDropdownText === 'function') updateHeroDropdownText(categoryNames[tabName]);
+        if (typeof updateHeroDisplay === 'function') updateHeroDisplay();
+    }
+
     document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.classList.remove('active');
