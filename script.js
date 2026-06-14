@@ -293,6 +293,7 @@ let currentHeroCategory = 'service';
 let currentHeroImageIndex = 0;
 let isInitialHeroLoad = true;
 let isHeroDropdownOpen = false;
+let heroRotationInterval = null;
 const categoryOrder = ['service', 'products', 'automation'];
 const categoryNames = {
     service: 'SERVICES',
@@ -386,6 +387,7 @@ function resetToHome() {
     currentHeroImageIndex = 0; // Ensure we start at the very first image
     
     updateHeroDisplay();
+    startHeroTimer(); // Reset the 5s hold timer from scratch
 }
 
 window.resetToHome = resetToHome;
@@ -463,6 +465,11 @@ function rotateHeroShowcase() {
     updateHeroDisplay();
 }
 
+function startHeroTimer() {
+    if (heroRotationInterval) clearInterval(heroRotationInterval);
+    heroRotationInterval = setInterval(rotateHeroShowcase, 5000);
+}
+
 function updateHeroDisplay() {
     const imgEl    = document.getElementById('showcase-img');
     const titleEl  = document.getElementById('showcase-title');
@@ -527,7 +534,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Wait slightly for Firebase to initialize if it's imported dynamically
     setTimeout(() => {
         fetchHeroSlides();
-        setInterval(rotateHeroShowcase, 5000);
+        startHeroTimer();
     }, 500);
 });
 
@@ -545,6 +552,9 @@ function switchTab(tabName) {
             if (typeof updateHeroDropdownText === 'function') updateHeroDropdownText(categoryNames[tabName]);
             if (typeof updateHeroDisplay === 'function') updateHeroDisplay();
         }
+        
+        // Reset the hold timer so they get a full 5s to read the newly selected slide
+        if (typeof startHeroTimer === 'function') startHeroTimer();
     }
 
     document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
