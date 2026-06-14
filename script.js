@@ -581,6 +581,7 @@ function switchTab(tabName) {
         btn.classList.remove('active');
         btn.setAttribute('aria-selected', 'false');
     });
+    document.querySelectorAll('.mobile-tab-card').forEach(card => card.classList.remove('active'));
     document.querySelectorAll('.image-tab-card').forEach(card => {
         card.classList.remove('active');
         card.setAttribute('aria-selected', 'false');
