@@ -281,90 +281,211 @@ function toggleGlobalMenu() {
 }
 
 // ============================================================
-// 4. HERO SHOWCASE SLIDESHOW
+// 4. HERO SHOWCASE SLIDESHOW (DYNAMIC WITH FIREBASE)
 // ============================================================
-const showcaseSlides = [
-    {
-        title: 'MACHINE BREAKDOWN SERVICE',
-        desc: 'Expert diagnostic and repair services for all machine types including Turning Machines, VMC, HMC, VTL, and Double Column. Restoring precision and minimizing downtime.',
-        image: 'Images/CNC.png',
-        cta: '#enquiry-tabs',
-        ctaLabel: 'Send Service Enquiry',
-        targetTab: 'service',
-        targetSubTab: 'breakdown'
-    },
-    {
-        title: 'MACHINE PART SERVICE',
-        desc: 'High-quality replacement parts and professional repair services for spindles, turrets, live turrets, rotary cylinders, and hydraulic components.',
-        image: 'Images/part-1.png',
-        cta: '#enquiry-tabs',
-        ctaLabel: 'Send Part Enquiry',
-        targetTab: 'service',
-        targetSubTab: 'part'
-    },
-    {
-        title: 'NEW & USED PRODUCT',
-        desc: 'Premium CNC, VMC, HMC, and VTL machines — new and certified pre-owned. Browse our selection and enquire for pricing.',
-        image: 'Images/VMC.png',
-        cta: '#enquiry-tabs',
-        ctaLabel: 'View Machines',
-        targetTab: 'new-product'
-    },
-    {
-        title: 'AUTOMATION SOLUTION',
-        desc: 'Complete industrial automation systems — Pick & Place, Robotic arm integration, and Gantry systems customized for your production lines.',
-        image: 'Images/automation.png',
-        cta: '#enquiry-tabs',
-        ctaLabel: 'Automation Enquiry',
-        targetTab: 'automation'
+let heroSlidesData = {
+    service: [],
+    products: [],
+    automation: []
+};
+let isHeroAutoSwitchingCategories = true;
+let currentHeroCategory = 'service';
+let currentHeroImageIndex = 0;
+const categoryOrder = ['service', 'products', 'automation'];
+const categoryNames = {
+    service: 'SERVICES',
+    products: 'NEW AND USED PRODUCTS',
+    automation: 'AUTOMATION SOLUTIONS'
+};
+
+function getDefaultSlides(category) {
+    if (category === 'service') {
+        return [
+            { category: 'service', imageUrl: 'Images/service-3.png', title: 'MACHINE BREAKDOWN SERVICE', description: 'Expert diagnostic and repair services for all machine types including Turning Machines, VMC, HMC, VTL, and Double Column. Restoring precision and minimizing downtime.' },
+            { category: 'service', imageUrl: 'Images/service-1.png', title: 'SPINDLE SERVICE', description: 'Expert repair and maintenance of belt drive and integrated spindles for smooth performance and long-lasting reliability.' },
+            { category: 'service', imageUrl: 'Images/service-2.png', title: 'TURRET SERVICE', description: 'Professional turret and live turret repair and maintenance for smooth and reliable operation.' },
+            { category: 'service', imageUrl: 'Images/part-1.png', title: 'MACHINE PART SERVICE', description: 'High-quality replacement parts and professional repair services for rotary cylinders, hydraulic components, and angle heads.' }
+        ];
+    } else if (category === 'products') {
+        return [
+            { category: 'products', imageUrl: 'Images/CNC.png', title: 'NEW & USED PRODUCT', description: 'Premium CNC, VMC, HMC, and VTL machines — new and certified pre-owned. Browse our selection and enquire for pricing.' }
+        ];
+    } else {
+        return [
+            { category: 'automation', imageUrl: 'Images/auto-1.png', title: 'AUTOMATION SOLUTION', description: 'Complete industrial automation systems — Pick & Place, Robotic arm integration, and Gantry systems customized for your production lines.' },
+            { category: 'automation', imageUrl: 'Images/auto-2.png', title: 'ROBOTIC ARM INTEGRATION', description: 'Advanced robotic arms designed for high-speed precision tasks and maximum efficiency.' },
+            { category: 'automation', imageUrl: 'Images/auto-3.png', title: 'CUSTOM GANTRY SYSTEMS', description: 'Robust gantry solutions tailored for heavy payload manipulation and wide area coverage.' },
+            { category: 'automation', imageUrl: 'Images/auto-4.png', title: 'SMART CONVEYORS', description: 'Intelligent conveyor belts optimized for automated quality checks and sorting.' },
+            { category: 'automation', imageUrl: 'Images/auto-5.png', title: 'FULL LINE AUTOMATION', description: 'End-to-end factory automation setups ensuring seamless continuous production with minimal downtime.' }
+        ];
     }
-];
+}
 
-let currentSlideIndex = 0;
+function useDefaultHeroSlides() {
+    heroSlidesData.service = getDefaultSlides('service');
+    heroSlidesData.products = getDefaultSlides('products');
+    heroSlidesData.automation = getDefaultSlides('automation');
+    updateHeroDisplay();
+}
 
-function rotateShowcase() {
+async function fetchHeroSlides() {
+    try {
+        if (!window._firebase || !window._nexusDB) {
+            console.warn("Firebase not initialized. Using default hero slides.");
+            useDefaultHeroSlides();
+            return;
+        }
+
+        const snapshot = await window._firebase.getDocs(window._firebase.collection(window._nexusDB, 'hero_slides'));
+        if (snapshot.empty) {
+            console.log("No hero slides in Firebase. Using defaults.");
+            useDefaultHeroSlides();
+        } else {
+            heroSlidesData = { service: [], products: [], automation: [] };
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                if (heroSlidesData[data.category]) {
+                    heroSlidesData[data.category].push(data);
+                }
+            });
+            
+            if (heroSlidesData.service.length === 0) heroSlidesData.service = getDefaultSlides('service');
+            if (heroSlidesData.products.length === 0) heroSlidesData.products = getDefaultSlides('products');
+            if (heroSlidesData.automation.length === 0) heroSlidesData.automation = getDefaultSlides('automation');
+            
+            updateHeroDisplay();
+        }
+    } catch (error) {
+        console.error("Error fetching hero slides:", error);
+        useDefaultHeroSlides();
+    }
+}
+
+function toggleHeroDropdown() {
+    const btn = document.querySelector('.category-dropdown-btn');
+    const list = document.getElementById('hero-dropdown-list');
+    if(btn) btn.classList.toggle('open');
+    if(list) list.classList.toggle('open');
+}
+
+window.toggleHeroDropdown = toggleHeroDropdown;
+
+function selectHeroCategory(category) {
+    isHeroAutoSwitchingCategories = false;
+    currentHeroCategory = category;
+    currentHeroImageIndex = 0;
+    
+    updateHeroDropdownText(categoryNames[category]);
+    
+    const list = document.getElementById('hero-dropdown-list');
+    const btn = document.querySelector('.category-dropdown-btn');
+    if(list) list.classList.remove('open');
+    if(btn) btn.classList.remove('open');
+    
+    updateHeroDisplay();
+}
+
+window.selectHeroCategory = selectHeroCategory;
+
+function updateHeroDropdownText(text) {
+    const span = document.getElementById('hero-current-category');
+    if (!span || span.textContent === text) return;
+    
+    // Start erase animation on current text
+    span.classList.remove('typing');
+    span.classList.add('erasing');
+    
+    // Wait for erase to finish before typing new text
+    setTimeout(() => {
+        span.classList.remove('erasing');
+        span.textContent = text;
+        
+        span.style.width = 'auto';
+        const exactWidth = span.offsetWidth;
+        span.style.setProperty('--target-width', exactWidth + 'px');
+        span.style.setProperty('--steps', text.length);
+        
+        void span.offsetWidth; // Trigger reflow
+        span.classList.add('typing');
+    }, 450); // 400ms is the erase animation duration
+}
+
+function rotateHeroShowcase() {
+    if (isHeroAutoSwitchingCategories) {
+        // Auto switch category
+        let currentCategoryIndex = categoryOrder.indexOf(currentHeroCategory);
+        currentCategoryIndex = (currentCategoryIndex + 1) % categoryOrder.length;
+        currentHeroCategory = categoryOrder[currentCategoryIndex];
+        currentHeroImageIndex = 0;
+        
+        updateHeroDropdownText(categoryNames[currentHeroCategory]);
+    } else {
+        // Cycle through images in the locked category
+        const slides = heroSlidesData[currentHeroCategory];
+        if (slides && slides.length > 1) {
+            currentHeroImageIndex = (currentHeroImageIndex + 1) % slides.length;
+        }
+    }
+    
+    updateHeroDisplay();
+}
+
+function updateHeroDisplay() {
     const imgEl    = document.getElementById('showcase-img');
     const titleEl  = document.getElementById('showcase-title');
     const descEl   = document.getElementById('showcase-desc');
     const ctaEl    = document.getElementById('showcase-cta');
 
-    if (!imgEl || !titleEl || !descEl) return;
+    if (!imgEl || !titleEl || !descEl || !ctaEl) return;
+
+    const slides = heroSlidesData[currentHeroCategory];
+    if (!slides || slides.length === 0) return;
+    
+    const slide = slides[currentHeroImageIndex];
 
     const elements = [imgEl, titleEl, descEl, ctaEl];
     elements.forEach(el => el.classList.remove('active'));
 
     setTimeout(() => {
-        currentSlideIndex = (currentSlideIndex + 1) % showcaseSlides.length;
-        const slide = showcaseSlides[currentSlideIndex];
-
-        imgEl.src = slide.image;
+        imgEl.src = slide.imageUrl;
         imgEl.alt = slide.title;
-
-        // SECURITY: Use textContent (not innerHTML) for slide content.
-        // Slide data comes from our own static array so it's safe,
-        // but textContent is the correct habit to build.
         titleEl.textContent = slide.title;
-        descEl.textContent  = slide.desc;
-        ctaEl.textContent   = slide.ctaLabel || 'Enquire Now';
-        ctaEl.href          = slide.cta;
-
-        ctaEl.onclick = (e) => {
-            e.preventDefault();
-            if (slide.targetTab) {
-                switchTab(slide.targetTab);
-            }
-            if (slide.targetSubTab) {
-                switchSubTab(slide.targetSubTab);
-            }
-            document.getElementById('enquiry-tabs').scrollIntoView({ behavior: 'smooth' });
-        };
+        descEl.textContent  = slide.description;
+        
+        if (currentHeroCategory === 'service') {
+            ctaEl.textContent = 'Send Service Enquiry';
+            ctaEl.onclick = (e) => {
+                e.preventDefault();
+                if(typeof switchTab === 'function') switchTab('service');
+                if(typeof switchSubTab === 'function') switchSubTab('breakdown');
+                document.getElementById('enquiry-tabs').scrollIntoView({ behavior: 'smooth' });
+            };
+        } else if (currentHeroCategory === 'products') {
+            ctaEl.textContent = 'View Machines';
+            ctaEl.onclick = (e) => {
+                e.preventDefault();
+                if(typeof switchTab === 'function') switchTab('products');
+                document.getElementById('enquiry-tabs').scrollIntoView({ behavior: 'smooth' });
+            };
+        } else {
+            ctaEl.textContent = 'Automation Enquiry';
+            ctaEl.onclick = (e) => {
+                e.preventDefault();
+                if(typeof switchTab === 'function') switchTab('automation');
+                document.getElementById('enquiry-tabs').scrollIntoView({ behavior: 'smooth' });
+            };
+        }
 
         elements.forEach(el => el.classList.add('active'));
     }, 600);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    setInterval(rotateShowcase, 4000);
+    // Wait slightly for Firebase to initialize if it's imported dynamically
+    setTimeout(() => {
+        fetchHeroSlides();
+        setInterval(rotateHeroShowcase, 5000);
+    }, 500);
 });
 
 // ============================================================

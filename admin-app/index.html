@@ -6,9 +6,9 @@
     <title>Nexus Admin Panel</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/admin-app/styles.css">
+    <link rel="stylesheet" href="/admin/styles.css">
 </head>
 <body>
     <!-- Login Screen -->
@@ -73,6 +73,9 @@
                 </a>
                 <a href="#" class="nav-item" onclick="switchTab('customers')">
                     <i class="fa-solid fa-address-book"></i> Customers
+                </a>
+                <a href="#" class="nav-item" onclick="switchTab('hero-settings')">
+                    <i class="fa-solid fa-images"></i> Hero Settings
                 </a>
             </nav>
             <div class="sidebar-footer">
@@ -154,7 +157,7 @@
                             <option value="part_enquiries">Part Enquiry</option>
                             <option value="other_service_enquiries">Other Service</option>
                         </select>
-                        <input type="date" id="booking-date-filter" onchange="loadBookings()" style="padding: 0.5rem 0.8rem; font-size: 0.8rem; background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: 'Montserrat', sans-serif;">
+                        <input type="date" id="booking-date-filter" onchange="loadBookings()" style="padding: 0.5rem 0.8rem; font-size: 0.8rem; background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: 'Oswald', sans-serif;">
                     </div>
                 </div>
                 <div id="bookings-list" class="table-container">
@@ -193,7 +196,7 @@
                 <div class="tab-header">
                     <h2>Product Inquiries</h2>
                     <div class="filter-group" style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
-                        <input type="text" id="inquiry-search-filter" placeholder="Search product/customer..." oninput="loadInquiries()" style="padding: 0.5rem 0.8rem; font-size: 0.8rem; background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: 'Montserrat', sans-serif;">
+                        <input type="text" id="inquiry-search-filter" placeholder="Search product/customer..." oninput="loadInquiries()" style="padding: 0.5rem 0.8rem; font-size: 0.8rem; background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: 'Oswald', sans-serif;">
                         <select id="inquiry-status-filter" onchange="loadInquiries()">
                             <option value="">All Status</option>
                             <option value="new">New</option>
@@ -211,11 +214,31 @@
                 <div class="tab-header">
                     <h2>Customers</h2>
                     <div class="filter-group" style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
-                        <input type="text" id="customer-name-filter" placeholder="Search by name..." oninput="loadCustomers()" style="padding: 0.5rem 0.8rem; font-size: 0.8rem; background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: 'Montserrat', sans-serif;">
-                        <input type="text" id="customer-phone-filter" placeholder="Search by phone..." oninput="loadCustomers()" style="padding: 0.5rem 0.8rem; font-size: 0.8rem; background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: 'Montserrat', sans-serif;">
+                        <input type="text" id="customer-name-filter" placeholder="Search by name..." oninput="loadCustomers()" style="padding: 0.5rem 0.8rem; font-size: 0.8rem; background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: 'Oswald', sans-serif;">
+                        <input type="text" id="customer-phone-filter" placeholder="Search by phone..." oninput="loadCustomers()" style="padding: 0.5rem 0.8rem; font-size: 0.8rem; background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: 'Oswald', sans-serif;">
                     </div>
                 </div>
                 <div id="customers-list" class="table-container">
+                    <p class="loading">Loading...</p>
+                </div>
+            </section>
+
+            <!-- Hero Settings Tab -->
+            <section id="tab-hero-settings" class="tab-content">
+                <div class="tab-header">
+                    <h2>Hero Showcase Content</h2>
+                    <button class="btn btn-primary" onclick="openHeroModal()">
+                        <i class="fa-solid fa-plus"></i> Add Slide
+                    </button>
+                </div>
+                <div class="filter-group" style="margin-bottom: 1rem;">
+                    <select id="hero-category-filter" onchange="loadHeroSlides()" style="padding: 0.5rem; border-radius: 6px; background: var(--card-bg); border: 1px solid var(--border); color: var(--text);">
+                        <option value="service">Service Category</option>
+                        <option value="products">Products Category</option>
+                        <option value="automation">Automation Category</option>
+                    </select>
+                </div>
+                <div id="hero-slides-list" class="table-container">
                     <p class="loading">Loading...</p>
                 </div>
             </section>
@@ -282,6 +305,40 @@
                     <input type="text" id="product-images" placeholder="https://example.com/image1.jpg, https://...">
                 </div>
                 <button type="submit" class="btn btn-primary btn-full">Save Product</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Hero Slide Modal -->
+    <div id="hero-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="hero-modal-title">Add Hero Slide</h2>
+                <button class="close-btn" onclick="closeHeroModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="hero-form" onsubmit="handleHeroSubmit(event)">
+                <input type="hidden" id="hero-edit-id">
+                <div class="form-group">
+                    <label>Category *</label>
+                    <select id="hero-category" required style="padding: 0.5rem; border-radius: 6px; background: var(--input-bg); border: 1px solid var(--border); color: var(--text); width: 100%;">
+                        <option value="service">Service</option>
+                        <option value="products">Products</option>
+                        <option value="automation">Automation</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Image URL * (e.g. Images/auto-1.png)</label>
+                    <input type="text" id="hero-image-url" placeholder="Images/service-1.png" required>
+                </div>
+                <div class="form-group">
+                    <label>Title *</label>
+                    <input type="text" id="hero-title" required>
+                </div>
+                <div class="form-group">
+                    <label>Description *</label>
+                    <textarea id="hero-description" rows="3" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">Save Slide</button>
             </form>
         </div>
     </div>
@@ -384,7 +441,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore-compat.js"></script>
-    <script src="/admin-app/config.js"></script>
-    <script src="/admin-app/script.js"></script>
+    <script src="/admin/config.js"></script>
+    <script src="/admin/script.js"></script>
 </body>
 </html>

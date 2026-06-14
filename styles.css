@@ -12,7 +12,7 @@
     --card-bg-2: #EAEAEA;
     --border-color: #E0E0E0;
     --border-light: #CCCCCC;
-    --font-family: 'Montserrat', sans-serif;
+    --font-family: 'Oswald', sans-serif;
     --tab-radius: 10px;
     --transition: all 0.3s ease;
 }
@@ -26,14 +26,15 @@ html, body {
     color: var(--text-color);
     font-family: var(--font-family);
     line-height: 1.6;
+    letter-spacing: 0.5px; /* Added spacing to open up Oswald's condensed characters */
     -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
     max-width: 100vw;
 }
 
 .container {
-    width: 90%;
-    max-width: 1200px;
+    width: 95%;
+    max-width: 1400px;
     margin: 0 auto;
 }
 
@@ -101,9 +102,26 @@ h1, h2, h3 { text-transform: uppercase; font-weight: 900; letter-spacing: 1px; }
     text-transform: uppercase;
     font-size: 0.95rem;
     transition: var(--transition);
+    position: relative;
 }
+
+.desktop-nav a::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: -4px;
+    left: 0;
+    background-color: var(--accent-color);
+    transition: width 0.3s ease;
+}
+
+.desktop-nav a:hover::after {
+    width: 100%;
+}
+
 .desktop-nav a:hover {
-    color: var(--accent-color);
+    color: var(--text-color); /* Kept black per request */
 }
 
 @media (min-width: 992px) {
@@ -250,6 +268,7 @@ h1, h2, h3 { text-transform: uppercase; font-weight: 900; letter-spacing: 1px; }
 .showcase-text-container {
     text-align: center;
     padding: 0 1rem;
+    min-height: 250px;
 }
 
 #showcase-title {
@@ -304,6 +323,106 @@ h1, h2, h3 { text-transform: uppercase; font-weight: 900; letter-spacing: 1px; }
 #showcase-title.showcase-element { transition-delay: 0.1s; }
 #showcase-desc.showcase-element { transition-delay: 0.2s; }
 #showcase-cta.showcase-element { transition-delay: 0.3s; }
+
+/* ============================================================
+   HERO CATEGORY DROPDOWN
+============================================================ */
+.hero-category-selector {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+}
+
+.category-dropdown-btn {
+    background-color: white;
+    color: var(--accent-color);
+    border: 2px solid var(--accent-color);
+    padding: 0.8rem 2rem;
+    font-size: 1.2rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    cursor: pointer;
+    border-radius: 4px;
+    box-shadow: 0 4px 15px rgba(196,18,33,0.3);
+    min-width: 250px;
+    justify-content: center;
+}
+
+.category-dropdown-btn i {
+    transition: transform 0.3s ease;
+}
+.category-dropdown-btn.open i {
+    transform: rotate(180deg);
+}
+
+.category-dropdown-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background-color: white;
+    border: 2px solid var(--accent-color);
+    border-top: none;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: none;
+    flex-direction: column;
+    border-radius: 0 0 4px 4px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.category-dropdown-list.open {
+    display: flex;
+}
+
+.category-dropdown-list li {
+    padding: 0.8rem 1rem;
+    color: var(--text-color);
+    font-weight: 700;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    border-bottom: 1px solid #eee;
+    font-size: 0.9rem;
+}
+.category-dropdown-list li:last-child { border-bottom: none; }
+.category-dropdown-list li:hover { background-color: #f5f5f5; color: var(--accent-color); }
+
+.typewriter-text {
+    display: inline-block;
+    overflow: hidden;
+    white-space: nowrap;
+    border-right: 2px solid var(--accent-color);
+    animation: blink-caret 0.75s step-end infinite;
+}
+
+.typewriter-text.typing {
+    animation: typing 1s steps(var(--steps, 20), end), blink-caret 0.75s step-end infinite;
+}
+
+.typewriter-text.erasing {
+    animation: erasing 0.4s steps(var(--steps, 20), end) forwards, blink-caret 0.75s step-end infinite;
+}
+
+@keyframes typing {
+    from { width: 0 }
+    to { width: var(--target-width, 100%) }
+}
+@keyframes erasing {
+    from { width: var(--target-width, 100%) }
+    to { width: 0 }
+}
+@keyframes blink-caret {
+    from, to { border-color: transparent }
+    50% { border-color: var(--accent-color) }
+}
 
 /* Scroll indicator */
 .scroll-indicator {
@@ -495,6 +614,26 @@ h1, h2, h3 { text-transform: uppercase; font-weight: 900; letter-spacing: 1px; }
 .mobile-tabs { display: flex; }
 .desktop-tabs { display: none; }
 
+@media (max-width: 991px) {
+    .mobile-tabs {
+        flex-direction: column;
+        gap: 0.8rem;
+    }
+    .tab-btn {
+        flex-direction: row;
+        justify-content: center;
+        max-width: 100%;
+        width: 100%;
+        border-radius: 8px;
+        padding: 1.2rem;
+        font-size: 1.1rem;
+    }
+    .tab-btn i {
+        margin-right: 15px;
+        font-size: 1.4rem;
+    }
+}
+
 @media (min-width: 992px) {
     .mobile-tabs { display: none !important; }
     .desktop-tabs { display: grid; }
@@ -508,6 +647,7 @@ h1, h2, h3 { text-transform: uppercase; font-weight: 900; letter-spacing: 1px; }
 }
 
 .image-tab-card {
+    position: relative;
     background-color: var(--card-bg);
     border: 2px solid var(--border-color);
     border-radius: 8px;
@@ -516,11 +656,7 @@ h1, h2, h3 { text-transform: uppercase; font-weight: 900; letter-spacing: 1px; }
     transition: var(--transition);
     display: flex;
     flex-direction: column;
-}
-
-.image-tab-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+    height: 280px; /* Fixed height to allow animation */
 }
 
 .image-tab-card.active {
@@ -529,37 +665,81 @@ h1, h2, h3 { text-transform: uppercase; font-weight: 900; letter-spacing: 1px; }
 }
 
 .image-tab-card .img-container {
-    height: 180px;
+    height: 100%;
     background-color: #fff;
     padding: 1rem;
+    padding-bottom: 60px; /* Space for the default title */
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: all 0.4s ease;
 }
 
 .image-tab-card img {
-    max-width: 100%;
-    max-height: 100%;
+    max-width: 90%;
+    max-height: 90%;
     object-fit: contain;
-    transition: transform 0.3s;
+    transition: transform 0.4s ease;
+}
+
+.image-tab-card .card-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: #222;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding: 1rem 0.5rem;
+    transition: all 0.4s ease;
+    height: 70px; /* Space for title (even if 2 lines) */
+    overflow: hidden;
+}
+
+.image-tab-card .overlay-title {
+    font-weight: 800;
+    font-size: 1rem;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+    transition: color 0.4s ease;
+}
+
+.image-tab-card .overlay-desc {
+    font-size: 0.85rem;
+    line-height: 1.5;
+    opacity: 0;
+    text-align: center;
+    transform: translateY(20px);
+    transition: all 0.4s ease;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+/* Hover Animations */
+.image-tab-card:hover .img-container {
+    height: 100%;
+    transform: translateY(-5px);
 }
 
 .image-tab-card:hover img {
     transform: scale(1.05);
 }
 
-.image-tab-card .tab-label {
-    background-color: #222;
-    color: #fff;
-    text-align: center;
-    padding: 1rem;
-    font-weight: 800;
-    font-size: 1.1rem;
-    letter-spacing: 1px;
-    transition: var(--transition);
+.image-tab-card:hover .card-overlay {
+    height: 60%;
+    background-color: var(--accent-color);
 }
 
-.image-tab-card.active .tab-label {
+.image-tab-card:hover .overlay-desc {
+    opacity: 1;
+    transform: translateY(0);
+    transition-delay: 0.1s;
+}
+
+.image-tab-card.active .card-overlay {
     background-color: var(--accent-color);
 }
 
@@ -1813,7 +1993,7 @@ h1, h2, h3 { text-transform: uppercase; font-weight: 900; letter-spacing: 1px; }
     border-radius: 6px;
     color: var(--text-color);
     padding: 0.7rem 1.2rem;
-    font-family: 'Montserrat', sans-serif;
+    font-family: 'Oswald', sans-serif;
     font-weight: 800;
     font-size: 0.9rem;
     cursor: pointer;
@@ -1886,7 +2066,7 @@ h1, h2, h3 { text-transform: uppercase; font-weight: 900; letter-spacing: 1px; }
     border-bottom: 1px solid rgba(255,255,255,0.05);
     transition: background 0.2s, color 0.2s;
     text-align: left;
-    font-family: 'Montserrat', sans-serif;
+    font-family: 'Oswald', sans-serif;
 }
 .suggestion-item:last-child {
     border-bottom: none;
@@ -1932,7 +2112,7 @@ h1, h2, h3 { text-transform: uppercase; font-weight: 900; letter-spacing: 1px; }
     border: 1px solid var(--border-color);
     border-radius: 6px;
     color: var(--text-color);
-    font-family: 'Montserrat', sans-serif;
+    font-family: 'Oswald', sans-serif;
     font-size: 0.9rem;
 }
 .map-search-group button {
@@ -2077,7 +2257,7 @@ h1, h2, h3 { text-transform: uppercase; font-weight: 900; letter-spacing: 1px; }
     max-width: 90%;
     pointer-events: none;
     transition: opacity 0.3s;
-    font-family: 'Montserrat', sans-serif;
+    font-family: 'Oswald', sans-serif;
 }
 .map-toast.hidden {
     display: none;
@@ -2111,7 +2291,7 @@ h1, h2, h3 { text-transform: uppercase; font-weight: 900; letter-spacing: 1px; }
     align-items: center;
     gap: 6px;
     font-weight: 500;
-    font-family: 'Montserrat', sans-serif;
+    font-family: 'Oswald', sans-serif;
 }
 .map-instruction-text i {
     color: var(--accent-color);

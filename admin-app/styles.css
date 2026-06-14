@@ -20,7 +20,7 @@
 }
 
 body {
-    font-family: 'Montserrat', sans-serif;
+    font-family: 'Oswald', sans-serif;
     background: var(--darker);
     color: var(--text);
     min-height: 100vh;
@@ -282,7 +282,7 @@ tr:hover {
     padding: 0.6rem 1.2rem;
     border: none;
     border-radius: 6px;
-    font-family: 'Montserrat', sans-serif;
+    font-family: 'Oswald', sans-serif;
     font-weight: 600;
     font-size: 0.85rem;
     cursor: pointer;
@@ -353,7 +353,7 @@ tr:hover {
     border: 1px solid var(--border);
     border-radius: 6px;
     color: var(--text);
-    font-family: 'Montserrat', sans-serif;
+    font-family: 'Oswald', sans-serif;
     font-size: 0.85rem;
 }
 
@@ -376,7 +376,7 @@ tr:hover {
     border: 1px solid var(--border);
     border-radius: 6px;
     color: var(--text);
-    font-family: 'Montserrat', sans-serif;
+    font-family: 'Oswald', sans-serif;
     font-size: 0.8rem;
 }
 

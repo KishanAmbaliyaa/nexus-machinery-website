@@ -254,6 +254,7 @@ function switchTab(tabName) {
         employees: 'Employees',
         inquiries: 'Product Inquiries',
         customers: 'Customers',
+        'hero-settings': 'Hero Settings'
     };
     document.getElementById('page-title').textContent = titles[tabName] || 'Dashboard';
 
@@ -263,6 +264,7 @@ function switchTab(tabName) {
     if (tabName === 'employees') loadEmployees();
     if (tabName === 'inquiries') loadInquiries();
     if (tabName === 'customers') loadCustomers();
+    if (tabName === 'hero-settings') loadHeroSlides();
 
     // Close mobile sidebar
     document.querySelector('.sidebar').classList.remove('open');
@@ -1480,4 +1482,128 @@ async function generateLoginCode(employeeId, name, role) {
 
 function closeCodeModal() {
     document.getElementById('code-modal').classList.remove('active');
+}
+
+// ============================================================
+// HERO SLIDES
+// ============================================================
+async function loadHeroSlides() {
+    const container = document.getElementById('hero-slides-list');
+    container.innerHTML = '<p class="loading">Loading...</p>';
+
+    const category = document.getElementById('hero-category-filter').value;
+
+    try {
+        const snapshot = await db.collection('hero_slides').where('category', '==', category).get();
+        const slides = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+        if (slides.length === 0) {
+            container.innerHTML = '<p class="no-data">No slides found for this category. The main website will use default slides if no custom slides exist.</p>';
+            return;
+        }
+
+        container.innerHTML = `
+            <table>
+                <thead>
+                    <tr>
+                        <th>Image</th>
+                        <th>Title</th>
+                        <th>Description</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${slides.map(s => `
+                        <tr>
+                            <td><img src="/${s.imageUrl}" alt="${s.title}" style="height: 50px; border-radius: 4px;"></td>
+                            <td>${s.title}</td>
+                            <td>${s.description}</td>
+                            <td class="action-btns">
+                                <button class="btn btn-small btn-outline" onclick="editHeroSlide('${s.id}')">Edit</button>
+                                <button class="btn btn-small btn-danger" onclick="deleteHeroSlide('${s.id}')">Delete</button>
+                            </td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
+    } catch (error) {
+        console.error('Error loading hero slides:', error);
+        container.innerHTML = '<p class="no-data">Failed to load hero slides: ' + error.message + '</p>';
+    }
+}
+
+function openHeroModal(slide) {
+    document.getElementById('hero-modal-title').textContent = slide ? 'Edit Hero Slide' : 'Add Hero Slide';
+    document.getElementById('hero-form').reset();
+    document.getElementById('hero-edit-id').value = '';
+
+    if (slide) {
+        document.getElementById('hero-edit-id').value = slide.id;
+        document.getElementById('hero-category').value = slide.category || '';
+        document.getElementById('hero-image-url').value = slide.imageUrl || '';
+        document.getElementById('hero-title').value = slide.title || '';
+        document.getElementById('hero-description').value = slide.description || '';
+    } else {
+        document.getElementById('hero-category').value = document.getElementById('hero-category-filter').value;
+    }
+
+    document.getElementById('hero-modal').classList.add('active');
+}
+
+function closeHeroModal() {
+    document.getElementById('hero-modal').classList.remove('active');
+}
+
+window.editHeroSlide = async function(id) {
+    try {
+        const doc = await db.collection('hero_slides').doc(id).get();
+        if (doc.exists) {
+            openHeroModal({ id: doc.id, ...doc.data() });
+        }
+    } catch (error) {
+        console.error('Error fetching slide:', error);
+    }
+};
+
+window.deleteHeroSlide = async function(id) {
+    if (confirm('Are you sure you want to delete this slide?')) {
+        try {
+            await db.collection('hero_slides').doc(id).delete();
+            loadHeroSlides();
+        } catch (error) {
+            console.error('Error deleting slide:', error);
+            alert('Failed to delete slide');
+        }
+    }
+};
+
+async function handleHeroSubmit(event) {
+    event.preventDefault();
+
+    const editId = document.getElementById('hero-edit-id').value;
+    const data = {
+        category: sanitizeText(document.getElementById('hero-category').value, 50),
+        imageUrl: sanitizeText(document.getElementById('hero-image-url').value, 500),
+        title: sanitizeText(document.getElementById('hero-title').value, 100),
+        description: sanitizeText(document.getElementById('hero-description').value, 500),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    try {
+        if (editId) {
+            await db.collection('hero_slides').doc(editId).update(data);
+        } else {
+            data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+            await db.collection('hero_slides').add(data);
+        }
+        closeHeroModal();
+        
+        // Switch the filter to the category that was just saved/edited
+        document.getElementById('hero-category-filter').value = data.category;
+        loadHeroSlides();
+    } catch (error) {
+        console.error('Error saving slide:', error);
+        alert('Failed to save slide: ' + error.message);
+    }
 }

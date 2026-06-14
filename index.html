@@ -8,7 +8,7 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&display=swap" rel="stylesheet">
     <!-- Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Leaflet Map Assets -->
@@ -67,9 +67,22 @@
     ============================================================ -->
     <section id="product-showcase">
         <div class="showcase-bg-diagonal"></div>
-        <div class="showcase-content container">
-            <div class="showcase-image-container">
-                <img id="showcase-img" src="Images/CNC.png" alt="Featured Machine" class="showcase-element active">
+        <div class="showcase-content container" style="position: relative; padding-top: 4rem;">
+            <div class="hero-category-selector">
+                <div class="category-dropdown-btn" onclick="toggleHeroDropdown()">
+                    <span id="hero-current-category" class="typewriter-text">SERVICE</span>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <ul class="category-dropdown-list" id="hero-dropdown-list">
+                    <li onclick="selectHeroCategory('service')">SERVICES</li>
+                    <li onclick="selectHeroCategory('products')">NEW AND USED PRODUCTS</li>
+                    <li onclick="selectHeroCategory('automation')">AUTOMATION SOLUTIONS</li>
+                </ul>
+            </div>
+            <div class="showcase-image-wrapper" style="position: relative; display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 600px; flex: 1;">
+                <div class="showcase-image-container">
+                    <img id="showcase-img" src="Images/CNC.png" alt="Featured Machine" class="showcase-element active">
+                </div>
             </div>
             <div class="showcase-text-container">
                 <h1 id="showcase-title" class="showcase-element active">MACHINE BREAKDOWN SERVICE</h1>
@@ -141,19 +154,31 @@
             <div class="image-tabs desktop-tabs" role="tablist">
                 <div class="image-tab-card active" id="img-tab-service" onclick="switchTab('service')" role="tab">
                     <div class="img-container"><img src="Images/CNC.png" alt="Service"></div>
-                    <div class="tab-label">SERVICE</div>
+                    <div class="card-overlay">
+                        <div class="overlay-title">SERVICE</div>
+                        <div class="overlay-desc">Expert diagnostic, repair, and maintenance services for all machine types. Minimizing downtime and restoring precision.</div>
+                    </div>
                 </div>
                 <div class="image-tab-card" id="img-tab-products" onclick="switchTab('products')" role="tab">
                     <div class="img-container"><img src="Images/VMC.png" alt="New & Used Products"></div>
-                    <div class="tab-label">PRODUCTS</div>
+                    <div class="card-overlay">
+                        <div class="overlay-title">PRODUCTS</div>
+                        <div class="overlay-desc">Premium CNC, VMC, HMC, and VTL machines — new and certified pre-owned. Browse our selection and enquire for pricing.</div>
+                    </div>
                 </div>
                 <div class="image-tab-card" id="img-tab-automation" onclick="switchTab('automation')" role="tab">
-                    <div class="img-container"><img src="Images/automation.png" alt="Automation"></div>
-                    <div class="tab-label">AUTOMATION</div>
+                    <div class="img-container"><img src="Images/auto-5.png" alt="Automation"></div>
+                    <div class="card-overlay">
+                        <div class="overlay-title">AUTOMATION</div>
+                        <div class="overlay-desc">Complete industrial automation systems — Pick & Place, Robotic arm integration, and Gantry systems customized for your lines.</div>
+                    </div>
                 </div>
                 <div class="image-tab-card" id="img-tab-other" onclick="switchTab('other')" role="tab">
-                    <div class="img-container"><img src="Images/part-1.png" alt="Other"></div>
-                    <div class="tab-label">OTHER</div>
+                    <div class="img-container"><img src="Images/part-1.png" alt="Speak With Our Experts"></div>
+                    <div class="card-overlay">
+                        <div class="overlay-title">SPEAK WITH OUR EXPERTS</div>
+                        <div class="overlay-desc">Need a custom solution or have questions? Get in touch with our expert team for immediate assistance and tailored advice.</div>
+                    </div>
                 </div>
             </div>
 
@@ -873,7 +898,7 @@
     <!-- Firebase SDK Integration -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js';
-        import { getFirestore, collection, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';
+        import { getFirestore, collection, addDoc, serverTimestamp, getDocs } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';
         import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-storage.js';
 
         const firebaseConfig = {
@@ -892,7 +917,7 @@
         // Make Firebase APIs globally accessible for script.js
         window._nexusDB = db;
         window._nexusStorage = storage;
-        window._firebase = { collection, addDoc, serverTimestamp, ref, uploadBytes, getDownloadURL };
+        window._firebase = { collection, addDoc, serverTimestamp, getDocs, ref, uploadBytes, getDownloadURL };
     </script>
 </body>
 </html>
