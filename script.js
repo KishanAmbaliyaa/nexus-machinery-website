@@ -391,6 +391,12 @@ function updateHeroDropdownText(text) {
     const span = document.getElementById('hero-current-category');
     if (!span || span.textContent === text) return;
     
+    // Calculate width of CURRENT text for erase animation
+    span.style.width = 'auto';
+    const currentWidth = span.offsetWidth;
+    span.style.setProperty('--target-width', currentWidth + 'px');
+    span.style.setProperty('--steps', span.textContent.length);
+    
     // Start erase animation on current text
     span.classList.remove('typing');
     span.classList.add('erasing');
@@ -401,8 +407,8 @@ function updateHeroDropdownText(text) {
         span.textContent = text;
         
         span.style.width = 'auto';
-        const exactWidth = span.offsetWidth;
-        span.style.setProperty('--target-width', exactWidth + 'px');
+        const newWidth = span.offsetWidth;
+        span.style.setProperty('--target-width', newWidth + 'px');
         span.style.setProperty('--steps', text.length);
         
         void span.offsetWidth; // Trigger reflow
