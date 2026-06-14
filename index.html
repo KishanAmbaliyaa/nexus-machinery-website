@@ -35,6 +35,7 @@
                 <li><a href="#enquiry-tabs" onclick="switchTab('service')">Service</a></li>
                 <li><a href="#enquiry-tabs" onclick="switchTab('products')">New & Used Product</a></li>
                 <li><a href="#enquiry-tabs" onclick="switchTab('automation')">Automation</a></li>
+                <li><a href="#enquiry-tabs" onclick="switchTab('retrofitting')">Retrofitting</a></li>
                 <li><a href="#enquiry-tabs" onclick="switchTab('other')">Other</a></li>
             </ul>
 
@@ -58,6 +59,7 @@
             <li><a href="#enquiry-tabs" onclick="toggleGlobalMenu(); switchTab('products'); switchSubTab('new-machine');">New Machines</a></li>
             <li><a href="#enquiry-tabs" onclick="toggleGlobalMenu(); switchTab('products'); switchSubTab('used-machine');">Used Machines</a></li>
             <li><a href="#enquiry-tabs" onclick="toggleGlobalMenu(); switchTab('automation')">Automation</a></li>
+            <li><a href="#enquiry-tabs" onclick="toggleGlobalMenu(); switchTab('retrofitting')">Retrofitting</a></li>
             <li><a href="#enquiry-tabs" onclick="toggleGlobalMenu(); switchTab('other')">Other</a></li>
         </ul>
     </div>
@@ -144,6 +146,10 @@
                     <i class="fa-solid fa-robot"></i>
                     <span>Automation</span>
                 </button>
+                <button class="tab-btn" id="tab-btn-retrofitting" onclick="switchTab('retrofitting')" role="tab" aria-selected="false">
+                    <i class="fa-solid fa-microchip"></i>
+                    <span>Retrofitting</span>
+                </button>
                 <button class="tab-btn" id="tab-btn-other" onclick="switchTab('other')" role="tab" aria-selected="false">
                     <i class="fa-solid fa-ellipsis"></i>
                     <span>Other</span>
@@ -171,6 +177,13 @@
                     <div class="card-overlay">
                         <div class="overlay-title">AUTOMATION</div>
                         <div class="overlay-desc">Complete industrial automation systems — Pick & Place, Robotic arm integration, and Gantry systems customized for your lines.</div>
+                    </div>
+                </div>
+                <div class="image-tab-card" id="img-tab-retrofitting" onclick="switchTab('retrofitting')" role="tab">
+                    <div class="img-container"><img src="Images/retro_fiting.png" alt="Retrofitting"></div>
+                    <div class="card-overlay">
+                        <div class="overlay-title">RETROFITTING</div>
+                        <div class="overlay-desc">Upgrade your older machines with modern CNC controllers, new servo drives, and complete electrical panel rebuilds.</div>
                     </div>
                 </div>
                 <div class="image-tab-card" id="img-tab-other" onclick="switchTab('other')" role="tab">
@@ -688,7 +701,54 @@
                 </div>
             </div><!-- end tab-automation -->
 
-            <!-- ====== TAB 5: OTHER ====== -->
+            <!-- ====== TAB: RETROFITTING ====== -->
+            <div class="tab-content" id="tab-retrofitting">
+                <div class="enquiry-step active">
+                    <h3 class="step-title">Retrofitting Enquiry</h3>
+                    <p class="step-subtitle">Upgrade your older machines with modern CNC controllers, new servo drives, and complete electrical panel rebuilds. Tell us about your machine.</p>
+                    <form class="enquiry-form" id="form-retrofitting" onsubmit="submitForm(event, 'retrofitting')">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="re-machine">Machine Make & Model</label>
+                                <input type="text" id="re-machine" placeholder="e.g. BFW Surya">
+                            </div>
+                            <div class="form-group">
+                                <label for="re-controller">Current Controller</label>
+                                <input type="text" id="re-controller" placeholder="e.g. Fanuc 0i Mate">
+                            </div>
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="re-requirements">Requirements / Problems Faced <span class="req">*</span></label>
+                            <textarea id="re-requirements" rows="3" placeholder="Describe what needs to be upgraded or repaired" required></textarea>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="re-name">Full Name <span class="req">*</span></label>
+                                <input type="text" id="re-name" placeholder="Your name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="re-company">Company Name <span class="req">*</span></label>
+                                <input type="text" id="re-company" placeholder="Your company" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="re-phone">Contact Number <span class="req">*</span></label>
+                                <input type="tel" id="re-phone" placeholder="Your phone number" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="re-email">Email <span class="optional">(optional)</span></label>
+                                <input type="email" id="re-email" placeholder="Your email">
+                            </div>
+                        </div>
+                        <button type="submit" class="submit-btn" id="re-submit-btn">
+                            <i class="fa-solid fa-paper-plane"></i> Send Enquiry
+                        </button>
+                    </form>
+                </div>
+            </div><!-- end tab-retrofitting -->
+
+            <!-- ====== TAB: OTHER ====== -->
             <div class="tab-content" id="tab-other">
                 <div class="enquiry-step active">
                     <h3 class="step-title">General Enquiry</h3>

@@ -969,6 +969,7 @@ function collectFormData(formType) {
         'part':          { name: 'pt-name', phone: 'pt-phone', email: 'pt-email', location: 'pt-location' },
         'service-other': { name: 'so-name', phone: 'so-phone', email: 'so-email', location: 'so-location' },
         'automation':    { name: 'au-name', company: 'au-company', phone: 'au-phone', email: 'au-email' },
+        'retrofitting':  { machine: 're-machine', controller: 're-controller', requirements: 're-requirements', name: 're-name', company: 're-company', phone: 're-phone', email: 're-email' },
         'other':         { name: 'ot-name', phone: 'ot-phone', email: 'ot-email', message: 'ot-message' }
     };
 
@@ -1125,6 +1126,7 @@ async function simulateSubmit(data) {
         'part':          'part_enquiries',
         'service-other': 'other_service_enquiries',
         'automation':    'automation_enquiries',
+        'retrofitting':  'retrofitting_enquiries',
         'other':         'general_enquiries',
         'new-product':   'new_product_enquiries',
         'used-product':  'used_product_enquiries'
