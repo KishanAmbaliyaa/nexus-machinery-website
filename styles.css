@@ -2395,3 +2395,7 @@ h1, h2, h3 { text-transform: uppercase; font-weight: 900; letter-spacing: 1px; }
 .preview-image-container .remove-img-btn:hover {
     background: #E31828;
 }
+
+.sell-machine-btn {
+    color: #ffffff !important;
+}

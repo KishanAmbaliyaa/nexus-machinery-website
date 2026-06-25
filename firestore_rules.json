@@ -1,0 +1,82 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database
+    }/documents {
+        // ENQUIRY COLLECTIONS: Public can only CREATE (submit enquiry).
+        // Authenticated admin users can read, update, and delete.
+    match /breakdown_enquiries/{docId
+        } {
+      allow create: if true;
+      allow read, write: if request.auth != null;
+        }
+    match /part_enquiries/{docId
+        } {
+      allow create: if true;
+      allow read, write: if request.auth != null;
+        }
+    match /other_service_enquiries/{docId
+        } {
+      allow create: if true;
+      allow read, write: if request.auth != null;
+        }
+    match /automation_enquiries/{docId
+        } {
+      allow create: if true;
+      allow read, write: if request.auth != null;
+        }
+    match /general_enquiries/{docId
+        } {
+      allow create: if true;
+      allow read, write: if request.auth != null;
+        }
+    match /new_product_enquiries/{docId
+        } {
+      allow create: if true;
+      allow read, write: if request.auth != null;
+        }
+    match /used_product_enquiries/{docId
+        } {
+      allow create: if true;
+      allow read, write: if request.auth != null;
+        }
+    match /listing_requests/{docId
+        } {
+      allow create: if true;
+      allow read, write: if request.auth != null;
+        }
+        // PRODUCTS: Anyone can read listings (public website), only authenticated admins can write.
+    match /products/{docId
+        } {
+      allow read: if true;
+      allow write: if request.auth != null;
+        }
+        // OTP VERIFICATION: Authenticated users can read/write their own OTP document.
+    match /admin_otps/{userId
+        } {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+        }
+        // TRUSTED IPS: Authenticated users can read/write their own trusted IP documents.
+    match /trusted_ips/{docId
+        } {
+      allow read, write: if request.auth != null;
+        }
+        // OTHER COLLECTIONS (Employees, Customers, Login Codes): Authenticated admin access only.
+    match /employees/{docId
+        } {
+      allow read, write: if request.auth != null;
+        }
+    match /login_codes/{docId
+        } {
+      allow read, write: if request.auth != null;
+        }
+    match /customers/{docId
+        } {
+      allow read, write: if request.auth != null;
+        }
+        // Default fallback
+    match /{document=**
+        } {
+      allow read, write: if request.auth != null;
+        }
+    }
+}

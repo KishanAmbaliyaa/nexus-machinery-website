@@ -542,7 +542,7 @@ async function viewBooking(id, collectionName) {
     try {
         const doc = await db.collection(collectionName).doc(id).get();
         if (!doc.exists) {
-            alert('Booking not found');
+            showCustomAlert('Not Found', 'Booking not found', true);
             return;
         }
         const data = doc.data();
@@ -667,7 +667,7 @@ async function viewBooking(id, collectionName) {
         document.getElementById('booking-detail-modal').classList.add('active');
     } catch (error) {
         console.error('Error viewing booking:', error);
-        alert('Failed to load booking details: ' + error.message);
+        showCustomAlert('Error', 'Failed to load booking details: ' + error.message, true);
     }
 }
 
@@ -677,10 +677,12 @@ function closeBookingDetailModal() {
 
 async function updateBookingStatus(id, collectionName, status) {
     try {
+        showLoadingScreen('Updating booking status...');
         await db.collection(collectionName).doc(id).update({
             status: status,
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         });
+        showLoadingSuccess('Booking status updated successfully!');
         
         // Reload whichever tab or view is active
         const activeTab = document.querySelector('.nav-item.active').textContent.trim().toLowerCase();
@@ -691,7 +693,7 @@ async function updateBookingStatus(id, collectionName, status) {
         }
     } catch (error) {
         console.error('Error updating booking status:', error);
-        alert('Failed to update booking: ' + error.message);
+        showLoadingError('Failed to update booking: ' + error.message);
     }
 }
 
@@ -785,7 +787,7 @@ function handleProductFilesSelected(input) {
         if (file.type.startsWith('image/')) {
             productFilesToUpload.push(file);
         } else {
-            alert('Only images are allowed.');
+            showCustomAlert('Invalid File', 'Only images are allowed.', true);
         }
     });
     renderProductImagePreviews();
@@ -885,8 +887,7 @@ async function handleProductSubmit(event) {
     const editId = document.getElementById('product-edit-id').value;
 
     submitBtn.disabled = true;
-    const originalText = submitBtn.textContent;
-    submitBtn.textContent = 'Saving...';
+    showLoadingScreen('Saving product & uploading images...');
 
     try {
         let productId = editId;
@@ -902,7 +903,7 @@ async function handleProductSubmit(event) {
                 uploadedUrls.push(url);
             } catch (err) {
                 console.error('Failed to upload file:', file.name, err);
-                alert(`Failed to upload ${file.name}: ${err.message}. Saving product with remaining images.`);
+                showCustomAlert('Upload Failed', `Failed to upload ${file.name}: ${err.message}. Saving product with remaining images.`, true);
             }
         }
 
@@ -928,14 +929,14 @@ async function handleProductSubmit(event) {
             await db.collection('products').doc(productId).set(data);
         }
 
+        showLoadingSuccess('Product saved successfully!');
         closeProductModal();
         loadProducts();
     } catch (error) {
         console.error('Error saving product:', error);
-        alert('Failed to save product: ' + error.message);
+        showLoadingError('Failed to save product: ' + error.message);
     } finally {
         submitBtn.disabled = false;
-        submitBtn.textContent = originalText;
     }
 }
 
@@ -943,27 +944,33 @@ async function editProduct(id) {
     try {
         const doc = await db.collection('products').doc(id).get();
         if (!doc.exists) {
-            alert('Product not found');
+            showCustomAlert('Not Found', 'Product not found', true);
             return;
         }
         const product = { id: doc.id, ...doc.data() };
         openProductModal(product);
     } catch (error) {
         console.error('Error loading product:', error);
-        alert('Failed to load product: ' + error.message);
+        showCustomAlert('Error', 'Failed to load product: ' + error.message, true);
     }
 }
 
 async function deleteProduct(id) {
-    if (!confirm('Are you sure you want to delete this product?')) return;
-
-    try {
-        await db.collection('products').doc(id).delete();
-        loadProducts();
-    } catch (error) {
-        console.error('Error deleting product:', error);
-        alert('Failed to delete product: ' + error.message);
-    }
+    showCustomConfirm(
+        'Confirm Delete',
+        'Are you sure you want to delete this product?',
+        async () => {
+            try {
+                showLoadingScreen('Deleting product...');
+                await db.collection('products').doc(id).delete();
+                showLoadingSuccess('Product deleted successfully!');
+                loadProducts();
+            } catch (error) {
+                console.error('Error deleting product:', error);
+                showLoadingError('Failed to delete product: ' + error.message);
+            }
+        }
+    );
 }
 
 // ============================================================
@@ -1056,7 +1063,7 @@ async function handleEmployeeSubmit(event) {
     // Validate and clean phone number
     const phoneClean = sanitizePhone(document.getElementById('employee-phone').value);
     if (phoneClean.length < 10) {
-        alert('Please enter a valid phone number (at least 10 digits).');
+        showCustomAlert('Invalid Phone', 'Please enter a valid phone number (at least 10 digits).', true);
         return;
     }
 
@@ -1064,7 +1071,7 @@ async function handleEmployeeSubmit(event) {
     const emailRaw = document.getElementById('employee-email').value;
     const emailClean = emailRaw.trim() ? sanitizeEmail(emailRaw) : '';
     if (emailRaw.trim() && !emailClean) {
-        alert('Please enter a valid email address.');
+        showCustomAlert('Invalid Email', 'Please enter a valid email address.', true);
         return;
     }
 
@@ -1080,6 +1087,7 @@ async function handleEmployeeSubmit(event) {
     };
 
     try {
+        showLoadingScreen('Saving employee data...');
         if (editId) {
             await db.collection('employees').doc(editId).update({
                 name: data.name,
@@ -1089,6 +1097,7 @@ async function handleEmployeeSubmit(event) {
                 skills: data.skills,
                 updatedAt: data.updatedAt
             });
+            showLoadingSuccess('Employee details updated successfully!');
             closeEmployeeModal();
             loadEmployees();
         } else {
@@ -1096,6 +1105,7 @@ async function handleEmployeeSubmit(event) {
             data.jobsCompleted = 0;
             data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
             const docRef = await db.collection('employees').add(data);
+            showLoadingSuccess('Employee created successfully!');
             closeEmployeeModal();
             loadEmployees();
             // Generate code for new employee
@@ -1103,7 +1113,7 @@ async function handleEmployeeSubmit(event) {
         }
     } catch (error) {
         console.error('Error saving employee:', error);
-        alert('Failed to save employee: ' + error.message);
+        showLoadingError('Failed to save employee: ' + error.message);
     }
 }
 
@@ -1111,27 +1121,33 @@ async function editEmployee(id) {
     try {
         const doc = await db.collection('employees').doc(id).get();
         if (!doc.exists) {
-            alert('Employee not found');
+            showCustomAlert('Not Found', 'Employee not found', true);
             return;
         }
         const employee = { id: doc.id, ...doc.data() };
         openEmployeeModal(employee);
     } catch (error) {
         console.error('Error loading employee:', error);
-        alert('Failed to load employee: ' + error.message);
+        showCustomAlert('Error', 'Failed to load employee: ' + error.message, true);
     }
 }
 
 async function deleteEmployee(id) {
-    if (!confirm('Are you sure you want to delete this employee?')) return;
-
-    try {
-        await db.collection('employees').doc(id).delete();
-        loadEmployees();
-    } catch (error) {
-        console.error('Error deleting employee:', error);
-        alert('Failed to delete employee: ' + error.message);
-    }
+    showCustomConfirm(
+        'Confirm Delete',
+        'Are you sure you want to delete this employee?',
+        async () => {
+            try {
+                showLoadingScreen('Deleting employee...');
+                await db.collection('employees').doc(id).delete();
+                showLoadingSuccess('Employee deleted successfully!');
+                loadEmployees();
+            } catch (error) {
+                console.error('Error deleting employee:', error);
+                showLoadingError('Failed to delete employee: ' + error.message);
+            }
+        }
+    );
 }
 
 // ============================================================
@@ -1206,7 +1222,7 @@ async function viewInquiry(id, collectionName) {
     try {
         const doc = await db.collection(collectionName).doc(id).get();
         if (!doc.exists) {
-            alert('Inquiry not found');
+            showCustomAlert('Not Found', 'Inquiry not found', true);
             return;
         }
         const data = doc.data();
@@ -1271,7 +1287,7 @@ async function viewInquiry(id, collectionName) {
         document.getElementById('inquiry-detail-modal').classList.add('active');
     } catch (error) {
         console.error('Error viewing inquiry:', error);
-        alert('Failed to load inquiry details: ' + error.message);
+        showCustomAlert('Error', 'Failed to load inquiry details: ' + error.message, true);
     }
 }
 
@@ -1284,18 +1300,19 @@ async function updateInquiry(id, collectionName) {
     const notes = document.getElementById('inquiry-notes-textarea').value.trim();
 
     try {
+        showLoadingScreen('Saving inquiry updates...');
         await db.collection(collectionName).doc(id).update({
             status: status,
             internalNotes: notes,
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         });
 
-        alert('Inquiry updated successfully!');
+        showLoadingSuccess('Inquiry updated successfully!');
         closeInquiryDetailModal();
         loadInquiries();
     } catch (error) {
         console.error('Error updating inquiry:', error);
-        alert('Failed to save inquiry changes: ' + error.message);
+        showLoadingError('Failed to save inquiry changes: ' + error.message);
     }
 }
 
@@ -1408,14 +1425,15 @@ async function assignBooking(bookingId, collectionName) {
     const select = document.getElementById('assign-engineer-select');
     const employeeId = select.value;
     if (!employeeId) {
-        alert('Please select a Service Engineer.');
+        showCustomAlert('Selection Required', 'Please select a Service Engineer.', true);
         return;
     }
 
     try {
+        showLoadingScreen('Assigning engineer...');
         const empDoc = await db.collection('employees').doc(employeeId).get();
         if (!empDoc.exists) {
-            alert('Selected employee not found.');
+            showLoadingError('Selected employee not found.');
             return;
         }
         const empData = empDoc.data();
@@ -1427,7 +1445,7 @@ async function assignBooking(bookingId, collectionName) {
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         });
 
-        alert(`Assigned to ${empData.name} successfully!`);
+        showLoadingSuccess(`Assigned to ${empData.name} successfully!`);
         closeBookingDetailModal();
         
         // Reload whichever tab or view is active
@@ -1439,33 +1457,38 @@ async function assignBooking(bookingId, collectionName) {
         }
     } catch (error) {
         console.error('Error assigning engineer:', error);
-        alert('Failed to assign: ' + error.message);
+        showLoadingError('Failed to assign: ' + error.message);
     }
 }
 
 async function cancelBooking(bookingId, collectionName) {
-    if (!confirm('Are you sure you want to cancel/close this booking?')) return;
+    showCustomConfirm(
+        'Cancel Booking',
+        'Are you sure you want to cancel/close this booking?',
+        async () => {
+            try {
+                showLoadingScreen('Cancelling booking...');
+                await db.collection(collectionName).doc(bookingId).update({
+                    status: 'cancelled',
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
 
-    try {
-        await db.collection(collectionName).doc(bookingId).update({
-            status: 'cancelled',
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
+                showLoadingSuccess('Booking cancelled/closed successfully.');
+                closeBookingDetailModal();
 
-        alert('Booking cancelled/closed successfully.');
-        closeBookingDetailModal();
-
-        // Reload whichever tab or view is active
-        const activeTab = document.querySelector('.nav-item.active').textContent.trim().toLowerCase();
-        if (activeTab.includes('dashboard')) {
-            loadDashboard();
-        } else {
-            loadBookings();
+                // Reload whichever tab or view is active
+                const activeTab = document.querySelector('.nav-item.active').textContent.trim().toLowerCase();
+                if (activeTab.includes('dashboard')) {
+                    loadDashboard();
+                } else {
+                    loadBookings();
+                }
+            } catch (error) {
+                console.error('Error cancelling booking:', error);
+                showLoadingError('Failed to cancel booking: ' + error.message);
+            }
         }
-    } catch (error) {
-        console.error('Error cancelling booking:', error);
-        alert('Failed to cancel booking: ' + error.message);
-    }
+    );
 }
 
 // ============================================================
@@ -1578,18 +1601,24 @@ function closeCustomerHistoryModal() {
 
 async function toggleEmployeeStatus(id, currentStatus) {
     const newStatus = currentStatus === 'inactive' ? 'active' : 'inactive';
-    if (!confirm(`Are you sure you want to make this employee ${newStatus}?`)) return;
-
-    try {
-        await db.collection('employees').doc(id).update({
-            status: newStatus,
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        loadEmployees();
-    } catch (error) {
-        console.error('Error toggling employee status:', error);
-        alert('Failed to toggle status: ' + error.message);
-    }
+    showCustomConfirm(
+        'Toggle Status',
+        `Are you sure you want to make this employee ${newStatus}?`,
+        async () => {
+            try {
+                showLoadingScreen('Updating status...');
+                await db.collection('employees').doc(id).update({
+                    status: newStatus,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                showLoadingSuccess('Status updated successfully!');
+                loadEmployees();
+            } catch (error) {
+                console.error('Error toggling employee status:', error);
+                showLoadingError('Failed to toggle status: ' + error.message);
+            }
+        }
+    );
 }
 
 async function generateLoginCode(employeeId, name, role) {
@@ -1598,6 +1627,7 @@ async function generateLoginCode(employeeId, name, role) {
     const expiresAt = new Date(now.getTime() + 5 * 60 * 1000); // 5 minutes validity
 
     try {
+        showLoadingScreen('Generating login code...');
         await db.collection('login_codes').add({
             code: code,
             employeeId: employeeId,
@@ -1607,12 +1637,13 @@ async function generateLoginCode(employeeId, name, role) {
             expiresAt: expiresAt,
             isUsed: false
         });
+        showLoadingSuccess('Code generated successfully!');
 
         document.getElementById('generated-code-display').textContent = code;
         document.getElementById('code-modal').classList.add('active');
     } catch (error) {
         console.error('Error generating login code:', error);
-        alert('Failed to generate code: ' + error.message);
+        showLoadingError('Failed to generate code: ' + error.message);
     }
 }
 
@@ -1703,15 +1734,21 @@ window.editHeroSlide = async function(id) {
 };
 
 window.deleteHeroSlide = async function(id) {
-    if (confirm('Are you sure you want to delete this slide?')) {
-        try {
-            await db.collection('hero_slides').doc(id).delete();
-            loadHeroSlides();
-        } catch (error) {
-            console.error('Error deleting slide:', error);
-            alert('Failed to delete slide');
+    showCustomConfirm(
+        'Delete Slide',
+        'Are you sure you want to delete this slide?',
+        async () => {
+            try {
+                showLoadingScreen('Deleting hero slide...');
+                await db.collection('hero_slides').doc(id).delete();
+                showLoadingSuccess('Hero slide deleted successfully!');
+                loadHeroSlides();
+            } catch (error) {
+                console.error('Error deleting slide:', error);
+                showLoadingError('Failed to delete slide');
+            }
         }
-    }
+    );
 };
 
 async function handleHeroSubmit(event) {
@@ -1727,12 +1764,14 @@ async function handleHeroSubmit(event) {
     };
 
     try {
+        showLoadingScreen('Saving hero slide...');
         if (editId) {
             await db.collection('hero_slides').doc(editId).update(data);
         } else {
             data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
             await db.collection('hero_slides').add(data);
         }
+        showLoadingSuccess('Hero slide saved successfully!');
         closeHeroModal();
         
         // Switch the filter to the category that was just saved/edited
@@ -1740,7 +1779,7 @@ async function handleHeroSubmit(event) {
         loadHeroSlides();
     } catch (error) {
         console.error('Error saving slide:', error);
-        alert('Failed to save slide: ' + error.message);
+        showLoadingError('Failed to save slide: ' + error.message);
     }
 }
 
@@ -1817,7 +1856,7 @@ async function viewListingRequest(id) {
     try {
         const doc = await db.collection('listing_requests').doc(id).get();
         if (!doc.exists) {
-            alert('Listing request not found');
+            showCustomAlert('Not Found', 'Listing request not found', true);
             return;
         }
         const r = doc.data();
@@ -1856,13 +1895,24 @@ async function viewListingRequest(id) {
             
             ${r.imageUrls && r.imageUrls.length > 0 ? `
             <div class="form-group">
-                <label>Uploaded Images (${r.imageUrls.length})</label>
-                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; margin-top: 10px;">
+                <label style="margin-bottom: 0.5rem; display: block;">Select & Order Images to Publish (${r.imageUrls.length})</label>
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; margin-top: 10px;">
                     ${r.imageUrls.map((url, i) => `
-                        <div style="position: relative; height: 100px; border-radius: 6px; overflow: hidden; border: 1px solid var(--border);">
-                            <a href="${url}" target="_blank">
-                                <img src="${url}" alt="Machine Image ${i+1}" style="width: 100%; height: 100%; object-fit: cover;">
-                            </a>
+                        <div class="admin-image-select-card" style="background: var(--dark); border: 1px solid var(--border); border-radius: 8px; padding: 8px; display: flex; flex-direction: column; gap: 8px; position: relative;">
+                            <div style="height: 90px; border-radius: 4px; overflow: hidden; position: relative; border: 1px solid #333;">
+                                <a href="${url}" target="_blank">
+                                    <img src="${url}" alt="Machine Image ${i+1}" style="width: 100%; height: 100%; object-fit: cover;">
+                                </a>
+                            </div>
+                            <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px;">
+                                <label style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.8rem; cursor: pointer; color: var(--text); font-weight: normal; margin: 0;">
+                                    <input type="checkbox" class="img-include-chk" data-url="${url}" checked style="accent-color: var(--primary); cursor: pointer; width: 14px; height: 14px;"> Keep
+                                </label>
+                                <div style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.8rem;">
+                                    <span style="color: var(--text-muted);">Pos:</span>
+                                    <input type="number" class="img-order-num" value="${i+1}" min="1" max="100" style="width: 45px; background: var(--darker); border: 1px solid var(--border); color: var(--text); border-radius: 4px; padding: 2px 4px; font-size: 0.8rem; text-align: center;">
+                                </div>
+                            </div>
                         </div>
                     `).join('')}
                 </div>
@@ -1880,7 +1930,7 @@ async function viewListingRequest(id) {
         document.getElementById('listing-detail-modal').classList.add('active');
     } catch (error) {
         console.error('Error viewing listing request:', error);
-        alert('Failed to load listing request: ' + error.message);
+        showCustomAlert('Error', 'Failed to load listing request: ' + error.message, true);
     }
 }
 
@@ -1889,65 +1939,261 @@ function closeListingDetailModal() {
 }
 
 async function approveListingRequest(id) {
-    if (!confirm('Are you sure you want to approve this request and publish it to the website?')) return;
-
-    try {
-        const docRef = db.collection('listing_requests').doc(id);
-        const doc = await docRef.get();
-        if (!doc.exists) {
-            alert('Listing request not found');
-            return;
+    const imageCards = document.querySelectorAll('.admin-image-select-card');
+    const approvedImages = [];
+    imageCards.forEach(card => {
+        const chk = card.querySelector('.img-include-chk');
+        const numInput = card.querySelector('.img-order-num');
+        if (chk && chk.checked) {
+            const url = chk.getAttribute('data-url');
+            const order = parseInt(numInput.value, 10) || 1;
+            approvedImages.push({ url, order });
         }
+    });
 
-        const r = doc.data();
-
-        // Create product document
-        const newProductRef = db.collection('products').doc();
-        const productData = {
-            name: r.machineName,
-            machineType: 'Other', // default, can be edited
-            category: 'used', // published to Used machines
-            price: 'Contact for Price',
-            stockCount: 1,
-            condition: 'Refurbished', // default, can be edited
-            description: `Pre-Owned ${r.machineName}. Running Age: ${r.age}. Running condition: ${r.condition}. Contact admin for details.`,
-            images: r.imageUrls || [],
-            status: 'active',
-            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        };
-
-        await db.runTransaction(async (transaction) => {
-            transaction.update(docRef, { 
-                status: 'approved',
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-            transaction.set(newProductRef, productData);
-        });
-
-        alert('Listing request approved successfully and published to website!');
-        closeListingDetailModal();
-        loadListingRequests();
-    } catch (error) {
-        console.error('Error approving listing request:', error);
-        alert('Failed to approve listing request: ' + error.message);
+    if (approvedImages.length === 0) {
+        showCustomAlert('Images Required', 'Please select/keep at least one image to publish this product.', true);
+        return;
     }
+
+    // Sort by order number ascending
+    approvedImages.sort((a, b) => a.order - b.order);
+    const finalImageUrls = approvedImages.map(item => item.url);
+
+    showCustomConfirm(
+        'Approve Request',
+        'Are you sure you want to approve this request and publish it to the website?',
+        async () => {
+            try {
+                showLoadingScreen('Approving and publishing...');
+                const docRef = db.collection('listing_requests').doc(id);
+                const doc = await docRef.get();
+                if (!doc.exists) {
+                    showLoadingError('Listing request not found');
+                    return;
+                }
+
+                const r = doc.data();
+
+                // Create product document
+                const newProductRef = db.collection('products').doc();
+                const productData = {
+                    name: r.machineName,
+                    machineType: 'Other', // default, can be edited
+                    category: 'used', // published to Used machines
+                    price: 'Contact for Price',
+                    stockCount: 1,
+                    condition: 'Refurbished', // default, can be edited
+                    description: `Pre-Owned ${r.machineName}. Running Age: ${r.age}. Running condition: ${r.condition}. Contact admin for details.`,
+                    images: finalImageUrls,
+                    status: 'active',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                };
+
+                await db.runTransaction(async (transaction) => {
+                    transaction.update(docRef, { 
+                        status: 'approved',
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    transaction.set(newProductRef, productData);
+                });
+
+                showLoadingSuccess('Listing request approved and published successfully!');
+                closeListingDetailModal();
+                loadListingRequests();
+            } catch (error) {
+                console.error('Error approving listing request:', error);
+                showLoadingError('Failed to approve listing request: ' + error.message);
+            }
+        }
+    );
 }
 
 async function rejectListingRequest(id) {
-    if (!confirm('Are you sure you want to reject this listing request?')) return;
+    showCustomConfirm(
+        'Reject Request',
+        'Are you sure you want to reject this listing request?',
+        async () => {
+            try {
+                showLoadingScreen('Rejecting request...');
+                await db.collection('listing_requests').doc(id).update({
+                    status: 'rejected',
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
 
-    try {
-        await db.collection('listing_requests').doc(id).update({
-            status: 'rejected',
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                showLoadingSuccess('Listing request rejected.');
+                closeListingDetailModal();
+                loadListingRequests();
+            } catch (error) {
+                console.error('Error rejecting listing request:', error);
+                showLoadingError('Failed to reject listing request: ' + error.message);
+            }
+        }
+    );
+}
+
+// ============================================================
+// CUSTOM DIALOGS & LOADING OVERLAYS
+// ============================================================
+function showCustomAlert(title, message, isError = false) {
+    const modalId = 'custom-alert-modal';
+    let modal = document.getElementById(modalId);
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = modalId;
+        modal.className = 'modal-overlay';
+        modal.style.zIndex = '99999';
+        modal.innerHTML = `
+            <div class="modal-content text-center" style="max-width: 400px; padding: 2rem; text-align: center;">
+                <div class="custom-alert-icon" style="font-size: 3.5rem; margin-bottom: 1rem;"></div>
+                <h3 class="custom-alert-title" style="margin-bottom: 0.5rem; text-transform: uppercase; font-weight: 800;"></h3>
+                <p class="custom-alert-message" style="color: var(--text-muted); margin-bottom: 1.5rem; line-height: 1.4; font-size: 0.95rem; font-family: 'Oswald', sans-serif; font-weight: 400;"></p>
+                <button class="btn btn-primary btn-full" style="margin: 0; display: inline-flex; justify-content: center;" onclick="closeCustomAlert()">OK</button>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeCustomAlert();
         });
-
-        alert('Listing request rejected.');
-        closeListingDetailModal();
-        loadListingRequests();
-    } catch (error) {
-        console.error('Error rejecting listing request:', error);
-        alert('Failed to reject listing request: ' + error.message);
     }
+
+    const iconEl = modal.querySelector('.custom-alert-icon');
+    if (isError) {
+        iconEl.innerHTML = '<i class="fa-solid fa-circle-xmark" style="color: #c41221;"></i>';
+    } else {
+        iconEl.innerHTML = '<i class="fa-solid fa-circle-check" style="color: #22c55e;"></i>';
+    }
+
+    modal.querySelector('.custom-alert-title').textContent = title;
+    modal.querySelector('.custom-alert-message').textContent = message;
+    
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeCustomAlert() {
+    const modal = document.getElementById('custom-alert-modal');
+    if (modal) modal.classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+function showCustomConfirm(title, message, onConfirm) {
+    const modalId = 'custom-confirm-modal';
+    let modal = document.getElementById(modalId);
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = modalId;
+        modal.className = 'modal-overlay';
+        modal.style.zIndex = '99999';
+        modal.innerHTML = `
+            <div class="modal-content text-center" style="max-width: 400px; padding: 2rem; text-align: center;">
+                <div style="font-size: 3.5rem; margin-bottom: 1rem; color: #f59e0b;">
+                    <i class="fa-solid fa-circle-question"></i>
+                </div>
+                <h3 class="custom-confirm-title" style="margin-bottom: 0.5rem; text-transform: uppercase; font-weight: 800;"></h3>
+                <p class="custom-confirm-message" style="color: var(--text-muted); margin-bottom: 1.5rem; line-height: 1.4; font-size: 0.95rem; font-family: 'Oswald', sans-serif; font-weight: 400;"></p>
+                <div style="display: flex; gap: 1rem;">
+                    <button class="btn btn-outline btn-full" style="margin: 0; flex: 1; display: inline-flex; justify-content: center;" onclick="handleCustomConfirmResponse(false)">Cancel</button>
+                    <button class="btn btn-primary btn-full" style="margin: 0; flex: 1; display: inline-flex; justify-content: center;" onclick="handleCustomConfirmResponse(true)">Confirm</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+
+    modal.querySelector('.custom-confirm-title').textContent = title;
+    modal.querySelector('.custom-confirm-message').textContent = message;
+    window._customConfirmCallback = onConfirm;
+
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function handleCustomConfirmResponse(confirmed) {
+    const modal = document.getElementById('custom-confirm-modal');
+    if (modal) modal.classList.remove('active');
+    document.body.style.overflow = '';
+
+    if (confirmed && typeof window._customConfirmCallback === 'function') {
+        window._customConfirmCallback();
+    }
+    window._customConfirmCallback = null;
+}
+
+function showLoadingScreen(message) {
+    const modalId = 'loading-screen-modal';
+    let modal = document.getElementById(modalId);
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = modalId;
+        modal.className = 'modal-overlay';
+        modal.style.zIndex = '999999';
+        modal.innerHTML = `
+            <div class="modal-content text-center" style="max-width: 320px; padding: 2.5rem; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.5rem; text-align: center;">
+                <div class="loading-spinner-wrapper">
+                    <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 4rem; color: #E31828;"></i>
+                </div>
+                <div class="loading-success-wrapper hidden">
+                    <i class="fa-solid fa-circle-check" style="font-size: 5rem; color: #22c55e;"></i>
+                </div>
+                <div class="loading-error-wrapper hidden">
+                    <i class="fa-solid fa-circle-xmark" style="font-size: 5rem; color: #c41221;"></i>
+                </div>
+                <h3 class="loading-text" style="margin: 0; font-size: 1.2rem; text-transform: uppercase;">SAVING...</h3>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+    
+    // Reset state
+    modal.querySelector('.loading-spinner-wrapper').classList.remove('hidden');
+    modal.querySelector('.loading-success-wrapper').classList.add('hidden');
+    modal.querySelector('.loading-error-wrapper').classList.add('hidden');
+    modal.querySelector('.loading-text').textContent = message;
+    
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function showLoadingSuccess(successMessage, duration = 2000) {
+    const modal = document.getElementById('loading-screen-modal');
+    if (!modal) return;
+    const spinner = modal.querySelector('.loading-spinner-wrapper');
+    const success = modal.querySelector('.loading-success-wrapper');
+    const text = modal.querySelector('.loading-text');
+    
+    if (spinner && success && text) {
+        spinner.classList.add('hidden');
+        success.classList.remove('hidden');
+        text.textContent = successMessage;
+    }
+    
+    setTimeout(() => {
+        closeLoadingScreen();
+    }, duration);
+}
+
+function showLoadingError(errorMessage, duration = 3000) {
+    const modal = document.getElementById('loading-screen-modal');
+    if (!modal) return;
+    const spinner = modal.querySelector('.loading-spinner-wrapper');
+    const error = modal.querySelector('.loading-error-wrapper');
+    const text = modal.querySelector('.loading-text');
+    
+    if (spinner && error && text) {
+        spinner.classList.add('hidden');
+        error.classList.remove('hidden');
+        text.textContent = errorMessage;
+    }
+    
+    setTimeout(() => {
+        closeLoadingScreen();
+    }, duration);
+}
+
+function closeLoadingScreen() {
+    const modal = document.getElementById('loading-screen-modal');
+    if (modal) modal.classList.remove('active');
+    document.body.style.overflow = '';
 }

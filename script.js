@@ -852,9 +852,9 @@ async function startRecording(prefix) {
 
     } catch (err) {
         if (err.name === 'NotAllowedError') {
-            alert('Microphone permission denied. Please allow microphone access in your browser settings and try again.');
+            showCustomAlert('Permission Denied', 'Microphone permission denied. Please allow microphone access in your browser settings and try again.', true);
         } else {
-            alert('Could not access microphone. Please check your device settings.');
+            showCustomAlert('Mic Access Failed', 'Could not access microphone. Please check your device settings.', true);
         }
         console.error('Microphone error:', err);
     }
@@ -1071,7 +1071,7 @@ async function submitProductEnquiry(event) {
     // SPAM CHECK for product enquiry (uses 'product' as the type key)
     const spam = checkSpamCooldown('product');
     if (spam.blocked) {
-        alert(`You recently sent an enquiry. Please wait ${spam.minutes} more minute(s) before submitting again.`);
+        showCustomAlert('Spam Protection', `You recently sent an enquiry. Please wait ${spam.minutes} more minute(s) before submitting again.`, true);
         return;
     }
 
@@ -1105,12 +1105,12 @@ async function submitProductEnquiry(event) {
 
     } catch (err) {
         if (err.message === 'INVALID_PHONE') {
-            alert('Please enter a valid 10-digit Indian mobile number (starting with 6, 7, 8, or 9).');
+            showCustomAlert('Invalid Phone', 'Please enter a valid 10-digit Indian mobile number (starting with 6, 7, 8, or 9).', true);
         } else if (err.message === 'INVALID_EMAIL') {
-            alert('The email address format is invalid. Please correct it or leave it blank.');
+            showCustomAlert('Invalid Email', 'The email address format is invalid. Please correct it or leave it blank.', true);
         } else {
             console.error('Product enquiry error:', err);
-            alert('Failed to send enquiry. Please try again or call us at 9109190790.');
+            showCustomAlert('Submission Failed', 'Failed to send enquiry. Please try again or call us at 9109190790.', true);
         }
     } finally {
         submitBtn.disabled = false;
@@ -1832,7 +1832,7 @@ function handleSellPhotosSelected(input) {
     
     // Check total files
     if (sellMachineFiles.length + newFiles.length > 10) {
-        alert('You can upload a maximum of 10 images.');
+        showCustomAlert('Limit Exceeded', 'You can upload a maximum of 10 images.', true);
         input.value = '';
         return;
     }
@@ -1840,13 +1840,13 @@ function handleSellPhotosSelected(input) {
     // Validate type and size
     for (const file of newFiles) {
         if (!ALLOWED_IMAGE_TYPES.includes(file.type.toLowerCase())) {
-            alert('Only JPG, PNG, or WebP photos allowed.');
+            showCustomAlert('Invalid File', 'Only JPG, PNG, or WebP photos allowed.', true);
             input.value = '';
             return;
         }
         const sizeMB = file.size / (1024 * 1024);
         if (sizeMB > MAX_PHOTO_SIZE_MB) {
-            alert(`Photo too large (${sizeMB.toFixed(1)} MB). Max: ${MAX_PHOTO_SIZE_MB} MB.`);
+            showCustomAlert('File Too Large', `Photo too large (${sizeMB.toFixed(1)} MB). Max: ${MAX_PHOTO_SIZE_MB} MB.`, true);
             input.value = '';
             return;
         }
@@ -1897,7 +1897,7 @@ async function submitSellMachineForm(event) {
     const submitBtn = document.getElementById('sm-submit-btn');
 
     if (sellMachineFiles.length === 0) {
-        alert('Please add at least one photo of the machine.');
+        showCustomAlert('Missing Photos', 'Please add at least one photo of the machine.', true);
         return;
     }
 
@@ -1911,25 +1911,22 @@ async function submitSellMachineForm(event) {
     const agreementChecked = document.getElementById('sm-agreement').checked;
 
     if (!phone) {
-        alert('Please enter a valid 10-digit Indian mobile number (starting with 6, 7, 8, or 9).');
+        showCustomAlert('Invalid Phone', 'Please enter a valid 10-digit Indian mobile number (starting with 6, 7, 8, or 9).', true);
         return;
     }
 
     if (email === null) {
-        alert('Please enter a valid email address.');
+        showCustomAlert('Invalid Email', 'Please enter a valid email address.', true);
         return;
     }
 
     if (!agreementChecked) {
-        alert('You must acknowledge and agree to the 1% commission fee.');
+        showCustomAlert('Agreement Required', 'You must acknowledge and agree to the 1% commission fee.', true);
         return;
     }
 
-    // Set loading state
-    submitBtn.disabled = true;
-    submitBtn.classList.add('loading');
-    const originalHTML = submitBtn.innerHTML;
-    submitBtn.innerHTML = 'Submitting...';
+    // Show custom loading screen overlay
+    showLoadingScreen('Uploading images and submitting request...');
 
     try {
         const imageUrls = [];
@@ -1963,15 +1960,12 @@ async function submitSellMachineForm(event) {
             console.log('📬 [SIMULATED] Saved listing request:', data);
         }
 
-        alert('Your listing request has been submitted successfully for review!');
+        // Show custom success screen (auto-closes)
+        showLoadingSuccess('Listing request submitted successfully!');
         closeSellMachineModal();
     } catch (err) {
         console.error('Error submitting listing request:', err);
-        alert('Failed to submit listing request: ' + err.message);
-    } finally {
-        submitBtn.disabled = false;
-        submitBtn.classList.remove('loading');
-        submitBtn.innerHTML = originalHTML;
+        showLoadingError('Failed to submit listing request: ' + err.message);
     }
 }
 
@@ -2086,16 +2080,357 @@ function createProductCardHTML(product, category) {
     desc.textContent = product.description || '';
     info.appendChild(desc);
 
-    const btn = document.createElement('button');
-    btn.className = 'enquire-btn';
-    btn.onclick = () => openProductModal(product.name, category);
-    
-    const btnIcon = document.createElement('i');
-    btnIcon.className = 'fa-solid fa-paper-plane';
-    btn.appendChild(btnIcon);
-    btn.appendChild(document.createTextNode(' Send Enquiry'));
-    info.appendChild(btn);
+    const btnContainer = document.createElement('div');
+    btnContainer.className = 'product-card-buttons';
+    btnContainer.style.display = 'flex';
+    btnContainer.style.gap = '0.5rem';
+    btnContainer.style.marginTop = '1rem';
 
+    const detailsBtn = document.createElement('button');
+    detailsBtn.className = 'enquire-btn details-btn';
+    detailsBtn.type = 'button';
+    detailsBtn.style.background = 'transparent';
+    detailsBtn.style.border = '1px solid var(--border-color)';
+    detailsBtn.style.color = 'var(--text-color)';
+    detailsBtn.style.flex = '1';
+    detailsBtn.onclick = () => openProductDetailsModal(product, category);
+    
+    const detailsIcon = document.createElement('i');
+    detailsIcon.className = 'fa-solid fa-eye';
+    detailsBtn.appendChild(detailsIcon);
+    detailsBtn.appendChild(document.createTextNode(' Details'));
+    btnContainer.appendChild(detailsBtn);
+
+    const enquireBtn = document.createElement('button');
+    enquireBtn.className = 'enquire-btn';
+    enquireBtn.type = 'button';
+    enquireBtn.style.flex = '1';
+    enquireBtn.onclick = () => openProductModal(product.name, category);
+    
+    const enquireIcon = document.createElement('i');
+    enquireIcon.className = 'fa-solid fa-paper-plane';
+    enquireBtn.appendChild(enquireIcon);
+    enquireBtn.appendChild(document.createTextNode(' Enquire'));
+    btnContainer.appendChild(enquireBtn);
+
+    info.appendChild(btnContainer);
     card.appendChild(info);
     return card;
 }
+
+// ============================================================
+// 23. CUSTOM DIALOGS & NOTIFICATION MODALS (Replacing alerts/confirms)
+// ============================================================
+function showCustomAlert(title, message, isError = false) {
+    const modalId = 'custom-alert-modal';
+    let modal = document.getElementById(modalId);
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = modalId;
+        modal.className = 'modal-overlay';
+        modal.style.zIndex = '99999';
+        modal.innerHTML = `
+            <div class="modal-content text-center" style="max-width: 400px; padding: 2rem;">
+                <div id="custom-alert-icon" style="font-size: 3.5rem; margin-bottom: 1rem;"></div>
+                <h3 id="custom-alert-title" style="margin-bottom: 0.5rem; text-transform: uppercase; font-weight: 800;"></h3>
+                <p id="custom-alert-message" style="color: var(--text-muted); margin-bottom: 1.5rem; line-height: 1.4; font-size: 0.95rem; font-family: 'Oswald', sans-serif; font-weight: 400;"></p>
+                <button class="submit-btn" style="margin: 0; width: 100%;" onclick="closeCustomAlert()">OK</button>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeCustomAlert();
+        });
+    }
+
+    const iconEl = document.getElementById('custom-alert-icon');
+    if (isError) {
+        iconEl.innerHTML = '<i class="fa-solid fa-circle-xmark" style="color: #c41221;"></i>';
+    } else {
+        iconEl.innerHTML = '<i class="fa-solid fa-circle-check" style="color: #22c55e;"></i>';
+    }
+
+    document.getElementById('custom-alert-title').textContent = title;
+    document.getElementById('custom-alert-message').textContent = message;
+    
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeCustomAlert() {
+    const modal = document.getElementById('custom-alert-modal');
+    if (modal) modal.classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+function showCustomConfirm(title, message, onConfirm) {
+    const modalId = 'custom-confirm-modal';
+    let modal = document.getElementById(modalId);
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = modalId;
+        modal.className = 'modal-overlay';
+        modal.style.zIndex = '99999';
+        modal.innerHTML = `
+            <div class="modal-content text-center" style="max-width: 400px; padding: 2rem;">
+                <div style="font-size: 3.5rem; margin-bottom: 1rem; color: #f59e0b;">
+                    <i class="fa-solid fa-circle-question"></i>
+                </div>
+                <h3 id="custom-confirm-title" style="margin-bottom: 0.5rem; text-transform: uppercase; font-weight: 800;"></h3>
+                <p id="custom-confirm-message" style="color: var(--text-muted); margin-bottom: 1.5rem; line-height: 1.4; font-size: 0.95rem; font-family: 'Oswald', sans-serif; font-weight: 400;"></p>
+                <div style="display: flex; gap: 1rem;">
+                    <button class="submit-btn" style="margin: 0; flex: 1; background: transparent; border: 1px solid var(--border-color); color: var(--text-color);" onclick="handleCustomConfirmResponse(false)">Cancel</button>
+                    <button class="submit-btn" style="margin: 0; flex: 1;" onclick="handleCustomConfirmResponse(true)">Confirm</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+
+    document.getElementById('custom-confirm-title').textContent = title;
+    document.getElementById('custom-confirm-message').textContent = message;
+    window._customConfirmCallback = onConfirm;
+
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function handleCustomConfirmResponse(confirmed) {
+    const modal = document.getElementById('custom-confirm-modal');
+    if (modal) modal.classList.remove('active');
+    document.body.style.overflow = '';
+
+    if (confirmed && typeof window._customConfirmCallback === 'function') {
+        window._customConfirmCallback();
+    }
+    window._customConfirmCallback = null;
+}
+
+// ============================================================
+// 24. IN-APP LOADING OVERLAYS
+// ============================================================
+function showLoadingScreen(message) {
+    const modalId = 'loading-screen-modal';
+    let modal = document.getElementById(modalId);
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = modalId;
+        modal.className = 'modal-overlay';
+        modal.style.zIndex = '999999';
+        modal.innerHTML = `
+            <div class="modal-content text-center" style="max-width: 320px; padding: 2.5rem; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.5rem;">
+                <div id="loading-spinner-wrapper">
+                    <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 4rem; color: var(--accent-color);"></i>
+                </div>
+                <div id="loading-success-wrapper" class="hidden">
+                    <i class="fa-solid fa-circle-check" style="font-size: 5rem; color: #22c55e;"></i>
+                </div>
+                <div id="loading-error-wrapper" class="hidden">
+                    <i class="fa-solid fa-circle-xmark" style="font-size: 5rem; color: #c41221;"></i>
+                </div>
+                <h3 id="loading-text" style="margin: 0; font-size: 1.2rem; text-transform: uppercase;">SUBMITTING...</h3>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+    
+    // Reset state
+    document.getElementById('loading-spinner-wrapper').classList.remove('hidden');
+    document.getElementById('loading-success-wrapper').classList.add('hidden');
+    document.getElementById('loading-error-wrapper').classList.add('hidden');
+    document.getElementById('loading-text').textContent = message;
+    
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function showLoadingSuccess(successMessage, duration = 2000) {
+    const spinner = document.getElementById('loading-spinner-wrapper');
+    const success = document.getElementById('loading-success-wrapper');
+    const text = document.getElementById('loading-text');
+    
+    if (spinner && success && text) {
+        spinner.classList.add('hidden');
+        success.classList.remove('hidden');
+        text.textContent = successMessage;
+    }
+    
+    setTimeout(() => {
+        closeLoadingScreen();
+    }, duration);
+}
+
+// ============================================================
+// 25. PRODUCT DETAILS MODAL & DYNAMIC PHOTO GALLERY CAROUSEL
+// ============================================================
+function openProductDetailsModal(product, category) {
+    const modalId = 'product-details-modal';
+    let modal = document.getElementById(modalId);
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = modalId;
+        modal.className = 'modal-overlay';
+        modal.style.zIndex = '99998';
+        modal.innerHTML = `
+            <div class="modal-content product-modal-content" style="max-width: 800px; padding: 2rem; position: relative;">
+                <button class="modal-close-btn" onclick="closeProductDetailsModal()"><i class="fa-solid fa-xmark"></i></button>
+                <h2 id="pd-name" style="margin-bottom: 0.5rem; text-transform: uppercase; font-family: 'Oswald', sans-serif;"></h2>
+                <div id="pd-badge-container" style="margin-bottom: 1.5rem; display: flex; gap: 5px;"></div>
+                
+                <div class="product-details-body" style="display: grid; grid-template-columns: 1fr 1.1fr; gap: 2rem; align-items: start;">
+                    <!-- Left column: Gallery -->
+                    <div>
+                        <div id="pd-gallery-main" style="width: 100%; height: 320px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color); background: #0a0a0a; position: relative; display: flex; align-items: center; justify-content: center;">
+                            <img id="pd-main-img" src="" alt="Main product photo" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                            <button id="pd-prev-btn" onclick="slideProductImage(-1)" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.7); color: white; border: none; border-radius: 50%; width: 36px; height: 36px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; z-index: 10;"><i class="fa-solid fa-chevron-left"></i></button>
+                            <button id="pd-next-btn" onclick="slideProductImage(1)" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.7); color: white; border: none; border-radius: 50%; width: 36px; height: 36px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; z-index: 10;"><i class="fa-solid fa-chevron-right"></i></button>
+                        </div>
+                        <div id="pd-thumbnails" class="photo-preview-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 10px; margin-top: 15px;"></div>
+                    </div>
+                    
+                    <!-- Right column: Information -->
+                    <div style="display: flex; flex-direction: column; justify-content: space-between; height: 100%; min-height: 320px; box-sizing: border-box;">
+                        <div>
+                            <div style="margin-bottom: 1.2rem; border-bottom: 1px solid #222; padding-bottom: 0.8rem;">
+                                <label style="font-weight: 800; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 3px;">Machine Type</label>
+                                <p id="pd-type" style="font-size: 1.15rem; margin: 0; font-weight: 600; font-family: 'Oswald', sans-serif;"></p>
+                            </div>
+                            <div style="margin-bottom: 1.2rem; border-bottom: 1px solid #222; padding-bottom: 0.8rem;">
+                                <label style="font-weight: 800; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 3px;">Condition</label>
+                                <p id="pd-condition" style="font-size: 1.15rem; margin: 0; font-weight: 600; font-family: 'Oswald', sans-serif;"></p>
+                            </div>
+                            <div style="margin-bottom: 1.2rem; border-bottom: 1px solid #222; padding-bottom: 0.8rem;">
+                                <label style="font-weight: 800; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 3px;">Price</label>
+                                <p id="pd-price" style="font-size: 1.4rem; color: var(--accent-color); font-weight: bold; margin: 0; font-family: 'Oswald', sans-serif;"></p>
+                            </div>
+                            <div style="margin-bottom: 1.5rem;">
+                                <label style="font-weight: 800; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 3px;">Specifications & Description</label>
+                                <p id="pd-desc" style="line-height: 1.6; color: #ccc; margin: 0; white-space: pre-wrap; font-size: 0.9rem; max-height: 140px; overflow-y: auto; padding-right: 5px;"></p>
+                            </div>
+                        </div>
+                        
+                        <button id="pd-enquire-btn" class="submit-btn" style="margin: 0; width: 100%; font-size: 1rem; padding: 1rem;"><i class="fa-solid fa-paper-plane"></i> Send Enquiry</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeProductDetailsModal();
+        });
+    }
+
+    // Populate data
+    document.getElementById('pd-name').textContent = product.name;
+    document.getElementById('pd-type').textContent = product.machineType || 'Machine';
+    document.getElementById('pd-condition').textContent = product.condition || 'Pre-Owned';
+    document.getElementById('pd-price').textContent = product.price || 'Contact for Price';
+    document.getElementById('pd-desc').textContent = product.description || '';
+
+    const badgeContainer = document.getElementById('pd-badge-container');
+    badgeContainer.innerHTML = '';
+    const badge = document.createElement('span');
+    if (category === 'new') {
+        badge.className = 'product-badge new-badge';
+        badge.textContent = 'NEW';
+        badge.style.position = 'static';
+        badge.style.display = 'inline-block';
+    } else {
+        badge.className = 'product-badge used-badge';
+        badge.textContent = 'PRE-OWNED';
+        badge.style.position = 'static';
+        badge.style.display = 'inline-block';
+    }
+    badgeContainer.appendChild(badge);
+
+    // Setup Gallery
+    const images = (product.images && product.images.length > 0) ? product.images : ['Images/CNC.png'];
+    window._pdImages = images;
+    window._pdActiveIndex = 0;
+
+    updatePDGallery();
+
+    // Setup Enquire Button
+    document.getElementById('pd-enquire-btn').onclick = () => {
+        closeProductDetailsModal();
+        openProductModal(product.name, category);
+    };
+
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeProductDetailsModal() {
+    const modal = document.getElementById('product-details-modal');
+    if (modal) modal.classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+function updatePDGallery() {
+    const images = window._pdImages || ['Images/CNC.png'];
+    const activeIndex = window._pdActiveIndex || 0;
+    
+    // Main image
+    const mainImg = document.getElementById('pd-main-img');
+    if (mainImg) mainImg.src = images[activeIndex];
+    
+    // Hide prev/next buttons if only 1 image
+    const prevBtn = document.getElementById('pd-prev-btn');
+    const nextBtn = document.getElementById('pd-next-btn');
+    if (prevBtn && nextBtn) {
+        if (images.length <= 1) {
+            prevBtn.style.display = 'none';
+            nextBtn.style.display = 'none';
+        } else {
+            prevBtn.style.display = 'flex';
+            nextBtn.style.display = 'flex';
+        }
+    }
+
+    // Thumbnails
+    const thumbGrid = document.getElementById('pd-thumbnails');
+    if (thumbGrid) {
+        thumbGrid.innerHTML = '';
+        if (images.length > 1) {
+            images.forEach((url, i) => {
+                const thumb = document.createElement('div');
+                thumb.className = 'preview-image-container';
+                thumb.style.width = '60px';
+                thumb.style.height = '60px';
+                thumb.style.border = i === activeIndex ? '2px solid var(--accent-color)' : '1px solid var(--border-color)';
+                thumb.style.cursor = 'pointer';
+                
+                const img = document.createElement('img');
+                img.src = url;
+                img.style.width = '100%';
+                img.style.height = '100%';
+                img.style.objectFit = 'cover';
+                
+                thumb.appendChild(img);
+                thumb.onclick = () => {
+                    window._pdActiveIndex = i;
+                    updatePDGallery();
+                };
+                thumbGrid.appendChild(thumb);
+            });
+        }
+    }
+}
+
+function slideProductImage(direction) {
+    const images = window._pdImages || [];
+    if (images.length <= 1) return;
+    
+    let index = (window._pdActiveIndex || 0) + direction;
+    if (index < 0) index = images.length - 1;
+    if (index >= images.length) index = 0;
+    
+    window._pdActiveIndex = index;
+    updatePDGallery();
+}
+
+window.openProductDetailsModal = openProductDetailsModal;
+window.closeProductDetailsModal = closeProductDetailsModal;
+window.slideProductImage = slideProductImage;
+window.closeCustomAlert = closeCustomAlert;
+window.handleCustomConfirmResponse = handleCustomConfirmResponse;
