@@ -2260,6 +2260,28 @@ function showLoadingSuccess(successMessage, duration = 2000) {
     }, duration);
 }
 
+function showLoadingError(errorMessage, duration = 3000) {
+    const spinner = document.getElementById('loading-spinner-wrapper');
+    const error = document.getElementById('loading-error-wrapper');
+    const text = document.getElementById('loading-text');
+    
+    if (spinner && error && text) {
+        spinner.classList.add('hidden');
+        error.classList.remove('hidden');
+        text.textContent = errorMessage;
+    }
+    
+    setTimeout(() => {
+        closeLoadingScreen();
+    }, duration);
+}
+
+function closeLoadingScreen() {
+    const modal = document.getElementById('loading-screen-modal');
+    if (modal) modal.classList.remove('active');
+    document.body.style.overflow = '';
+}
+
 // ============================================================
 // 25. PRODUCT DETAILS MODAL & DYNAMIC PHOTO GALLERY CAROUSEL
 // ============================================================
