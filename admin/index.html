@@ -74,6 +74,9 @@
                 <a href="#" class="nav-item" onclick="switchTab('customers')">
                     <i class="fa-solid fa-address-book"></i> Customers
                 </a>
+                <a href="#" class="nav-item" onclick="switchTab('listings')">
+                    <i class="fa-solid fa-list-check"></i> Listing Requests
+                </a>
                 <a href="#" class="nav-item" onclick="switchTab('hero-settings')">
                     <i class="fa-solid fa-images"></i> Hero Settings
                 </a>
@@ -242,6 +245,24 @@
                     <p class="loading">Loading...</p>
                 </div>
             </section>
+
+            <!-- Listing Requests Tab -->
+            <section id="tab-listings" class="tab-content">
+                <div class="tab-header">
+                    <h2>Used Machine Listing Requests</h2>
+                    <div class="filter-group" style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
+                        <select id="listing-status-filter" onchange="loadListingRequests()" style="padding: 0.5rem 0.8rem; font-size: 0.8rem; background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: 'Oswald', sans-serif;">
+                            <option value="">All Status</option>
+                            <option value="pending">Pending Review</option>
+                            <option value="approved">Approved</option>
+                            <option value="rejected">Rejected</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="listings-list" class="table-container">
+                    <p class="loading">Loading...</p>
+                </div>
+            </section>
         </main>
     </div>
 
@@ -301,8 +322,16 @@
                     <textarea id="product-description" rows="3" placeholder="Product details and specifications..."></textarea>
                 </div>
                 <div class="form-group">
-                    <label>Image URL(s) (comma separated)</label>
-                    <input type="text" id="product-images" placeholder="https://example.com/image1.jpg, https://...">
+                    <label>Product Images *</label>
+                    <div class="media-capture-area" style="border: 1px dashed var(--border); border-radius: 6px; padding: 1rem; text-align: center; background: var(--bg-color);">
+                        <input type="file" id="product-form-files" accept="image/*" multiple style="display: none;" onchange="handleProductFilesSelected(this)">
+                        <button type="button" class="btn btn-outline btn-small" onclick="document.getElementById('product-form-files').click()">
+                            <i class="fa-solid fa-cloud-arrow-up"></i> Upload Images
+                        </button>
+                        <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 5px; margin-bottom: 0;">JPG, PNG or WebP. Select multiple files to upload.</p>
+                        <input type="hidden" id="product-images">
+                        <div id="product-images-preview" class="photo-preview-grid" style="margin-top: 15px; display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px;"></div>
+                    </div>
                 </div>
                 <button type="submit" class="btn btn-primary btn-full">Save Product</button>
             </form>
@@ -438,9 +467,21 @@
         </div>
     </div>
 
+    <!-- Listing Detail Modal -->
+    <div id="listing-detail-modal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 650px;">
+            <div class="modal-header">
+                <h2>Listing Request Details</h2>
+                <button class="close-btn" onclick="closeListingDetailModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div id="listing-detail-content" style="margin-top: 1.5rem; max-height: 70vh; overflow-y: auto; padding-right: 5px;"></div>
+        </div>
+    </div>
+
     <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-storage-compat.js"></script>
     <script src="/admin/config.js"></script>
     <script src="/admin/script.js"></script>
 </body>

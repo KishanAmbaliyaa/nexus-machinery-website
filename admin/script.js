@@ -254,6 +254,7 @@ function switchTab(tabName) {
         employees: 'Employees',
         inquiries: 'Product Inquiries',
         customers: 'Customers',
+        listings: 'Listing Requests',
         'hero-settings': 'Hero Settings'
     };
     document.getElementById('page-title').textContent = titles[tabName] || 'Dashboard';
@@ -264,6 +265,7 @@ function switchTab(tabName) {
     if (tabName === 'employees') loadEmployees();
     if (tabName === 'inquiries') loadInquiries();
     if (tabName === 'customers') loadCustomers();
+    if (tabName === 'listings') loadListingRequests();
     if (tabName === 'hero-settings') loadHeroSlides();
 
     // Close mobile sidebar
@@ -744,62 +746,196 @@ async function loadProducts() {
     }
 }
 
+let productFilesToUpload = [];
+let currentProductImageUrls = [];
+
 function openProductModal(product) {
     document.getElementById('product-modal-title').textContent = product ? 'Edit Product' : 'Add New Product';
     document.getElementById('product-form').reset();
     document.getElementById('product-edit-id').value = '';
+    
+    productFilesToUpload = [];
+    currentProductImageUrls = [];
 
     if (product) {
         document.getElementById('product-edit-id').value = product.id;
         document.getElementById('product-name').value = product.name || '';
         document.getElementById('product-machine-type').value = product.machineType || '';
         document.getElementById('product-category').value = product.category || '';
-        document.getElementById('product-price').value = product.price || '';
+        document.getElementById('product-price').value = product.price || 'Contact for Price';
         document.getElementById('product-stock').value = product.stockCount !== undefined ? product.stockCount : 1;
         document.getElementById('product-condition').value = product.condition || '';
         document.getElementById('product-description').value = product.description || '';
-        document.getElementById('product-images').value = (product.images || []).join(', ');
+        currentProductImageUrls = product.images || [];
     }
 
+    renderProductImagePreviews();
     document.getElementById('product-modal').classList.add('active');
 }
 
 function closeProductModal() {
     document.getElementById('product-modal').classList.remove('active');
+    productFilesToUpload = [];
+    currentProductImageUrls = [];
+}
+
+function handleProductFilesSelected(input) {
+    const files = Array.from(input.files);
+    files.forEach(file => {
+        if (file.type.startsWith('image/')) {
+            productFilesToUpload.push(file);
+        } else {
+            alert('Only images are allowed.');
+        }
+    });
+    renderProductImagePreviews();
+    input.value = '';
+}
+
+function renderProductImagePreviews() {
+    const previewGrid = document.getElementById('product-images-preview');
+    if (!previewGrid) return;
+    previewGrid.innerHTML = '';
+
+    // Render existing image URLs
+    currentProductImageUrls.forEach((url, index) => {
+        const container = document.createElement('div');
+        container.className = 'preview-image-container';
+
+        const img = document.createElement('img');
+        img.src = url;
+        img.alt = `Existing Product Image ${index + 1}`;
+
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'remove-img-btn';
+        removeBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+        removeBtn.onclick = () => {
+            currentProductImageUrls.splice(index, 1);
+            renderProductImagePreviews();
+        };
+
+        container.appendChild(img);
+        container.appendChild(removeBtn);
+        previewGrid.appendChild(container);
+    });
+
+    // Render files to upload
+    productFilesToUpload.forEach((file, index) => {
+        const container = document.createElement('div');
+        container.className = 'preview-image-container';
+
+        const img = document.createElement('img');
+        img.src = URL.createObjectURL(file);
+        img.alt = `New Product Image ${index + 1}`;
+        img.onload = () => URL.revokeObjectURL(img.src);
+
+        const badge = document.createElement('span');
+        badge.className = 'badge-new-file';
+        badge.textContent = 'New';
+
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'remove-img-btn';
+        removeBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+        removeBtn.onclick = () => {
+            productFilesToUpload.splice(index, 1);
+            renderProductImagePreviews();
+        };
+
+        container.appendChild(img);
+        container.appendChild(badge);
+        container.appendChild(removeBtn);
+        previewGrid.appendChild(container);
+    });
+
+    // Populate hidden field
+    document.getElementById('product-images').value = currentProductImageUrls.join(', ');
+}
+
+async function uploadProductImage(file, productId) {
+    const CLOUD_NAME   = 'dofphhum5';
+    const UPLOAD_PRESET = 'ucfof5kx';
+    const uploadUrl = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`;
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', UPLOAD_PRESET);
+    formData.append('folder', 'nexus-products');
+    formData.append('public_id', `prod_${productId}_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`);
+
+    const response = await fetch(uploadUrl, {
+        method: 'POST',
+        body: formData
+    });
+
+    if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`Cloudinary upload failed (${response.status}): ${errText}`);
+    }
+
+    const result = await response.json();
+    return result.secure_url;
 }
 
 async function handleProductSubmit(event) {
     event.preventDefault();
 
+    const submitBtn = event.target.querySelector('[type="submit"]');
     const editId = document.getElementById('product-edit-id').value;
-    const imagesRaw = document.getElementById('product-images').value;
-    const images = imagesRaw ? imagesRaw.split(',').map(s => s.trim()).filter(Boolean) : [];
 
-    const data = {
-        name: sanitizeText(document.getElementById('product-name').value, 200),
-        machineType: sanitizeText(document.getElementById('product-machine-type').value, 50),
-        category: sanitizeText(document.getElementById('product-category').value, 20),
-        price: sanitizeText(document.getElementById('product-price').value || 'Contact for Price', 50),
-        stockCount: parseInt(document.getElementById('product-stock').value) || 0,
-        condition: sanitizeText(document.getElementById('product-condition').value, 50),
-        description: sanitizeText(document.getElementById('product-description').value, 1000),
-        images: images.map(img => sanitizeText(img, 500)),
-        status: 'active',
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-    };
+    submitBtn.disabled = true;
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = 'Saving...';
 
     try {
+        let productId = editId;
+        if (!productId) {
+            const newDocRef = db.collection('products').doc();
+            productId = newDocRef.id;
+        }
+
+        const uploadedUrls = [];
+        for (const file of productFilesToUpload) {
+            try {
+                const url = await uploadProductImage(file, productId);
+                uploadedUrls.push(url);
+            } catch (err) {
+                console.error('Failed to upload file:', file.name, err);
+                alert(`Failed to upload ${file.name}: ${err.message}. Saving product with remaining images.`);
+            }
+        }
+
+        const finalImages = [...currentProductImageUrls, ...uploadedUrls];
+
+        const data = {
+            name: sanitizeText(document.getElementById('product-name').value, 200),
+            machineType: sanitizeText(document.getElementById('product-machine-type').value, 50),
+            category: sanitizeText(document.getElementById('product-category').value, 20),
+            price: sanitizeText(document.getElementById('product-price').value || 'Contact for Price', 50),
+            stockCount: parseInt(document.getElementById('product-stock').value) || 0,
+            condition: sanitizeText(document.getElementById('product-condition').value, 50),
+            description: sanitizeText(document.getElementById('product-description').value, 1000),
+            images: finalImages,
+            status: 'active',
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+
         if (editId) {
             await db.collection('products').doc(editId).update(data);
         } else {
             data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
-            await db.collection('products').add(data);
+            await db.collection('products').doc(productId).set(data);
         }
+
         closeProductModal();
         loadProducts();
     } catch (error) {
         console.error('Error saving product:', error);
         alert('Failed to save product: ' + error.message);
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
     }
 }
 
@@ -1605,5 +1741,213 @@ async function handleHeroSubmit(event) {
     } catch (error) {
         console.error('Error saving slide:', error);
         alert('Failed to save slide: ' + error.message);
+    }
+}
+
+// ============================================================
+// LISTING REQUESTS
+// ============================================================
+async function loadListingRequests() {
+    const container = document.getElementById('listings-list');
+    container.innerHTML = '<p class="loading">Loading...</p>';
+
+    try {
+        const snapshot = await db.collection('listing_requests').orderBy('createdAt', 'desc').get();
+        const requests = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+        const statusFilter = document.getElementById('listing-status-filter').value;
+        let filtered = requests;
+
+        if (statusFilter) {
+            filtered = filtered.filter(r => r.status === statusFilter);
+        }
+
+        if (filtered.length === 0) {
+            container.innerHTML = '<p class="no-data">No listing requests found</p>';
+            return;
+        }
+
+        container.innerHTML = `
+            <table>
+                <thead>
+                    <tr>
+                        <th>Seller Name</th>
+                        <th>Phone</th>
+                        <th>Machine Model</th>
+                        <th>Age</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${filtered.map(r => {
+                        let dateStr = 'N/A';
+                        if (r.createdAt) {
+                            dateStr = r.createdAt.toDate ? r.createdAt.toDate().toLocaleDateString() : new Date(r.createdAt).toLocaleDateString();
+                        }
+                        return `
+                        <tr>
+                            <td>${r.name || 'N/A'}</td>
+                            <td>${r.phone || 'N/A'}</td>
+                            <td>${r.machineName || 'N/A'}</td>
+                            <td>${r.age || 'N/A'}</td>
+                            <td>${dateStr}</td>
+                            <td><span class="badge badge-${r.status || 'pending'}">${r.status || 'pending'}</span></td>
+                            <td class="action-btns">
+                                <button class="btn btn-small btn-outline" onclick="viewListingRequest('${r.id}')">View</button>
+                                ${r.status === 'pending' ? `
+                                    <button class="btn btn-small btn-primary" onclick="approveListingRequest('${r.id}')">Approve</button>
+                                    <button class="btn btn-small btn-danger" onclick="rejectListingRequest('${r.id}')">Reject</button>
+                                ` : ''}
+                            </td>
+                        </tr>
+                        `;
+                    }).join('')}
+                </tbody>
+            </table>
+        `;
+    } catch (error) {
+        console.error('Error loading listing requests:', error);
+        container.innerHTML = '<p class="no-data">Failed to load listing requests: ' + error.message + '</p>';
+    }
+}
+
+async function viewListingRequest(id) {
+    try {
+        const doc = await db.collection('listing_requests').doc(id).get();
+        if (!doc.exists) {
+            alert('Listing request not found');
+            return;
+        }
+        const r = doc.data();
+
+        let dateStr = 'N/A';
+        if (r.createdAt) {
+            dateStr = r.createdAt.toDate ? r.createdAt.toDate().toLocaleString() : new Date(r.createdAt).toLocaleString();
+        }
+
+        document.getElementById('listing-detail-content').innerHTML = `
+            <div class="form-group"><label>Request ID</label><p>${doc.id}</p></div>
+            <div class="form-row">
+                <div class="form-group"><label>Seller Name</label><p>${r.name || 'N/A'}</p></div>
+                <div class="form-group"><label>Company</label><p>${r.company || 'N/A'}</p></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Phone</label><p>${r.phone || 'N/A'}</p></div>
+                <div class="form-group"><label>Email</label><p>${r.email || 'N/A'}</p></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Machine Model</label><p>${r.machineName || 'N/A'}</p></div>
+                <div class="form-group"><label>Machine Age</label><p>${r.age || 'N/A'}</p></div>
+            </div>
+            <div class="form-group"><label>Condition Description</label><p>${r.condition || 'N/A'}</p></div>
+            <div class="form-row">
+                <div class="form-group"><label>Submitted Date</label><p>${dateStr}</p></div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <p><span class="badge badge-${r.status || 'pending'}">${r.status || 'pending'}</span></p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>1% Commission Agreement Status</label>
+                <p><span class="badge badge-completed" style="background: rgba(34,197,94,0.2); color: var(--success); font-weight: bold;"><i class="fa-solid fa-circle-check"></i> Agreed (1% commission on sale)</span></p>
+            </div>
+            
+            ${r.imageUrls && r.imageUrls.length > 0 ? `
+            <div class="form-group">
+                <label>Uploaded Images (${r.imageUrls.length})</label>
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; margin-top: 10px;">
+                    ${r.imageUrls.map((url, i) => `
+                        <div style="position: relative; height: 100px; border-radius: 6px; overflow: hidden; border: 1px solid var(--border);">
+                            <a href="${url}" target="_blank">
+                                <img src="${url}" alt="Machine Image ${i+1}" style="width: 100%; height: 100%; object-fit: cover;">
+                            </a>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+            ` : '<div class="form-group"><label>Uploaded Images</label><p>No images uploaded</p></div>'}
+
+            ${r.status === 'pending' ? `
+            <div style="display: flex; gap: 1rem; margin-top: 2rem; border-top: 1px solid var(--border); padding-top: 1.5rem;">
+                <button class="btn btn-primary btn-full" onclick="approveListingRequest('${doc.id}')"><i class="fa-solid fa-circle-check"></i> Approve Listing</button>
+                <button class="btn btn-danger btn-full" onclick="rejectListingRequest('${doc.id}')"><i class="fa-solid fa-circle-xmark"></i> Reject Listing</button>
+            </div>
+            ` : ''}
+        `;
+
+        document.getElementById('listing-detail-modal').classList.add('active');
+    } catch (error) {
+        console.error('Error viewing listing request:', error);
+        alert('Failed to load listing request: ' + error.message);
+    }
+}
+
+function closeListingDetailModal() {
+    document.getElementById('listing-detail-modal').classList.remove('active');
+}
+
+async function approveListingRequest(id) {
+    if (!confirm('Are you sure you want to approve this request and publish it to the website?')) return;
+
+    try {
+        const docRef = db.collection('listing_requests').doc(id);
+        const doc = await docRef.get();
+        if (!doc.exists) {
+            alert('Listing request not found');
+            return;
+        }
+
+        const r = doc.data();
+
+        // Create product document
+        const newProductRef = db.collection('products').doc();
+        const productData = {
+            name: r.machineName,
+            machineType: 'Other', // default, can be edited
+            category: 'used', // published to Used machines
+            price: 'Contact for Price',
+            stockCount: 1,
+            condition: 'Refurbished', // default, can be edited
+            description: `Pre-Owned ${r.machineName}. Running Age: ${r.age}. Running condition: ${r.condition}. Contact admin for details.`,
+            images: r.imageUrls || [],
+            status: 'active',
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+        await db.runTransaction(async (transaction) => {
+            transaction.update(docRef, { 
+                status: 'approved',
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            transaction.set(newProductRef, productData);
+        });
+
+        alert('Listing request approved successfully and published to website!');
+        closeListingDetailModal();
+        loadListingRequests();
+    } catch (error) {
+        console.error('Error approving listing request:', error);
+        alert('Failed to approve listing request: ' + error.message);
+    }
+}
+
+async function rejectListingRequest(id) {
+    if (!confirm('Are you sure you want to reject this listing request?')) return;
+
+    try {
+        await db.collection('listing_requests').doc(id).update({
+            status: 'rejected',
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        alert('Listing request rejected.');
+        closeListingDetailModal();
+        loadListingRequests();
+    } catch (error) {
+        console.error('Error rejecting listing request:', error);
+        alert('Failed to reject listing request: ' + error.message);
     }
 }

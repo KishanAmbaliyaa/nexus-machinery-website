@@ -583,9 +583,14 @@
 
                 <!-- Used Machine Sub-tab Content -->
                 <div class="sub-tab-content" id="sub-used-machine">
-                    <div class="tab-intro">
-                        <h3>Pre-Owned Machines Available</h3>
-                        <p>Quality certified pre-owned machinery, fully inspected and serviced by our expert technicians.</p>
+                    <div class="tab-intro" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
+                        <div>
+                            <h3>Pre-Owned Machines Available</h3>
+                            <p>Quality certified pre-owned machinery, fully inspected and serviced by our expert technicians.</p>
+                        </div>
+                        <button class="cta-button sell-machine-btn" onclick="openSellMachineModal()" style="margin: 0; white-space: nowrap;">
+                            <i class="fa-solid fa-tags"></i> Sell Your Machine
+                        </button>
                     </div>
                     <div class="product-grid" id="used-product-grid">
                     <!-- Used Product Card: CNC -->
@@ -894,6 +899,70 @@
                 <p>Our sales team will contact you shortly.</p>
                 <button class="cta-button" onclick="closeProductModal()">Done</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Sell Your Machine Modal -->
+    <div id="sell-machine-modal" class="modal-overlay">
+        <div class="modal-content product-modal-content">
+            <button class="modal-close-btn" onclick="closeSellMachineModal()"><i class="fa-solid fa-xmark"></i></button>
+            <h2>SELL YOUR MACHINE</h2>
+            <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.9rem;">Submit your pre-owned machine details for our team to review and list.</p>
+            <form class="enquiry-form" id="form-sell-machine" onsubmit="submitSellMachineForm(event)">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="sm-name">Full Name <span class="req">*</span></label>
+                        <input type="text" id="sm-name" placeholder="Your name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="sm-company">Company Name <span class="optional">(optional)</span></label>
+                        <input type="text" id="sm-company" placeholder="Your company name">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="sm-phone">Contact Number <span class="req">*</span></label>
+                        <input type="tel" id="sm-phone" placeholder="Your phone number" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="sm-email">Email <span class="optional">(optional)</span></label>
+                        <input type="email" id="sm-email" placeholder="Your email">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="sm-machine">Machine Model / Name <span class="req">*</span></label>
+                        <input type="text" id="sm-machine" placeholder="e.g. CNC Turning, BFW VMC" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="sm-age">Machine Age <span class="req">*</span></label>
+                        <input type="text" id="sm-age" placeholder="e.g. 2 Years, 6 Months" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="sm-condition">Machine Condition / Specifications <span class="req">*</span></label>
+                    <textarea id="sm-condition" rows="3" placeholder="Describe the running condition, controller, issues, specs..." required style="width: 100%; border: 1px solid var(--border-color); border-radius: 6px; padding: 0.8rem; background: var(--dark-bg); color: var(--text-color); font-family: 'Oswald', sans-serif; font-weight: 400; font-size: 0.95rem; resize: vertical; box-sizing: border-box;"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Photos of the Machine (Maximum 10 images) <span class="req">*</span></label>
+                    <div class="media-capture-area">
+                        <input type="file" id="sm-photos" accept="image/*" class="file-input-hidden" multiple onchange="handleSellPhotosSelected(this)">
+                        <button type="button" class="media-btn" onclick="document.getElementById('sm-photos').click()">
+                            <i class="fa-solid fa-images"></i> Choose Photos
+                        </button>
+                        <div class="photo-preview-grid" id="sm-photos-preview" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; margin-top: 10px;"></div>
+                    </div>
+                </div>
+                <div class="form-group checkbox-group" style="display: flex; gap: 10px; align-items: flex-start; margin-top: 1.5rem; margin-bottom: 1.5rem;">
+                    <input type="checkbox" id="sm-agreement" required style="width: auto; margin-top: 4px; cursor: pointer;">
+                    <label for="sm-agreement" style="font-size: 0.85rem; color: #ddd; cursor: pointer; line-height: 1.3;">
+                        I acknowledge and agree that if this machine is successfully listed and sold through this platform, Nexus Machinery Solutions will charge a <strong>1% commission fee</strong> on the final selling price. <span class="req">*</span>
+                    </label>
+                </div>
+                <button type="submit" class="submit-btn" id="sm-submit-btn">
+                    <i class="fa-solid fa-paper-plane"></i> Submit for Review
+                </button>
+            </form>
         </div>
     </div>
 

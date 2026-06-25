@@ -553,6 +553,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Wait slightly for Firebase to initialize if it's imported dynamically
     setTimeout(() => {
         fetchHeroSlides();
+        fetchProducts();
         startHeroTimer();
     }, 500);
 });
@@ -1803,4 +1804,298 @@ function triggerPhotoCapture(sourceType) {
     if (fileInput) {
         fileInput.click();
     }
+}
+
+// ============================================================
+// 22. DYNAMIC PRODUCTS LOADING & CUSTOMER USED MACHINE LISTING
+// ============================================================
+let sellMachineFiles = [];
+
+function openSellMachineModal() {
+    document.getElementById('sell-machine-modal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeSellMachineModal() {
+    document.getElementById('sell-machine-modal').classList.remove('active');
+    document.body.style.overflow = '';
+    sellMachineFiles = [];
+    document.getElementById('form-sell-machine').reset();
+    document.getElementById('sm-photos-preview').innerHTML = '';
+}
+
+function handleSellPhotosSelected(input) {
+    const previewGrid = document.getElementById('sm-photos-preview');
+    if (!previewGrid) return;
+
+    const newFiles = Array.from(input.files);
+    
+    // Check total files
+    if (sellMachineFiles.length + newFiles.length > 10) {
+        alert('You can upload a maximum of 10 images.');
+        input.value = '';
+        return;
+    }
+
+    // Validate type and size
+    for (const file of newFiles) {
+        if (!ALLOWED_IMAGE_TYPES.includes(file.type.toLowerCase())) {
+            alert('Only JPG, PNG, or WebP photos allowed.');
+            input.value = '';
+            return;
+        }
+        const sizeMB = file.size / (1024 * 1024);
+        if (sizeMB > MAX_PHOTO_SIZE_MB) {
+            alert(`Photo too large (${sizeMB.toFixed(1)} MB). Max: ${MAX_PHOTO_SIZE_MB} MB.`);
+            input.value = '';
+            return;
+        }
+    }
+
+    // Add to our state
+    newFiles.forEach(file => {
+        sellMachineFiles.push(file);
+    });
+
+    renderSellPhotoPreviews();
+    input.value = ''; // Reset input so same file can be selected again
+}
+
+function renderSellPhotoPreviews() {
+    const previewGrid = document.getElementById('sm-photos-preview');
+    if (!previewGrid) return;
+    previewGrid.innerHTML = '';
+
+    sellMachineFiles.forEach((file, index) => {
+        const container = document.createElement('div');
+        container.className = 'preview-image-container';
+
+        const img = document.createElement('img');
+        img.src = URL.createObjectURL(file);
+        img.alt = `Preview ${index + 1}`;
+        img.onload = () => URL.revokeObjectURL(img.src);
+
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'remove-img-btn';
+        removeBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+        removeBtn.onclick = () => {
+            sellMachineFiles.splice(index, 1);
+            renderSellPhotoPreviews();
+        };
+
+        container.appendChild(img);
+        container.appendChild(removeBtn);
+        previewGrid.appendChild(container);
+    });
+}
+
+async function submitSellMachineForm(event) {
+    event.preventDefault();
+
+    const form = event.target;
+    const submitBtn = document.getElementById('sm-submit-btn');
+
+    if (sellMachineFiles.length === 0) {
+        alert('Please add at least one photo of the machine.');
+        return;
+    }
+
+    const name = sanitizeText(document.getElementById('sm-name').value, 100);
+    const company = sanitizeText(document.getElementById('sm-company').value, 150);
+    const phone = sanitizePhone(document.getElementById('sm-phone').value);
+    const email = sanitizeEmail(document.getElementById('sm-email').value);
+    const machineName = sanitizeText(document.getElementById('sm-machine').value, 200);
+    const age = sanitizeText(document.getElementById('sm-age').value, 50);
+    const condition = sanitizeText(document.getElementById('sm-condition').value, 1000);
+    const agreementChecked = document.getElementById('sm-agreement').checked;
+
+    if (!phone) {
+        alert('Please enter a valid 10-digit Indian mobile number (starting with 6, 7, 8, or 9).');
+        return;
+    }
+
+    if (email === null) {
+        alert('Please enter a valid email address.');
+        return;
+    }
+
+    if (!agreementChecked) {
+        alert('You must acknowledge and agree to the 1% commission fee.');
+        return;
+    }
+
+    // Set loading state
+    submitBtn.disabled = true;
+    submitBtn.classList.add('loading');
+    const originalHTML = submitBtn.innerHTML;
+    submitBtn.innerHTML = 'Submitting...';
+
+    try {
+        const imageUrls = [];
+        // Upload images one by one
+        for (const file of sellMachineFiles) {
+            const url = await uploadFileToStorage(file, 'used_listing');
+            imageUrls.push(url);
+        }
+
+        const db = window._nexusDB;
+        const fb = window._firebase;
+
+        const data = {
+            name,
+            company,
+            phone,
+            email,
+            machineName,
+            age,
+            condition,
+            imageUrls,
+            commissionAgreed: true,
+            status: 'pending',
+            createdAt: fb ? fb.serverTimestamp() : new Date(),
+            updatedAt: fb ? fb.serverTimestamp() : new Date()
+        };
+
+        if (db && fb) {
+            await fb.addDoc(fb.collection(db, 'listing_requests'), data);
+        } else {
+            console.log('📬 [SIMULATED] Saved listing request:', data);
+        }
+
+        alert('Your listing request has been submitted successfully for review!');
+        closeSellMachineModal();
+    } catch (err) {
+        console.error('Error submitting listing request:', err);
+        alert('Failed to submit listing request: ' + err.message);
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('loading');
+        submitBtn.innerHTML = originalHTML;
+    }
+}
+
+// Close sell machine modal on overlay click
+document.addEventListener('DOMContentLoaded', () => {
+    const modal = document.getElementById('sell-machine-modal');
+    if (modal) {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeSellMachineModal();
+        });
+    }
+});
+
+// Dynamic Products fetching logic
+async function fetchProducts() {
+    try {
+        const db = window._nexusDB;
+        const fb = window._firebase;
+
+        if (!db || !fb) {
+            console.warn("Firebase not initialized yet. Keeping static products.");
+            return;
+        }
+
+        const snapshot = await fb.getDocs(fb.collection(db, 'products'));
+        if (snapshot.empty) {
+            console.log("No products in Firestore. Keeping static products.");
+            return;
+        }
+
+        const newGrid = document.getElementById('new-product-grid');
+        const usedGrid = document.getElementById('used-product-grid');
+
+        const products = [];
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            if (data.status && data.status !== 'active') return;
+            products.push({ id: doc.id, ...data });
+        });
+
+        const newProducts = products.filter(p => p.category === 'new');
+        const usedProducts = products.filter(p => p.category === 'used');
+
+        if (newProducts.length > 0 && newGrid) {
+            newGrid.innerHTML = '';
+            newProducts.forEach(p => {
+                newGrid.appendChild(createProductCardHTML(p, 'new'));
+            });
+        }
+
+        if (usedProducts.length > 0 && usedGrid) {
+            usedGrid.innerHTML = '';
+            usedProducts.forEach(p => {
+                usedGrid.appendChild(createProductCardHTML(p, 'used'));
+            });
+        }
+
+    } catch (error) {
+        console.error("Error fetching products from Firestore:", error);
+    }
+}
+
+function createProductCardHTML(product, category) {
+    const card = document.createElement('div');
+    card.className = 'product-card';
+
+    const badge = document.createElement('div');
+    if (category === 'new') {
+        badge.className = 'product-badge new-badge';
+        badge.textContent = 'NEW';
+    } else {
+        badge.className = 'product-badge used-badge';
+        badge.textContent = 'PRE-OWNED';
+    }
+    card.appendChild(badge);
+
+    const imgDiv = document.createElement('div');
+    imgDiv.className = 'product-image';
+    const img = document.createElement('img');
+    img.src = (product.images && product.images.length > 0) ? product.images[0] : 'Images/CNC.png';
+    img.alt = product.name;
+    imgDiv.appendChild(img);
+    card.appendChild(imgDiv);
+
+    const info = document.createElement('div');
+    info.className = 'product-info';
+
+    const name = document.createElement('h3');
+    name.className = 'product-name';
+    name.textContent = product.name;
+    info.appendChild(name);
+
+    const tag = document.createElement('div');
+    tag.className = 'product-type-tag';
+    
+    let iconClass = 'fa-solid fa-cube';
+    const type = (product.machineType || '').toLowerCase();
+    if (type.includes('turning')) iconClass = 'fa-solid fa-rotate';
+    else if (type.includes('vmc')) iconClass = 'fa-solid fa-industry';
+    else if (type.includes('hmc')) iconClass = 'fa-solid fa-gears';
+    else if (type.includes('vtl')) iconClass = 'fa-solid fa-arrows-spin';
+    else if (type.includes('double')) iconClass = 'fa-solid fa-table-columns';
+    
+    const icon = document.createElement('i');
+    icon.className = iconClass;
+    tag.appendChild(icon);
+    tag.appendChild(document.createTextNode(' ' + (product.machineType || 'Machine')));
+    info.appendChild(tag);
+
+    const desc = document.createElement('p');
+    desc.className = 'product-desc';
+    desc.textContent = product.description || '';
+    info.appendChild(desc);
+
+    const btn = document.createElement('button');
+    btn.className = 'enquire-btn';
+    btn.onclick = () => openProductModal(product.name, category);
+    
+    const btnIcon = document.createElement('i');
+    btnIcon.className = 'fa-solid fa-paper-plane';
+    btn.appendChild(btnIcon);
+    btn.appendChild(document.createTextNode(' Send Enquiry'));
+    info.appendChild(btn);
+
+    card.appendChild(info);
+    return card;
 }

@@ -2353,3 +2353,45 @@ h1, h2, h3 { text-transform: uppercase; font-weight: 900; letter-spacing: 1px; }
 .map-instruction-text i {
     color: var(--accent-color);
 }
+
+/* Sell Machine Form Styling Additions */
+.photo-preview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 10px;
+    margin-top: 10px;
+}
+.preview-image-container {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    overflow: hidden;
+}
+.preview-image-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.preview-image-container .remove-img-btn {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    background: rgba(196, 18, 33, 0.9);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    cursor: pointer;
+    transition: background 0.2s;
+    z-index: 10;
+}
+.preview-image-container .remove-img-btn:hover {
+    background: #E31828;
+}

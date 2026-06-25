@@ -6,7 +6,7 @@
     <title>Nexus Admin Panel</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/admin/styles.css">
 </head>
@@ -157,7 +157,7 @@
                             <option value="part_enquiries">Part Enquiry</option>
                             <option value="other_service_enquiries">Other Service</option>
                         </select>
-                        <input type="date" id="booking-date-filter" onchange="loadBookings()" style="padding: 0.5rem 0.8rem; font-size: 0.8rem; background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: 'Oswald', sans-serif;">
+                        <input type="date" id="booking-date-filter" onchange="loadBookings()" style="padding: 0.5rem 0.8rem; font-size: 0.8rem; background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: 'Montserrat', sans-serif;">
                     </div>
                 </div>
                 <div id="bookings-list" class="table-container">
@@ -196,7 +196,7 @@
                 <div class="tab-header">
                     <h2>Product Inquiries</h2>
                     <div class="filter-group" style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
-                        <input type="text" id="inquiry-search-filter" placeholder="Search product/customer..." oninput="loadInquiries()" style="padding: 0.5rem 0.8rem; font-size: 0.8rem; background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: 'Oswald', sans-serif;">
+                        <input type="text" id="inquiry-search-filter" placeholder="Search product/customer..." oninput="loadInquiries()" style="padding: 0.5rem 0.8rem; font-size: 0.8rem; background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: 'Montserrat', sans-serif;">
                         <select id="inquiry-status-filter" onchange="loadInquiries()">
                             <option value="">All Status</option>
                             <option value="new">New</option>
@@ -214,8 +214,8 @@
                 <div class="tab-header">
                     <h2>Customers</h2>
                     <div class="filter-group" style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
-                        <input type="text" id="customer-name-filter" placeholder="Search by name..." oninput="loadCustomers()" style="padding: 0.5rem 0.8rem; font-size: 0.8rem; background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: 'Oswald', sans-serif;">
-                        <input type="text" id="customer-phone-filter" placeholder="Search by phone..." oninput="loadCustomers()" style="padding: 0.5rem 0.8rem; font-size: 0.8rem; background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: 'Oswald', sans-serif;">
+                        <input type="text" id="customer-name-filter" placeholder="Search by name..." oninput="loadCustomers()" style="padding: 0.5rem 0.8rem; font-size: 0.8rem; background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: 'Montserrat', sans-serif;">
+                        <input type="text" id="customer-phone-filter" placeholder="Search by phone..." oninput="loadCustomers()" style="padding: 0.5rem 0.8rem; font-size: 0.8rem; background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: 'Montserrat', sans-serif;">
                     </div>
                 </div>
                 <div id="customers-list" class="table-container">
